@@ -1,6 +1,6 @@
 {
   "name": "klangwerk",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Klangwerk – eine DAW nach Logic-Vorbild",
   "main": "main.js",
   "scripts": {
@@ -13,7 +13,8 @@
     "productName": "Klangwerk",
     "files": [
       "main.js",
-      "dist/index.html"
+      "dist/index.html",
+      "dist/vendor/**"
     ],
     "win": {
       "target": "zip",

@@ -14,7 +14,7 @@ Zuerst als Windows-Programm, später auch als Web-App fürs iPhone.
 
 Leitregel: Alles, was nur unter Windows geht (VST3, Dateisystem, ASIO), kommt hinter eine Schnittstelle, damit die Web-Version ohne diese Teile weiter läuft.
 
-## Prototyp v0.1 (fertig)
+## Version 0.1 (fertig)
 
 - Steuerleiste mit Abspielen, Stopp, Aufnahme, Cycle, Metronom, Takt-Anzeige und Tempo
 - Arrangement mit Spuren: Software-Instrument, Drummer, Audio
@@ -30,25 +30,32 @@ Leitregel: Alles, was nur unter Windows geht (VST3, Dateisystem, ASIO), kommt hi
 - Lautstärke, Panorama, Mute, Solo pro Spur, Master-Pegel
 - Rückgängig, automatisches Speichern des Projekts
 
-Bekannte Grenzen von v0.1:
-- Audioaufnahmen werden noch nicht dauerhaft gespeichert (nach Neustart weg)
-- Kein Export als WAV/MP3
-- Keine Effekte (Hall, Delay, EQ)
+## Version 0.2 (fertig)
+
+- Datei-Menü: Neu, Öffnen, Speichern (Strg+S), Speichern unter. Projektdatei `.klangwerk` enthält auch alle Aufnahmen
+- Aufnahmen und Importe überstehen einen Neustart (Browser-Speicher)
+- Export des ganzen Songs als WAV (16 Bit, 44,1 kHz) oder MP3 (192 kbit/s), schneller als Echtzeit
+- Instrument-Bibliothek mit 32 Sounds in 6 Kategorien: Tasten, Bass, Lead, Flächen, Streicher & Bläser, Gezupft & Glocken
+- 5 Drumkits: Standard, 808, Akustik, Elektro, Lo-Fi
+- Kanal-EQ pro Spur wie in Logic: 6 Bänder (Low Cut, Tiefen, 2× Mitten, Höhen, High Cut), Kurve mit der Maus ziehen, Mausrad für die Bandbreite, Live-Spektrum, 9 Vorlagen
+
+Bekannte Grenzen:
+- Keine weiteren Effekte (Hall, Delay, Kompressor pro Spur)
 - Aufnahme-Latenz wird noch nicht ausgeglichen
+- Im Claude-Artefakt werden Exporte als .zip geliefert (dort sind nur bestimmte Dateitypen erlaubt)
 
 ## Nächste Schritte
 
-1. **Projekte als Datei speichern/öffnen** inkl. Audioaufnahmen (`.klangwerk`-Ordner)
-2. **Export (Bounce)** als WAV und MP3
-3. **Mixer-Fenster** mit Effekten pro Spur: EQ, Kompressor, Hall, Delay
-4. **Sampler-Instrumente** mit freien Sample-Bibliotheken (Flügel, Gitarre, echte Drumkits)
-5. **Aufnahme-Feinschliff**: Latenzausgleich, Vorzähler, Takes im Cycle
-6. **Automation** (Lautstärke-Kurven usw.)
-7. **Web-App/iPhone**: Touch-Bedienung, Installation als PWA
-8. **VST3-Plug-ins** in der Windows-Version
+1. **Effekte pro Spur**: Hall, Delay, Kompressor (Mixer-Fenster)
+2. **Klangregler für Instrumente**: Filter, Attack, Release direkt einstellen
+3. **Sampler-Instrumente** mit freien Sample-Bibliotheken (Flügel, Gitarre, echte Drumkits)
+4. **Aufnahme-Feinschliff**: Latenzausgleich, Vorzähler, Takes im Cycle
+5. **Automation** (Lautstärke-Kurven usw.)
+6. **Web-App/iPhone**: Touch-Bedienung, Installation als PWA
+7. **VST3-Plug-ins** in der Windows-Version
 
 ## Starten
 
-- Windows: `Klangwerk-0.1.0-win.zip` entpacken, `Klangwerk.exe` starten
+- Windows: `Klangwerk-0.2.0-win.zip` entpacken, `Klangwerk.exe` starten
 - Entwicklung: `npm install`, dann `npm start`
 - Windows-Build: `npm run dist:win`
