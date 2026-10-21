@@ -52,6 +52,15 @@ Bekannte Grenzen:
 - 57 Instrumente in 9 Kategorien, neu u. a. Gitarren per Saiten-Simulation (Akustik, Nylon, E-Gitarre clean/verzerrt, Banjo), Kontrabass, Slap- und Wobble-Bass, Trompete, Saxophon, Klarinette, Oboe, Cello, Sitar, Koto, Steel Drum, Panflöte, Chiptune
 - Sanfter Begrenzer am Master gegen Übersteuern
 
+## Version 0.4 (fertig)
+
+- Piano Roll mit Werkzeugen Zeichnen, Auswählen (Rechteck, Shift+Klick, Strg+A) und Löschen
+- Am Touchscreen scrollt Wischen, nur Tippen setzt eine Note; am Rand ziehen ändert die Länge
+- Länge und Anschlag der ausgewählten Noten oben einstellbar, dazu eine Anschlag-Spur unter dem Editor
+- Triolen: Raster 1/4-, 1/8- und 1/16-Triolen, Button „In Triole teilen“, im Drum-Pattern lässt sich jeder Schlag einzeln auf Triolen umschalten
+- Drum-Editor pro Instrument (Kick, Snare …): Tonhöhe ±12 Halbtöne und Anschlag für jeden einzelnen Schlag
+- Editor-Höhe mit dem Griff verstellbar
+
 ## Nächste Schritte
 
 1. **Mixer-Fenster** mit allen Kanalzügen nebeneinander
@@ -63,6 +72,6 @@ Bekannte Grenzen:
 
 ## Starten
 
-- Windows: `Klangwerk-0.3.0-win.zip` entpacken, `Klangwerk.exe` starten
+- Windows: `Klangwerk-0.4.0-win.zip` entpacken, `Klangwerk.exe` starten
 - Entwicklung: `npm install`, dann `npm start`
 - Windows-Build: `npm run dist:win`
