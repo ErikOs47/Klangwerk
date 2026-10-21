@@ -61,17 +61,26 @@ Bekannte Grenzen:
 - Drum-Editor pro Instrument (Kick, Snare …): Tonhöhe ±12 Halbtöne und Anschlag für jeden einzelnen Schlag
 - Editor-Höhe mit dem Griff verstellbar
 
-## Nächste Schritte
+## Version 0.5 (fertig)
 
-1. **Mixer-Fenster** mit allen Kanalzügen nebeneinander
-2. **Sampler-Instrumente** mit freien Sample-Bibliotheken (Flügel, Gitarre, echte Drumkits)
-3. **Aufnahme-Feinschliff**: Latenzausgleich, Vorzähler, Takes im Cycle
-4. **Automation** (Lautstärke-Kurven usw.)
-5. **Web-App/iPhone**: Touch-Bedienung, Installation als PWA
-6. **VST3-Plug-ins** in der Windows-Version
+- Neues Design: ruhiges Dark-Theme, einheitliche Regler und Icons, weiche Übergänge und Animationen
+- Steuerleiste neu geordnet (Transport und Anzeige in der Mitte), passt sich an kleine Fenster und das Handy an
+- Bibliothek als Seitenleiste (Taste I): Sounds mit Suche und Kategorien, Drumkits, Pattern per Klick; Pfeiltasten blättern durch die Sounds
+- Mixer (Taste M): Kanalzüge mit Klang, EQ-Vorschau, Hall/Delay-Send, Panorama, Fader mit Pegelanzeige, Mute/Solo, dazu die Effekt-Busse und der Master
+- Pegelanzeige in jedem Spurkopf
+- Zoomen mit Strg + Mausrad oder zwei Fingern um die Stelle unter dem Zeiger, auch im Piano Roll und Drum-Editor (Buttons − / +)
+- Beim Abspielen gleitet die Ansicht weich mit
+
+## Fahrplan
+
+1. **v0.6 Bearbeitung**: Automation (Lautstärke, Pan, Effekte als Kurven), Audio schneiden und blenden, Marker für Songteile, Kopieren/Einfügen über Spuren
+2. **v0.7 Sampler-Instrumente** mit freien Sample-Bibliotheken (Flügel, Gitarre, echte Drumkits)
+3. **v0.8 Aufnahme-Feinschliff**: Vorzähler, Latenzausgleich, Takes im Cycle
+4. **v0.9 Web-App/iPhone**: Installation als PWA, Touch-Bedienung weiter verbessern
+5. **Später**: VST3-Plug-ins in der Windows-Version
 
 ## Starten
 
-- Windows: `Klangwerk-0.4.0-win.zip` entpacken, `Klangwerk.exe` starten
+- Windows: `Klangwerk-0.5.0-win.zip` entpacken, `Klangwerk.exe` starten
 - Entwicklung: `npm install`, dann `npm start`
 - Windows-Build: `npm run dist:win`
