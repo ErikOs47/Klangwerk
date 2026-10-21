@@ -87,6 +87,19 @@ button { cursor: pointer; }
 .band input { margin: 0; accent-color: var(--bc); }
 .band.off { opacity: .5; }
 @media (max-width: 700px) { .eq { flex-direction: column; } .eq-bands { width: auto; flex-direction: row; flex-wrap: wrap; max-height: 70px; } }
+.fx { position: absolute; inset: 0; overflow: auto; padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; align-content: start; }
+.card { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.card.shared { border-style: dashed; }
+.card h3 { margin: 0 0 2px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--fg); }
+.card h3 label { display: flex; align-items: center; gap: 6px; }
+.knob { display: grid; grid-template-columns: 92px 1fr 64px; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+.knob input[type=range], .knob select { min-width: 0; width: 100%; }
+.knob select { grid-column: 2 / 4; height: 24px; background: var(--raise); border: 1px solid var(--line); border-radius: 4px; font-size: 12px; }
+.knob output { text-align: right; color: var(--fg); font-variant-numeric: tabular-nums; }
+.card .sbtn { align-self: flex-start; height: 24px; border-radius: 5px; border: 1px solid var(--line); background: var(--raise); padding: 0 10px; font-size: 12px; }
+.gr { display: grid; grid-template-columns: 92px 1fr; gap: 8px; align-items: center; font-size: 12px; color: var(--muted); }
+.gr i { height: 6px; background: #0b0c0f; border-radius: 3px; overflow: hidden; display: flex; justify-content: flex-end; }
+.gr b { display: block; height: 100%; width: 0; background: var(--accent); }
 .meter { width: 90px; height: 8px; border-radius: 4px; background: #0b0c0f; overflow: hidden; border: 1px solid #000; }
 .meter i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #3fb969 0 70%, var(--solo) 70% 88%, var(--rec) 88%); background-size: 90px 100%; }
 .mini { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
@@ -325,7 +338,38 @@ const PRESETS = {
   guitar:   { cat: 'Gezupft & Glocken', name: 'Clean-Gitarre', osc: [{ type: 'sawtooth', mult: 1, gain: .3 }, { type: 'square', mult: 1, gain: .1 }, { type: 'triangle', mult: 2, gain: .1 }], env: { a: .002, d: 1.2, s: .1, r: .2 }, cut: 1500, fenv: 2500, fdec: .08, q: 2, level: .35 },
   harp:     { cat: 'Gezupft & Glocken', name: 'Harfe', osc: [{ type: 'triangle', mult: 1, gain: .5 }, { type: 'sine', mult: 2, gain: .2, decay: .3 }], env: { a: .002, d: 1.5, s: 0, r: .6 }, cut: 2500, level: .42 },
   kalimba:  { cat: 'Gezupft & Glocken', name: 'Kalimba', osc: [{ type: 'sine', mult: 1, gain: .6, fm: { ratio: 5.4, depth: 1, decay: .05 } }], env: { a: .001, d: .7, s: 0, r: .3 }, cut: 8000, level: .4 },
-  bell:     { cat: 'Gezupft & Glocken', name: 'Glocke (FM)', osc: [{ type: 'sine', mult: 1, gain: .5, fm: { ratio: 3.5, depth: 4, decay: 1.5 } }], env: { a: .001, d: 3, s: 0, r: 1.5 }, cut: 9000, level: .3 }
+  bell:     { cat: 'Gezupft & Glocken', name: 'Glocke (FM)', osc: [{ type: 'sine', mult: 1, gain: .5, fm: { ratio: 3.5, depth: 4, decay: 1.5 } }], env: { a: .001, d: 3, s: 0, r: 1.5 }, cut: 9000, level: .3 },
+  // Weitere Tasten
+  honky:    { cat: 'Tasten', name: 'Honky-Tonk-Piano', osc: [{ type: 'triangle', mult: 1, detune: -9, gain: .35, decay: 2 }, { type: 'triangle', mult: 1, detune: 9, gain: .35, decay: 2 }, { type: 'sine', mult: 2, gain: .15, decay: .8 }], env: { a: .002, d: 2.2, s: 0, r: .3 }, cut: 3500, fenv: 2500, fdec: .25, level: .4 },
+  harpsi:   { cat: 'Tasten', name: 'Cembalo', osc: [{ type: 'ks', gain: .7, ks: { decay: .996, bright: .9, dur: 3 } }, { type: 'ks', mult: 2, gain: .3, ks: { decay: .994, bright: .9, dur: 2 } }], env: { a: .001, d: 3, s: .9, r: .25 }, cut: 9000, level: .5 },
+  accordion:{ cat: 'Tasten', name: 'Akkordeon', osc: [{ type: 'sawtooth', mult: 1, detune: -8, gain: .25 }, { type: 'square', mult: 1, detune: 8, gain: .2 }, { type: 'sawtooth', mult: 2, gain: .08 }], env: { a: .05, d: .2, s: .9, r: .12 }, cut: 2600, q: 1.5, trem: { rate: 6, depth: .2 }, level: .26 },
+  // Gitarre (Saiten-Simulation)
+  acgtr:    { cat: 'Gitarre', name: 'Akustikgitarre', osc: [{ type: 'ks', gain: .8, ks: { decay: .997, bright: .7, dur: 4 } }], env: { a: .001, d: 4, s: .9, r: .3 }, cut: 6000, level: .55 },
+  nylon:    { cat: 'Gitarre', name: 'Nylon-Gitarre', osc: [{ type: 'ks', gain: .8, ks: { decay: .996, bright: .35, dur: 4 } }], env: { a: .002, d: 4, s: .9, r: .3 }, cut: 3500, level: .6 },
+  egtr:     { cat: 'Gitarre', name: 'E-Gitarre clean', osc: [{ type: 'ks', gain: .8, ks: { decay: .998, bright: .55, dur: 5 } }], env: { a: .001, d: 5, s: .9, r: .2 }, cut: 4000, drive: 1.5, level: .45 },
+  dist:     { cat: 'Gitarre', name: 'E-Gitarre verzerrt', osc: [{ type: 'ks', gain: .8, ks: { decay: .999, bright: .6, dur: 5 } }, { type: 'ks', mult: 1.5, gain: .4, ks: { decay: .999, bright: .6, dur: 5 } }], env: { a: .001, d: 5, s: .95, r: .15 }, cut: 3200, q: 1.5, drive: 12, level: .22 },
+  banjo:    { cat: 'Gitarre', name: 'Banjo', osc: [{ type: 'ks', gain: .8, ks: { decay: .992, bright: .95, dur: 2 } }], env: { a: .001, d: 2, s: .9, r: .2 }, cut: 7000, level: .55 },
+  // Weitere Bässe
+  upright:  { cat: 'Bass', name: 'Kontrabass', osc: [{ type: 'ks', gain: .9, ks: { decay: .996, bright: .25, dur: 3 } }, { type: 'sine', mult: 1, gain: .25, decay: .8 }], env: { a: .004, d: 3, s: .9, r: .15 }, cut: 1500, level: .7 },
+  slap:     { cat: 'Bass', name: 'Slap-Bass', osc: [{ type: 'ks', gain: .9, ks: { decay: .997, bright: .95, dur: 3 } }], env: { a: .001, d: 3, s: .9, r: .1 }, cut: 1200, fenv: 4000, fdec: .05, q: 2, level: .65 },
+  wobble:   { cat: 'Bass', name: 'Wobble-Bass', osc: [{ type: 'sawtooth', mult: 1, detune: -6, gain: .4 }, { type: 'sawtooth', mult: 1, detune: 6, gain: .4 }, { type: 'square', mult: .5, gain: .3 }], env: { a: .005, d: .3, s: .9, r: .1 }, cut: 700, q: 8, wob: { sync: 2, depth: .85 }, level: .32 },
+  // Bläser & Orchester
+  trumpet:  { cat: 'Streicher & Bläser', name: 'Trompete', osc: [{ type: 'sawtooth', mult: 1, gain: .45 }, { type: 'square', mult: 1, gain: .1 }], env: { a: .03, d: .2, s: .85, r: .1 }, cut: 1200, fenv: 3000, fdec: .12, q: 2, vib: { rate: 5.5, depth: 7 }, level: .3 },
+  sax:      { cat: 'Streicher & Bläser', name: 'Saxophon', osc: [{ type: 'sawtooth', mult: 1, gain: .35 }, { type: 'square', mult: 1, gain: .2 }, { type: 'noise', gain: .025 }], ftype: 'bandpass', env: { a: .04, d: .3, s: .85, r: .12 }, cut: 1300, q: .9, vib: { rate: 5, depth: 10 }, level: .75 },
+  clarinet: { cat: 'Streicher & Bläser', name: 'Klarinette', osc: [{ type: 'square', mult: 1, gain: .4 }, { type: 'sine', mult: 1, gain: .2 }], env: { a: .04, d: .2, s: .9, r: .1 }, cut: 2200, vib: { rate: 5, depth: 5 }, level: .3 },
+  oboe:     { cat: 'Streicher & Bläser', name: 'Oboe', osc: [{ type: 'sawtooth', mult: 1, gain: .5 }], ftype: 'bandpass', env: { a: .03, d: .2, s: .9, r: .1 }, cut: 1600, q: 3, vib: { rate: 5.5, depth: 7 }, level: .9 },
+  cello:    { cat: 'Streicher & Bläser', name: 'Cello', osc: [{ type: 'sawtooth', mult: 1, gain: .4 }, { type: 'sawtooth', mult: 1, detune: 4, gain: .2 }], env: { a: .12, d: .4, s: .9, r: .35 }, cut: 1400, q: 1.2, vib: { rate: 5.2, depth: 9 }, level: .3 },
+  tutti:    { cat: 'Streicher & Bläser', name: 'Orchester-Tutti', osc: [{ type: 'sawtooth', mult: 1, detune: -8, gain: .25 }, { type: 'sawtooth', mult: 1, detune: 8, gain: .25 }, { type: 'sawtooth', mult: .5, gain: .2 }, { type: 'square', mult: 2, gain: .06 }], env: { a: .15, d: .5, s: .9, r: .6 }, cut: 1800, fenv: 1200, fdec: .4, vib: { rate: 5, depth: 5 }, level: .2 },
+  // Weltmusik
+  sitar:    { cat: 'Weltmusik', name: 'Sitar', osc: [{ type: 'ks', gain: .7, ks: { decay: .998, bright: .9, dur: 4 } }, { type: 'ks', mult: 2, gain: .25, ks: { decay: .997, bright: .9, dur: 3 } }], env: { a: .001, d: 4, s: .9, r: .3 }, cut: 5000, q: 3, drive: 2.5, level: .38 },
+  koto:     { cat: 'Weltmusik', name: 'Koto', osc: [{ type: 'ks', gain: .8, ks: { decay: .995, bright: .8, dur: 3 } }], env: { a: .001, d: 3, s: .9, r: .25 }, cut: 6000, vib: { rate: 4, depth: 4 }, level: .55 },
+  steeldrum:{ cat: 'Weltmusik', name: 'Steel Drum', osc: [{ type: 'sine', mult: 1, gain: .5 }, { type: 'sine', mult: 2, gain: .25, decay: .5 }, { type: 'sine', mult: 3.9, gain: .12, decay: .2 }], env: { a: .002, d: 1, s: .1, r: .4 }, cut: 8000, level: .45 },
+  panflute: { cat: 'Weltmusik', name: 'Panflöte', osc: [{ type: 'sine', mult: 1, gain: .55 }, { type: 'noise', gain: .07 }], env: { a: .08, d: .3, s: .8, r: .2 }, cut: 4000, vib: { rate: 4.5, depth: 6 }, level: .38 },
+  // Synth & FX
+  chip:     { cat: 'Synth & FX', name: 'Chiptune', osc: [{ type: 'square', mult: 1, gain: .35 }], env: { a: .001, d: .1, s: .7, r: .03 }, cut: 20000, level: .18 },
+  hoover:   { cat: 'Synth & FX', name: 'Hoover', osc: [-25, -10, 10, 25].map(d => ({ type: 'sawtooth', mult: 1, detune: d, gain: .18 })).concat([{ type: 'sawtooth', mult: .5, gain: .2 }]), glide: { from: .5, time: .15 }, env: { a: .02, d: .3, s: .85, r: .4 }, cut: 3000, vib: { rate: 6, depth: 15 }, level: .2 },
+  sweep:    { cat: 'Synth & FX', name: 'Sci-Fi Sweep', osc: [{ type: 'sawtooth', mult: 1, detune: -12, gain: .3 }, { type: 'sawtooth', mult: 1, detune: 12, gain: .3 }], env: { a: .6, d: 2, s: .7, r: 1.5 }, cut: 300, fenv: 5000, fdec: 1.2, q: 6, level: .22 },
+  arp:      { cat: 'Synth & FX', name: 'Arp-Pluck', osc: [{ type: 'square', mult: 1, gain: .3 }, { type: 'sawtooth', mult: 2, gain: .15 }], env: { a: .001, d: .18, s: 0, r: .1 }, cut: 400, fenv: 5000, fdec: .04, q: 4, level: .3 }
 };
 function presetOptions(sel) {
   const cats = {};
@@ -362,7 +406,7 @@ function patternSteps(name) {
   return o;
 }
 
-let ctx = null, master, analyser, noiseBuf;
+let ctx = null, master, analyser, noiseBuf, buses = null;
 const chans = new Map();
 // Baut die Master-Kette im aktuellen ctx auf (live oder beim Export im OfflineAudioContext).
 function buildMaster(dest) {
@@ -370,10 +414,40 @@ function buildMaster(dest) {
   comp.threshold.value = -10; comp.ratio.value = 4;
   master = ctx.createGain(); master.gain.value = P.master ?? .8;
   analyser = ctx.createAnalyser(); analyser.fftSize = 1024;
-  master.connect(comp).connect(analyser).connect(dest);
+  // Sanfter Begrenzer am Ende, damit Export und Wiedergabe nie hart übersteuern
+  const clip = ctx.createWaveShaper(), cc = new Float32Array(2048);
+  for (let i = 0; i < cc.length; i++) { const x = i / 1023.5 - 1, ax = Math.abs(x); cc[i] = Math.sign(x) * (ax < .7 ? ax : .7 + .3 * Math.tanh((ax - .7) / .3)); }
+  clip.curve = cc;
+  master.connect(comp).connect(clip).connect(analyser).connect(dest);
   noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
   const d = noiseBuf.getChannelData(0);
   for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  // Effekt-Busse, die alle Spuren über ihre Sends nutzen (wie Bus 1/2 in Logic)
+  const rev = ctx.createConvolver(), revOut = ctx.createGain();
+  rev.connect(revOut).connect(master);
+  const del = ctx.createDelay(4), fb = ctx.createGain(), tone = ctx.createBiquadFilter(), delOut = ctx.createGain();
+  tone.type = 'lowpass';
+  del.connect(tone).connect(fb).connect(del); tone.connect(delOut).connect(master);
+  buses = { rev, revOut, revSize: 0, del, fb, tone, delOut };
+  applyBuses(true);
+}
+const fxDefaults = () => ({ rev: { size: 2.2, level: .8 }, del: { div: .75, fb: .35, tone: 4500, level: .7 } });
+const busFx = () => (P.fx ||= fxDefaults());
+function makeIR(secs) {
+  const sr = ctx.sampleRate, len = Math.floor(sr * secs), b = ctx.createBuffer(2, len, sr);
+  for (let c = 0; c < 2; c++) {
+    const d = b.getChannelData(c);
+    for (let i = 0; i < len; i++) { const t = i / len; d[i] = (Math.random() * 2 - 1) * Math.pow(1 - t, 3) * (i < sr * .012 ? i / (sr * .012) : 1); }
+  }
+  return b;
+}
+function applyBuses(now) {
+  if (!buses) return;
+  const fx = busFx(), t = ctx.currentTime, set = (prm, v) => now ? (prm.value = v) : prm.setTargetAtTime(v, t, .02);
+  if (buses.revSize !== fx.rev.size) { buses.rev.buffer = makeIR(fx.rev.size); buses.revSize = fx.rev.size; }
+  set(buses.revOut.gain, fx.rev.level);
+  set(buses.del.delayTime, Math.min(4, fx.del.div * 60 / P.bpm));
+  set(buses.fb.gain, fx.del.fb); set(buses.tone.frequency, fx.del.tone); set(buses.delOut.gain, fx.del.level);
 }
 function ensureCtx() {
   if (ctx) { if (ctx.state !== 'running' && ctx.resume) ctx.resume(); return ctx; }
@@ -412,16 +486,20 @@ function defaultEq() {
     { type: 'lowpass', f: 16000, q: .7, on: false }] };
 }
 const eqOf = tr => (tr.eq ||= defaultEq());
+const trackFxDefaults = () => ({ comp: { on: false, thr: -18, ratio: 4, att: 10, rel: 200, gain: 0 }, rev: 0, del: 0 });
+const fxOf = tr => (tr.fx ||= trackFxDefaults());
 function chan(tr) {
   let c = chans.get(tr.id);
   if (!c) {
     const input = ctx.createGain(), vol = ctx.createGain(), pan = ctx.createStereoPanner(), an = ctx.createAnalyser();
     an.fftSize = 2048; an.smoothingTimeConstant = .8;
     const bands = eqOf(tr).bands.map(() => ctx.createBiquadFilter());
+    const comp = ctx.createDynamicsCompressor(), makeup = ctx.createGain(), revS = ctx.createGain(), delS = ctx.createGain();
     let n = input; for (const b of bands) n = n.connect(b);
-    n.connect(vol).connect(pan).connect(master); vol.connect(an);
-    c = { input, vol, pan, bands, an }; chans.set(tr.id, c);
-    applyEq(tr, true);
+    n.connect(comp).connect(makeup).connect(vol).connect(pan).connect(master); vol.connect(an);
+    pan.connect(revS).connect(buses.rev); pan.connect(delS).connect(buses.del);
+    c = { input, vol, pan, bands, an, comp, makeup, revS, delS }; chans.set(tr.id, c);
+    applyEq(tr, true); applyFx(tr, true);
   }
   return c;
 }
@@ -436,6 +514,14 @@ function applyEq(tr, now) {
     set(f.frequency, b.f); set(f.Q, b.q ?? .7); set(f.gain, active ? (b.g || 0) : 0);
   });
 }
+function applyFx(tr, now) {
+  if (!ctx) return;
+  const c = chan(tr), fx = fxOf(tr), k = fx.comp, t = ctx.currentTime, set = (prm, v) => now ? (prm.value = v) : prm.setTargetAtTime(v, t, .01);
+  set(c.comp.threshold, k.on ? k.thr : 0); set(c.comp.ratio, k.on ? k.ratio : 1); set(c.comp.knee, k.on ? 6 : 0);
+  set(c.comp.attack, k.att / 1000); set(c.comp.release, k.rel / 1000);
+  set(c.makeup.gain, k.on ? Math.pow(10, k.gain / 20) : 1);
+  set(c.revS.gain, fx.rev); set(c.delS.gain, fx.del);
+}
 function applyMix(now) {
   if (!ctx) return;
   const anySolo = P.tracks.some(t => t.solo);
@@ -443,21 +529,42 @@ function applyMix(now) {
     const c = chan(t), g = (t.mute || (anySolo && !t.solo)) ? 0 : t.vol * t.vol * 1.2;
     if (now) { c.vol.gain.value = g; c.pan.pan.value = t.pan; }
     else { c.vol.gain.setTargetAtTime(g, ctx.currentTime, .015); c.pan.pan.setTargetAtTime(t.pan, ctx.currentTime, .015); }
-    applyEq(t, now);
+    applyEq(t, now); applyFx(t, now);
   }
+  applyBuses(now);
   for (const [id, c] of chans) if (!P.tracks.find(t => t.id === id)) { c.pan.disconnect(); chans.delete(id); }
 }
 const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
 
-function noteOn(presetId, dest, midi, time, vel = .8) {
-  const P_ = PRESETS[presetId] || PRESETS.epiano;
-  const f = mtof(midi), { a, d, s, r } = P_.env;
+// Karplus-Strong: simulierte gezupfte Saite, wird pro Tonhöhe einmal berechnet und gemerkt
+const ksCache = new Map();
+function ksBuffer(midi, ks, sr) {
+  const key = [sr, midi, ks.decay, ks.bright, ks.dur].join('|');
+  let b = ksCache.get(key); if (b) return b;
+  const len = Math.floor(sr * ks.dur), N = Math.max(2, Math.round(sr / mtof(midi)));
+  const ring = new Float32Array(N); let prev = 0, mx = 0;
+  for (let i = 0; i < N; i++) { prev += (Math.random() * 2 - 1 - prev) * ks.bright; ring[i] = prev; mx = Math.max(mx, Math.abs(prev)); }
+  for (let i = 0; i < N; i++) ring[i] /= mx || 1;
+  b = new AudioBuffer({ length: len, sampleRate: sr, numberOfChannels: 1 });
+  const d = b.getChannelData(0);
+  for (let i = 0, k = 0; i < len; i++) { const n = (k + 1) % N; d[i] = ring[k]; ring[k] = (ring[k] + ring[n]) * .5 * ks.decay; k = n; }
+  ksCache.set(key, b); return b;
+}
+function driveCurve(k) { const c = new Float32Array(1024); for (let i = 0; i < 1024; i++) { const x = i / 511.5 - 1; c[i] = Math.tanh(k * x) / Math.tanh(k); } return c; }
+const tweakOf = tr => (tr.tweak ||= { bright: 0, attack: 0, release: 0, oct: 0 });
+function noteOn(tr, dest, midi, time, vel = .8) {
+  const P_ = PRESETS[tr.preset] || PRESETS.epiano, tw = tweakOf(tr);
+  midi += 12 * (tw.oct || 0);
+  const f = mtof(midi), am = Math.pow(4, tw.attack || 0), rm = Math.pow(4, tw.release || 0), cm = Math.pow(4, tw.bright || 0);
+  const a = P_.env.a * am, d = P_.env.d, s = P_.env.s, r = P_.env.r * rm;
   const g = ctx.createGain(), filt = ctx.createBiquadFilter();
   filt.type = P_.ftype || 'lowpass'; filt.Q.value = P_.q || 1;
-  const cut = Math.min(P_.cut, 20000);
-  filt.frequency.setValueAtTime(Math.min(20000, cut + (P_.fenv || 0)), time);
+  const cut = Math.min(P_.cut * cm, 20000);
+  filt.frequency.setValueAtTime(Math.min(20000, cut + (P_.fenv || 0) * cm), time);
   if (P_.fenv) filt.frequency.setTargetAtTime(cut, time, P_.fdec);
-  filt.connect(g); g.connect(dest);
+  let post = filt;
+  if (P_.drive) { const ws = ctx.createWaveShaper(); ws.curve = driveCurve(P_.drive); ws.oversample = '2x'; filt.connect(ws); post = ws; }
+  post.connect(g); g.connect(dest);
   const peak = vel * P_.level;
   g.gain.setValueAtTime(0, time);
   g.gain.linearRampToValueAtTime(peak, time + a);
@@ -465,7 +572,8 @@ function noteOn(presetId, dest, midi, time, vel = .8) {
   const lfos = [];
   const lfo = (rate, depth) => { const o = ctx.createOscillator(), lg = ctx.createGain(); o.frequency.value = rate; lg.gain.value = depth; o.connect(lg); o.start(time); lfos.push(o); return lg; };
   const vib = P_.vib && lfo(P_.vib.rate, P_.vib.depth);
-  if (P_.trem) { const tg = ctx.createGain(); tg.gain.value = 1 - P_.trem.depth / 2; filt.disconnect(); filt.connect(tg).connect(g); lfo(P_.trem.rate, P_.trem.depth / 2).connect(tg.gain); }
+  if (P_.trem) { const tg = ctx.createGain(); tg.gain.value = 1 - P_.trem.depth / 2; post.disconnect(); post.connect(tg).connect(g); lfo(P_.trem.rate, P_.trem.depth / 2).connect(tg.gain); }
+  if (P_.wob) lfo(P.bpm / 60 * P_.wob.sync, cut * P_.wob.depth).connect(filt.frequency);
   const srcs = [];
   for (const o of P_.osc) {
     const og = ctx.createGain();
@@ -476,7 +584,16 @@ function noteOn(presetId, dest, midi, time, vel = .8) {
       const n = ctx.createBufferSource(); n.buffer = noiseBuf; n.loop = true;
       n.connect(og); n.start(time, Math.random() * .5); srcs.push(n); continue;
     }
-    const os = ctx.createOscillator(), fo = f * (o.mult || 1);
+    const fo = f * (o.mult || 1);
+    if (o.type === 'ks') {
+      const sr = ctx.sampleRate, m = Math.round(69 + 12 * Math.log2(fo / 440)), buf = ksBuffer(m, o.ks, sr);
+      const N = Math.max(2, Math.round(sr / mtof(m))), src = ctx.createBufferSource();
+      src.buffer = buf; src.playbackRate.value = fo * (N + .5) / sr;
+      if (o.detune) src.detune.value = o.detune;
+      if (vib) vib.connect(src.detune);
+      src.connect(og); src.start(time); srcs.push(src); continue;
+    }
+    const os = ctx.createOscillator();
     os.type = o.type; os.detune.value = o.detune || 0;
     if (P_.glide) { os.frequency.setValueAtTime(fo * P_.glide.from, time); os.frequency.exponentialRampToValueAtTime(fo, time + P_.glide.time); }
     else os.frequency.value = fo;
@@ -571,16 +688,16 @@ function demoProject() {
   return {
     bpm: 96, bars: 16, master: .8, metro: false, loop: { on: true, start: 0, end: 32 },
     tracks: [
-      { id: uid(), name: 'Drummer', type: 'drums', color: COLORS[0], vol: .85, pan: 0, mute: false, solo: false, regions: [
+      { id: uid(), name: 'Drummer', type: 'drums', color: COLORS[0], vol: .85, pan: 0, mute: false, solo: false, fx: { ...trackFxDefaults(), comp: { on: true, ...COMP_PRESETS['Drums mit Punch'] }, rev: .12 }, regions: [
         { id: uid(), name: 'Pop', start: 0, len: 28, steps: patternSteps('Pop') },
         { id: uid(), name: 'Fill', start: 28, len: 4, steps: patternSteps('Fill') }] },
       { id: uid(), name: 'Bass', type: 'synth', preset: 'bass', color: COLORS[1], vol: .8, pan: 0, mute: false, solo: false, regions: [
         { id: uid(), name: 'Bass', start: 0, len: 16, notes: clone(bassNotes) },
         { id: uid(), name: 'Bass', start: 16, len: 16, notes: clone(bassNotes) }] },
-      { id: uid(), name: 'Akkorde', type: 'synth', preset: 'pad', color: COLORS[2], vol: .7, pan: -.2, mute: false, solo: false, regions: [
+      { id: uid(), name: 'Akkorde', type: 'synth', preset: 'pad', color: COLORS[2], vol: .7, pan: -.2, mute: false, solo: false, fx: { ...trackFxDefaults(), rev: .4 }, regions: [
         { id: uid(), name: 'Am F C G', start: 0, len: 16, notes: clone(chordNotes) },
         { id: uid(), name: 'Am F C G', start: 16, len: 16, notes: clone(chordNotes) }] },
-      { id: uid(), name: 'Melodie', type: 'synth', preset: 'lead', color: COLORS[3], vol: .65, pan: .2, mute: false, solo: false, regions: [
+      { id: uid(), name: 'Melodie', type: 'synth', preset: 'lead', color: COLORS[3], vol: .65, pan: .2, mute: false, solo: false, fx: { ...trackFxDefaults(), rev: .3, del: .3 }, regions: [
         { id: uid(), name: 'Hook', start: 16, len: 16, notes: mel }] },
       { id: uid(), name: 'Gesang', type: 'audio', color: COLORS[4], vol: .8, pan: 0, mute: false, solo: false, regions: [] }
     ]
@@ -730,8 +847,8 @@ async function renderSong() {
   ensureCtx();
   let tail = 0;
   for (const t of P.tracks) if (t.type === 'synth') tail = Math.max(tail, PRESETS[t.preset]?.env.r * 4 || 0);
-  const sr = 44100, secs = end * spb() + Math.max(1, tail) + .5;
-  const live = { ctx, master, analyser, noiseBuf, chans: new Map(chans), metro: P.metro };
+  const sr = 44100, secs = end * spb() + Math.max(1, tail, busFx().rev.size) + .5;
+  const live = { ctx, master, analyser, noiseBuf, buses, chans: new Map(chans), metro: P.metro };
   const off = new OfflineAudioContext(2, Math.ceil(secs * sr), sr);
   try {
     ctx = off; chans.clear(); P.metro = false;
@@ -740,7 +857,7 @@ async function renderSong() {
     schedule(0, end, 0);
     return await off.startRendering();
   } finally {
-    ctx = live.ctx; master = live.master; analyser = live.analyser; noiseBuf = live.noiseBuf; P.metro = live.metro; session = null;
+    ctx = live.ctx; master = live.master; analyser = live.analyser; noiseBuf = live.noiseBuf; buses = live.buses; P.metro = live.metro; session = null;
     chans.clear(); live.chans.forEach((v, k) => chans.set(k, v));
   }
 }
@@ -848,7 +965,7 @@ function schedule(b0, b1, t0) {
           if (n.s >= r.len) continue;
           const nb = r.start + n.s;
           if (nb >= b0 && nb < b1) {
-            const v = noteOn(tr.preset, sessionOut(tr), n.p, at(nb), n.v);
+            const v = noteOn(tr, sessionOut(tr), n.p, at(nb), n.v);
             v.release(at(nb + Math.min(n.l, r.len - n.s)));
           }
         }
@@ -877,7 +994,7 @@ function setBpm(v) {
   v = clamp(Math.round(v) || 96, 40, 240);
   if (playing) { const b = currentBeat(), now = ctx.currentTime; P.bpm = v; segs = [{ time: now, beat: b }]; cur = { time: now, beat: b }; }
   else P.bpm = v;
-  $('#bpm').value = v; save();
+  $('#bpm').value = v; applyBuses(); save();
 }
 
 // ================= Aufnahme =================
@@ -973,7 +1090,7 @@ function renderArrange() {
     if (tr.type === 'synth') ctrl = `<select class="tsel" data-act="preset" aria-label="Instrument">${presetOptions(tr.preset)}</select>`;
     else if (tr.type === 'drums') ctrl = `<select class="tsel" data-act="kit" aria-label="Drumkit">${Object.entries(KITS).map(([k, v]) => `<option value="${k}" ${k === (tr.kit || 'standard') ? 'selected' : ''}>Kit: ${v.name}</option>`).join('')}</select>`;
     else ctrl = '<button class="sm" data-act="import" title="Audiodatei importieren">Import</button><span class="tsub">Mikro</span>';
-    ctrl += `<button class="sm eqb ${eqActive(tr) ? 'on' : ''}" data-act="eq" title="Kanal-EQ öffnen">EQ</button>`;
+    ctrl += `<button class="sm eqb ${eqActive(tr) ? 'on' : ''}" data-act="eq" title="Kanal-EQ öffnen">EQ</button><button class="sm eqb fxb ${fxActive(tr) ? 'on' : ''}" data-act="fx" title="Klang & Effekte öffnen">FX</button>`;
     const regs = tr.regions.map(r => {
       const missing = tr.type === 'audio' && !audioBuffers.has(r.buf);
       return `<div class="region ${r.id === selRegion ? 'sel' : ''} ${missing ? 'missing' : ''}" data-region="${r.id}" style="left:${r.start * ppb}px;width:${Math.max(4, r.len * ppb)}px">
@@ -1080,8 +1197,9 @@ let edTab = 'region', eqView = null;
 function renderEditor() {
   liveCells = null; eqView = null;
   const tr = findTrack(selTrack);
-  if (edTab === 'eq' && tr) renderEq(tr); else { edTab = 'region'; renderRegionEditor(); }
-  eHead.insertAdjacentHTML('afterbegin', `<div class="tabs" role="tablist"><button data-tab="region" class="${edTab === 'region' ? 'on' : ''}">Editor</button><button data-tab="eq" class="${edTab === 'eq' ? 'on' : ''}" ${tr ? '' : 'disabled'}>Kanal-EQ</button></div>`);
+  if (edTab === 'eq' && tr) renderEq(tr); else if (edTab === 'fx' && tr) renderFx(tr); else { edTab = 'region'; renderRegionEditor(); }
+  const tab = (id, label) => `<button data-tab="${id}" class="${edTab === id ? 'on' : ''}" ${tr || id === 'region' ? '' : 'disabled'}>${label}</button>`;
+  eHead.insertAdjacentHTML('afterbegin', `<div class="tabs" role="tablist">${tab('region', 'Editor')}${tab('eq', 'Kanal-EQ')}${tab('fx', 'Klang & Effekte')}</div>`);
 }
 eHead.addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b && !b.disabled) { edTab = b.dataset.tab; renderEditor(); } });
 function renderRegionEditor() {
@@ -1238,6 +1356,80 @@ function renderEq(tr) {
   eqView = { tr, draw };
 }
 
+// ================= Klang & Effekte =================
+const COMP_PRESETS = {
+  'Sanft': { thr: -20, ratio: 2, att: 20, rel: 250, gain: 2 },
+  'Gesang': { thr: -24, ratio: 4, att: 8, rel: 150, gain: 5 },
+  'Drums mit Punch': { thr: -18, ratio: 5, att: 30, rel: 120, gain: 4 },
+  'Bass gleichmäßig': { thr: -26, ratio: 6, att: 5, rel: 200, gain: 6 },
+  'Hart (Limiter)': { thr: -10, ratio: 20, att: 1, rel: 80, gain: 3 }
+};
+const fxActive = tr => !!tr.fx && (tr.fx.comp.on || tr.fx.rev > .01 || tr.fx.del > .01);
+const DIVS = [[.25, '1/16'], [.5, '1/8'], [.75, '1/8 punktiert'], [1, '1/4'], [1.5, '1/4 punktiert'], [2, '1/2']];
+function renderFx(tr) {
+  ensureCtx();
+  const fx = fxOf(tr), bus = busFx(), tw = tweakOf(tr), c = chan(tr);
+  const pct = v => Math.round(v * 100) + ' %';
+  const sl = (path, label, min, max, step, fmt) => {
+    const v = path.split('.').reduce((o, k) => o[k], { fx, bus, tw });
+    return `<label class="knob"><span>${label}</span><input type="range" data-path="${path}" min="${min}" max="${max}" step="${step}" value="${v}"><output>${fmt(v)}</output></label>`;
+  };
+  const sign = v => (v > 0 ? '+' : '') + Math.round(v * 100) + ' %';
+  const FMT = {
+    'tw.bright': sign, 'tw.attack': sign, 'tw.release': sign, 'tw.oct': v => (v > 0 ? '+' : '') + v,
+    'fx.comp.thr': v => v + ' dB', 'fx.comp.ratio': v => v + ' : 1', 'fx.comp.att': v => v + ' ms', 'fx.comp.rel': v => v + ' ms', 'fx.comp.gain': v => '+' + v + ' dB',
+    'fx.rev': pct, 'fx.del': pct, 'bus.rev.size': v => String(v).replace('.', ',') + ' s', 'bus.rev.level': pct,
+    'bus.del.fb': pct, 'bus.del.tone': v => fmtF(v), 'bus.del.level': pct
+  };
+  eHead.innerHTML = `<span class="note" style="color:${tr.color};font-weight:600">${esc(tr.name)}</span><span class="note">Hall und Delay sind gemeinsame Effekte. Jede Spur schickt über ihren Regler unterschiedlich viel Signal hinein.</span>`;
+  eBody.innerHTML = `<div class="fx">
+    ${tr.type === 'synth' ? `<section class="card"><h3>Klang · ${PRESETS[tr.preset].name}</h3>
+      ${sl('tw.bright', 'Helligkeit', -1, 1, .05, FMT['tw.bright'])}${sl('tw.attack', 'Einschwingen', -1, 1, .05, FMT['tw.attack'])}
+      ${sl('tw.release', 'Ausklingen', -1, 1, .05, FMT['tw.release'])}${sl('tw.oct', 'Oktave', -2, 2, 1, FMT['tw.oct'])}
+      <button class="sbtn" data-reset="tw">Zurücksetzen</button></section>` : ''}
+    <section class="card"><h3><label><input type="checkbox" id="compOn" ${fx.comp.on ? 'checked' : ''}> Kompressor</label></h3>
+      <label class="knob"><span>Vorlage</span><select id="compPre"><option value="">Wählen …</option>${Object.keys(COMP_PRESETS).map(k => `<option>${k}</option>`).join('')}</select></label>
+      ${sl('fx.comp.thr', 'Schwelle', -60, 0, 1, FMT['fx.comp.thr'])}${sl('fx.comp.ratio', 'Verhältnis', 1, 20, .5, FMT['fx.comp.ratio'])}
+      ${sl('fx.comp.att', 'Attack', 1, 200, 1, FMT['fx.comp.att'])}${sl('fx.comp.rel', 'Release', 20, 1000, 10, FMT['fx.comp.rel'])}
+      ${sl('fx.comp.gain', 'Aufholen', 0, 24, .5, FMT['fx.comp.gain'])}
+      <div class="gr"><span>Pegelreduktion</span><i><b id="grBar"></b></i></div></section>
+    <section class="card"><h3>Sends dieser Spur</h3>
+      ${sl('fx.rev', 'Hall', 0, 1, .01, FMT['fx.rev'])}${sl('fx.del', 'Delay', 0, 1, .01, FMT['fx.del'])}</section>
+    <section class="card shared"><h3>Hall · alle Spuren</h3>
+      ${sl('bus.rev.size', 'Raumgröße', .3, 8, .1, FMT['bus.rev.size'])}${sl('bus.rev.level', 'Lautstärke', 0, 1.5, .01, FMT['bus.rev.level'])}</section>
+    <section class="card shared"><h3>Delay · alle Spuren</h3>
+      <label class="knob"><span>Notenwert</span><select id="delDiv">${DIVS.map(([v, n]) => `<option value="${v}" ${v === bus.del.div ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+      ${sl('bus.del.fb', 'Wiederholungen', 0, .9, .01, FMT['bus.del.fb'])}${sl('bus.del.tone', 'Klang', 800, 12000, 100, FMT['bus.del.tone'])}${sl('bus.del.level', 'Lautstärke', 0, 1.5, .01, FMT['bus.del.level'])}</section>
+  </div>`;
+  const box = eBody.querySelector('.fx');
+  let undone = false;
+  const markHeader = () => rowsEl.querySelector(`.track-row[data-track="${tr.id}"] .fxb`)?.classList.toggle('on', fxActive(tr));
+  const apply = path => {
+    if (path.startsWith('tw')) { if (!playing) previewNote(tr, 60); }
+    else if (path.startsWith('bus')) applyBuses();
+    else applyFx(tr);
+  };
+  box.oninput = e => {
+    const path = e.target.dataset.path; if (!path) return;
+    if (!undone) { pushUndo(); undone = true; }
+    const keys = path.split('.'), root = { fx, bus, tw }; let o = root;
+    for (const k of keys.slice(0, -1)) o = o[k];
+    o[keys.at(-1)] = +e.target.value;
+    e.target.nextElementSibling.textContent = FMT[path](+e.target.value);
+    if (!path.startsWith('tw')) apply(path);
+  };
+  box.onchange = e => {
+    undone = false;
+    const path = e.target.dataset.path;
+    if (path) { apply(path); save(); markHeader(); return; }
+    if (e.target.id === 'compOn') { pushUndo(); fx.comp.on = e.target.checked; applyFx(tr); save(); markHeader(); }
+    if (e.target.id === 'compPre' && COMP_PRESETS[e.target.value]) { pushUndo(); Object.assign(fx.comp, COMP_PRESETS[e.target.value], { on: true }); applyFx(tr); save(); renderEditor(); markHeader(); }
+    if (e.target.id === 'delDiv') { pushUndo(); bus.del.div = +e.target.value; applyBuses(); save(); }
+  };
+  box.onclick = e => { if (e.target.dataset.reset === 'tw') { pushUndo(); tr.tweak = null; tweakOf(tr); save(); renderEditor(); } };
+  eqView = { tr, draw: () => { const b = $('#grBar'); if (b) b.style.width = Math.min(100, -c.comp.reduction / 20 * 100) + '%'; } };
+}
+
 function renderPianoRoll(tr, r) {
   const rows = PR.hi - PR.lo + 1, steps = Math.ceil(r.len * 4), W = steps * PR.sw, H = rows * PR.rh;
   let keys = '';
@@ -1306,7 +1498,7 @@ function drawNotes(r) {
 }
 function previewNote(tr, p) {
   ensureCtx();
-  const v = noteOn(tr.preset, chan(tr).input, p, ctx.currentTime, .8);
+  const v = noteOn(tr, chan(tr).input, p, ctx.currentTime, .8);
   v.release(ctx.currentTime + .3);
 }
 
@@ -1380,7 +1572,7 @@ rowsEl.addEventListener('click', e => {
     applyMix(); save(); render(); toast(`Spur „${tr.name}“ gelöscht. Strg+Z holt sie zurück.`);
   }
   if (act === 'import') { importTarget = tr.id; $('#fileIn').click(); }
-  if (act === 'eq') { selTrack = tr.id; edTab = 'eq'; markSelection(); renderEditor(); }
+  if (act === 'eq' || act === 'fx') { selTrack = tr.id; edTab = act; markSelection(); renderEditor(); }
 });
 function regionDrag(e, el) {
   if (e.button !== 0) return;
@@ -1531,7 +1723,7 @@ function liveNoteOn(id, midi, vel) {
   const tr = findTrack(selTrack); if (!tr || held.has(id)) return;
   ensureCtx();
   if (tr.type === 'synth') {
-    held.set(id, { v: noteOn(tr.preset, chan(tr).input, midi, ctx.currentTime, vel), midi });
+    held.set(id, { v: noteOn(tr, chan(tr).input, midi, ctx.currentTime, vel), midi });
     if (rec && rec.type === 'midi' && rec.track === tr.id && playing) recNoteStart(id, midi, vel);
     eBody.querySelector(`.key[data-p="${midi}"]`)?.classList.add('down');
   } else if (tr.type === 'drums') {
@@ -1622,7 +1814,7 @@ function frame() {
     const [, er] = findRegion(selRegion), ep = $('#edplay');
     if (ep && er) { const rel = b - er.start; ep.style.display = rel >= 0 && rel <= er.len ? '' : 'none'; ep.style.left = rel * 4 * PR.sw + 'px'; }
   } else if (liveCells && liveCells.last !== -1) { liveCells.cols[liveCells.last]?.forEach(c => c.classList.remove('now')); liveCells.last = -1; }
-  if (eqView && playing) eqView.draw();
+  if (eqView && (playing || edTab === 'fx')) eqView.draw();
   if (analyser) {
     analyser.getFloatTimeDomainData(tbuf);
     let pk = 0; for (let i = 0; i < tbuf.length; i++) pk = Math.max(pk, Math.abs(tbuf[i]));

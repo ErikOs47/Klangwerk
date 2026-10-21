@@ -1,6 +1,6 @@
 {
   "name": "klangwerk",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Klangwerk – eine DAW nach Logic-Vorbild",
   "main": "main.js",
   "scripts": {

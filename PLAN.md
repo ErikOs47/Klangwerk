@@ -40,22 +40,29 @@ Leitregel: Alles, was nur unter Windows geht (VST3, Dateisystem, ASIO), kommt hi
 - Kanal-EQ pro Spur wie in Logic: 6 Bänder (Low Cut, Tiefen, 2× Mitten, Höhen, High Cut), Kurve mit der Maus ziehen, Mausrad für die Bandbreite, Live-Spektrum, 9 Vorlagen
 
 Bekannte Grenzen:
-- Keine weiteren Effekte (Hall, Delay, Kompressor pro Spur)
 - Aufnahme-Latenz wird noch nicht ausgeglichen
 - Im Claude-Artefakt werden Exporte als .zip geliefert (dort sind nur bestimmte Dateitypen erlaubt)
 
+## Version 0.3 (fertig)
+
+- Neuer Bereich „Klang & Effekte“ pro Spur (Button „FX“ im Spurkopf)
+- Kompressor pro Spur mit Pegelreduktions-Anzeige und 5 Vorlagen
+- Gemeinsamer Hall (Raumgröße einstellbar) und tempo-synchrones Delay, jede Spur mit eigenem Send-Regler
+- Klangregler für Instrumente: Helligkeit, Einschwingen, Ausklingen, Oktave
+- 57 Instrumente in 9 Kategorien, neu u. a. Gitarren per Saiten-Simulation (Akustik, Nylon, E-Gitarre clean/verzerrt, Banjo), Kontrabass, Slap- und Wobble-Bass, Trompete, Saxophon, Klarinette, Oboe, Cello, Sitar, Koto, Steel Drum, Panflöte, Chiptune
+- Sanfter Begrenzer am Master gegen Übersteuern
+
 ## Nächste Schritte
 
-1. **Effekte pro Spur**: Hall, Delay, Kompressor (Mixer-Fenster)
-2. **Klangregler für Instrumente**: Filter, Attack, Release direkt einstellen
-3. **Sampler-Instrumente** mit freien Sample-Bibliotheken (Flügel, Gitarre, echte Drumkits)
-4. **Aufnahme-Feinschliff**: Latenzausgleich, Vorzähler, Takes im Cycle
-5. **Automation** (Lautstärke-Kurven usw.)
-6. **Web-App/iPhone**: Touch-Bedienung, Installation als PWA
-7. **VST3-Plug-ins** in der Windows-Version
+1. **Mixer-Fenster** mit allen Kanalzügen nebeneinander
+2. **Sampler-Instrumente** mit freien Sample-Bibliotheken (Flügel, Gitarre, echte Drumkits)
+3. **Aufnahme-Feinschliff**: Latenzausgleich, Vorzähler, Takes im Cycle
+4. **Automation** (Lautstärke-Kurven usw.)
+5. **Web-App/iPhone**: Touch-Bedienung, Installation als PWA
+6. **VST3-Plug-ins** in der Windows-Version
 
 ## Starten
 
-- Windows: `Klangwerk-0.2.0-win.zip` entpacken, `Klangwerk.exe` starten
+- Windows: `Klangwerk-0.3.0-win.zip` entpacken, `Klangwerk.exe` starten
 - Entwicklung: `npm install`, dann `npm start`
 - Windows-Build: `npm run dist:win`
