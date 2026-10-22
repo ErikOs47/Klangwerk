@@ -6,4 +6,5 @@ const html = `<!doctype html><html lang="de"><head><meta charset="utf-8"><meta n
 fs.mkdirSync(path.join(root, 'dist'), { recursive: true });
 fs.writeFileSync(path.join(root, 'dist/index.html'), html);
 fs.cpSync(path.join(root, 'src/vendor'), path.join(root, 'dist/vendor'), { recursive: true });
+fs.cpSync(path.join(root, 'src/samples'), path.join(root, 'dist/samples'), { recursive: true });
 console.log('dist/index.html geschrieben');
