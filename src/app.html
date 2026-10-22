@@ -240,6 +240,9 @@ input[type=checkbox] { accent-color: var(--accent); }
 .region { position: absolute; top: 5px; bottom: 5px; border-radius: 7px; overflow: hidden; background: linear-gradient(180deg, color-mix(in srgb, var(--c) 42%, #121318), color-mix(in srgb, var(--c) 26%, #0e0f12)); border: 1px solid color-mix(in srgb, var(--c) 65%, #000); cursor: grab; touch-action: none; box-shadow: 0 2px 6px #0006; transition: box-shadow .15s var(--ease), filter .15s; }
 .region:hover { filter: brightness(1.1); }
 .region:active { cursor: grabbing; }
+.region.dragging { z-index: 40; cursor: grabbing; opacity: .92; transition: none; box-shadow: 0 0 0 1px #fff, 0 14px 34px #000c; }
+.region.dragging.nodrop { opacity: .55; }
+.lane.drop { background-color: color-mix(in srgb, var(--c) 14%, transparent) !important; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 55%, transparent); }
 .region.sel { border-color: #fff; box-shadow: 0 0 0 1px #fff, 0 6px 20px #000a, 0 0 18px color-mix(in srgb, var(--c) 45%, transparent); }
 .region .rname { height: 17px; line-height: 17px; padding: 0 7px; font-size: 11px; font-weight: 600; color: #0d0e11; background: linear-gradient(180deg, color-mix(in srgb, var(--c) 100%, #fff 18%), var(--c)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .region canvas { position: absolute; left: 0; top: 17px; width: 100%; height: calc(100% - 17px); }
@@ -1796,6 +1799,7 @@ function renderEditor() {
 }
 eHead.addEventListener('click', e => {
   const z = e.target.closest('[data-ez]'); if (z) { edZoom(+z.dataset.ez); return; }
+  if (e.target.closest('[data-rdel]')) { focusArea = 'arr'; deleteSelection(); toast('Region gelöscht. Strg+Z holt sie zurück.'); return; }
   const b = e.target.closest('[data-tab]'); if (b && !b.disabled) { edTab = b.dataset.tab; renderEditor(); }
 });
 function renderRegionEditor() {
@@ -1805,8 +1809,8 @@ function renderRegionEditor() {
     eHead.innerHTML = `<span class="note">Wähle eine Region im Arrangement aus.</span>`;
     eBody.innerHTML = `<div class="empty">
       <div><h3>So geht's los</h3>
-        <p>Doppelklicke in eine leere Stelle einer Spur, um eine Region zu erstellen. Ein Klick auf eine Region öffnet sie hier im Editor.</p>
-        <p>Regionen verschiebst du mit der Maus, am rechten Rand änderst du die Länge, am linken Rand kürzt du den Anfang. Ziehen im Lineal oben setzt den Cycle-Bereich.</p>
+        <p>Doppelklicke (am Touchscreen: doppelt tippen) in eine leere Stelle einer Spur, um eine Region zu erstellen. Ein Klick auf eine Region öffnet sie hier im Editor.</p>
+        <p>Regionen verschiebst du mit der Maus, am rechten Rand änderst du die Länge, am linken Rand kürzt du den Anfang. Zum Löschen eine Region antippen und oben im Editor „Region löschen“ wählen (oder Entf). Ziehen im Lineal oben setzt den Cycle-Bereich.</p>
         <p>Mit „A“ im Spurkopf öffnest du die Automation: Lautstärke, Panorama, Filter, Hall und Delay als Kurve über die Zeit. Marker für Intro, Strophe, Refrain setzt du mit „+ Marker“ oder per Doppelklick in die Marker-Leiste.</p>
         <p>In der Bibliothek (I) findest du unter „Echte Instrumente“ aufgenommene Klänge wie Flügel, Gitarren, Streicher und Bläser. Mit „Eigenes Sample laden …“ machst du aus einer beliebigen Audiodatei ein spielbares Instrument.</p>
         <p class="hint">Instrument-Samples: <a href="https://github.com/nbrosowsky/tonejs-instruments" target="_blank" rel="noopener">tonejs-instruments</a> von Nicholas Brosowsky, Lizenz CC-BY 3.0.</p></div>
@@ -1840,6 +1844,8 @@ function renderRegionEditor() {
   else if (tr.type === 'drums') { normProject({ tracks: [tr] }); edState.piece ? renderDrumRoll(tr, r, edState.piece) : renderSteps(tr, r, bars); }
   else renderAudioEditor(tr, r);
   const rn = $('#rname'); if (rn) rn.onchange = e => { pushUndo(); r.name = e.target.value || r.name; save(); renderArrange(); };
+  const del = `<button class="sbtn rdel" data-rdel title="Ganze Region aus der Spur löschen (Entf)">Region löschen</button>`;
+  rn ? rn.insertAdjacentHTML('afterend', del) : eHead.insertAdjacentHTML('beforeend', del);
   const sc2 = eBody.querySelector('.pr, .seq');
   if (keep && sc2) { sc2.scrollLeft = keep.left; sc2.scrollTop = keep.top; }
 }
@@ -2562,17 +2568,32 @@ rowsEl.addEventListener('pointerdown', e => {
     }
   }
 });
-rowsEl.addEventListener('dblclick', e => {
-  const lane = e.target.closest('.lane[data-track]');
-  if (!lane || e.target.closest('.region')) return;
-  const tr = findTrack(lane.dataset.track);
+// Doppelklick (oder Doppeltippen) in eine leere Stelle: neue Region, die sofort im Editor aufgeht
+let laneTap = { t: 0 }, laneMade = 0;
+function createRegionAt(lane, clientX) {
+  const tr = findTrack(lane.dataset.track); if (!tr) return;
+  laneMade = performance.now();
   if (tr.type === 'audio') { importTarget = tr.id; $('#fileIn').click(); return; }
-  const x = e.clientX - lane.getBoundingClientRect().left, start = Math.floor(x / ppb / 4) * 4;
+  const x = clientX - lane.getBoundingClientRect().left, start = Math.floor(x / ppb / 4) * 4;
   pushUndo();
   const r = tr.type === 'drums'
     ? drumRegion('Rock', start, 16)
     : { id: uid(), name: 'Region', start, len: 4, notes: [] };
-  tr.regions.push(r); selTrack = tr.id; selRegion = r.id; save(); render();
+  tr.regions.push(r); selTrack = tr.id; selRegion = r.id; edTab = 'region'; save(); render();
+}
+rowsEl.addEventListener('dblclick', e => {
+  const lane = e.target.closest('.lane[data-track]');
+  if (!lane || e.target.closest('.region') || performance.now() - laneMade < 500) return;
+  createRegionAt(lane, e.clientX);
+});
+// Am Touchscreen kommt nicht immer ein dblclick an, daher Doppeltippen selbst erkennen
+rowsEl.addEventListener('pointerup', e => {
+  if (e.pointerType !== 'touch') return;
+  const lane = e.target.closest('.lane[data-track]');
+  if (!lane || e.target.closest('.region')) { laneTap = { t: 0 }; return; }
+  const now = performance.now();
+  if (now - laneTap.t < 400 && laneTap.lane === lane.dataset.track && Math.abs(e.clientX - laneTap.x) < 30) { laneTap = { t: 0 }; createRegionAt(lane, e.clientX); }
+  else laneTap = { t: now, x: e.clientX, lane: lane.dataset.track };
 });
 rowsEl.addEventListener('input', e => {
   const act = e.target.dataset.act, tr = findTrack(e.target.closest('[data-track]')?.dataset.track); if (!tr) return;
@@ -2623,11 +2644,24 @@ function regionDrag(e, el) {
   const cl = e.target.classList, mode = cl.contains('fi') ? 'fi' : cl.contains('fo') ? 'fo' : cl.contains('rh') ? 'resize' : cl.contains('lh') ? 'trim' : 'move';
   const x0 = e.clientX, s0 = r.start, l0 = r.len, o0 = r.offset || 0, ph0 = r.phase || 0, notes0 = r.notes?.map(n => n.s);
   const snapOf = ev => ev.shiftKey ? 1 / 16 : ppb < 18 ? 4 : ppb < 60 ? 1 : .25;
-  let moved = false;
+  let moved = false, target = null;
+  const y0 = e.clientY, lane0 = el.parentElement, top0 = lane0.getBoundingClientRect().top;
   el.setPointerCapture(e.pointerId);
+  // Beim Verschieben folgt die Region dem Finger bzw. der Maus, auch auf eine andere Spur
+  const follow = ev => {
+    const lane = document.elementsFromPoint(ev.clientX, ev.clientY).find(n => n.classList?.contains('lane') && n.dataset.track);
+    const t2 = lane && findTrack(lane.dataset.track), ok = t2 && t2.type === tr.type;
+    if (target && target !== lane) target.classList.remove('drop');
+    target = ok ? lane : null;
+    if (target && target !== lane0) target.classList.add('drop');
+    el.classList.toggle('nodrop', !ok);
+    el.style.transform = `translateY(${ok ? lane.getBoundingClientRect().top - top0 : ev.clientY - y0}px)`;
+  };
+  const endDrag = () => { el.classList.remove('dragging', 'nodrop'); el.style.transform = ''; target?.classList.remove('drop'); };
   el.onpointermove = ev => {
-    if (!moved && Math.abs(ev.clientX - x0) < 4) return;
-    if (!moved) { pushUndo(); moved = true; }
+    if (!moved && Math.hypot(ev.clientX - x0, ev.clientY - y0) < 4) return;
+    if (!moved) { pushUndo(); moved = true; if (mode === 'move') el.classList.add('dragging'); }
+    if (mode === 'move') follow(ev);
     const db = (ev.clientX - x0) / ppb, snap = snapOf(ev), total = r.len * spb();
     if (mode === 'fi' || mode === 'fo') {
       const x = clamp((ev.clientX - laneX) / ppb - r.start, 0, r.len) * spb();
@@ -2652,14 +2686,12 @@ function regionDrag(e, el) {
     el.style.left = r.start * ppb + 'px'; el.style.width = r.len * ppb + 'px';
     if (mode === 'trim') drawRegion(el.querySelector('canvas'), tr, r);
   };
-  el.onpointerup = ev => {
-    el.onpointermove = el.onpointerup = null;
+  el.onpointerup = el.onpointercancel = ev => {
+    el.onpointermove = el.onpointerup = el.onpointercancel = null;
+    const t2 = target && findTrack(target.dataset.track);
+    endDrag();
     if (!moved) return;
-    if (mode === 'move') {
-      const lane = document.elementsFromPoint(ev.clientX, ev.clientY).find(n => n.classList?.contains('lane') && n.dataset.track);
-      const t2 = lane && findTrack(lane.dataset.track);
-      if (t2 && t2 !== tr && t2.type === tr.type) { tr.regions.splice(tr.regions.indexOf(r), 1); t2.regions.push(r); selTrack = t2.id; }
-    }
+    if (mode === 'move' && t2 && t2 !== tr) { tr.regions.splice(tr.regions.indexOf(r), 1); t2.regions.push(r); selTrack = t2.id; }
     save(); render();
   };
 }
