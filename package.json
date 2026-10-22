@@ -1,7 +1,7 @@
 {
   "name": "klangwerk",
   "version": "0.8.5",
-  "description": "Klangwerk – eine DAW nach Logic-Vorbild",
+  "description": "Sound Groot – eine DAW nach Logic-Vorbild",
   "main": "main.js",
   "scripts": {
     "build": "node scripts/build.js",
@@ -10,16 +10,19 @@
   },
   "build": {
     "appId": "de.klangwerk.app",
-    "productName": "Klangwerk",
+    "productName": "Sound Groot",
     "files": [
       "main.js",
       "dist/index.html",
+      "dist/splash.html",
+      "dist/brand/**",
       "dist/vendor/**",
       "dist/samples/**"
     ],
     "win": {
       "target": "zip",
-      "signAndEditExecutable": false
+      "signAndEditExecutable": false,
+      "icon": "src/brand/icon-256.png"
     },
     "electronLanguages": [
       "de",
@@ -27,7 +30,8 @@
     ],
     "directories": {
       "output": "release"
-    }
+    },
+    "artifactName": "SoundGroot-${version}-win.${ext}"
   },
   "devDependencies": {
     "electron": "^33.2.0",

@@ -7,4 +7,6 @@ fs.mkdirSync(path.join(root, 'dist'), { recursive: true });
 fs.writeFileSync(path.join(root, 'dist/index.html'), html);
 fs.cpSync(path.join(root, 'src/vendor'), path.join(root, 'dist/vendor'), { recursive: true });
 fs.cpSync(path.join(root, 'src/samples'), path.join(root, 'dist/samples'), { recursive: true });
+fs.cpSync(path.join(root, 'src/brand'), path.join(root, 'dist/brand'), { recursive: true });
+fs.copyFileSync(path.join(root, 'src/splash.html'), path.join(root, 'dist/splash.html'));
 console.log('dist/index.html geschrieben');

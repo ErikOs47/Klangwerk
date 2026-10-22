@@ -1,4 +1,4 @@
-# Klangwerk – Plan
+# Sound Groot – Plan
 
 Eine DAW (Programm zum Musikmachen und Aufnehmen) mit einer Bedienung nach dem Vorbild von Logic Pro.
 Zuerst als Windows-Programm, später auch als Web-App fürs iPhone.
