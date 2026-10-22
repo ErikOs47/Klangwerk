@@ -106,6 +106,18 @@ Bekannte Grenzen:
 - Neue Sounds: 7 echte Drumcomputer als Samples (jetzt 18 Kits): TR-808, LinnDrum LM-2, Casio RZ-1, Roland CR-8000, MFB-512, Yamaha MR-10, Casio SK-1. Einzelne Klänge daraus lassen sich wie gewohnt mit anderen Kits mischen; fehlende Instrumente ergänzt ein passendes Synth-Kit
 - Quelle der Drum-Samples: [smpldsnds/drum-machines](https://github.com/smpldsnds/drum-machines), gemeinfrei. `node scripts/fetch-drums.js` lädt sie neu
 
+## Version 0.85 (fertig): Sampler mit MPC-Pads
+
+- Audiodatei auf die Arrangierfläche ziehen: linke Hälfte = normale Audiospur, rechte Hälfte = neue Sampler-Spur. Auf eine bestehende Sampler-Spur gezogen, kommt die Datei als weiteres Sample dazu. Auch per „+ Spur → Sampler (MPC-Pads)“, über die Bibliothek oder mit „Im Sampler öffnen“ aus einer Audio-Region
+- Chops: Die Datei wird automatisch an den Anschlägen geschnitten (Empfindlichkeit wählbar) oder gleichmäßig in 4/8/16/32 Teile bzw. nach Schlägen (bei bekanntem Tempo). Mit der Schere (oder Alt-Klick) an jeder Stelle teilen, Ränder ziehen, Chops verschieben, auf freier Fläche einen neuen Chop aufziehen, zoomen (Strg+Mausrad)
+- Jeder Chop einzeln: Name, Tonhöhe (±24 Halbtöne, wie an der MPC wird höher auch schneller), Feinstimmung, Pegel, Ein- und Ausblenden, Filter, Rückwärts, Modus (ganz abspielen, nur solange gedrückt, Schleife), Duplizieren, Löschen
+- Reihenfolge: Chips unten per Ziehen neu ordnen, „Auf Pads verteilen“ legt sie in dieser Reihenfolge auf die Pads, „Als Region einfügen“ setzt sie hintereinander als Noten in den Song
+- 16 Pads (4×4) wie an der MPC: antippen, mit der Tastatur (1–4, Q–R, A–F, Y–V; mit Umschalt bleiben die normalen Kürzel), per MIDI-Keyboard oder Pad-Controller ab Note 36 (die übliche Pad-Belegung). Chips auf ein Pad ziehen, Pads untereinander tauschen, Rechtsklick leert ein Pad. „Chops schneiden sich ab“ (Mono/Choke) und „Volle Lautstärke“ einstellbar
+- Aufnahme: Pads einspielen wie Noten (Shift+R, mit Vorzähler und Takes). Die Pad-Region öffnet sich im Piano-Roll mit 16 Pad-Zeilen statt Tasten, mit Velocity und allen Werkzeugen
+- Alles wird mitgespeichert (Projektdatei und automatisch im Browser), Export und Rückgängig funktionieren wie gewohnt
+- Neue Sounds: 12 Loops zum Choppen (Funk-, Boom-Bap- und Shuffle-Break, Cajón, Conga & Bongos, Soul-Piano, Vibraphon, Kalimba, Marimba, Harfe, Orgel, Saxophon), 10 echte Instrumente (jetzt 104 Klänge): Vibraphon, Marimba, Kalimba, Balafon, Tenorsaxophon, Mundharmonika, Okarina, Cembalo, Renaissance-Orgel, Keltische Harfe, und 2 akustische Kits (jetzt 20 Kits): Akustik-Set und Percussion (Cajón, Shaker, Tamburin, Congas, Claves, Agogo, Triangel)
+- Quelle: [Versilian Community Sample Library](https://github.com/sgossner/VCSL), CC0 (gemeinfrei). `node scripts/fetch-vcsl.js` lädt die Aufnahmen und baut daraus Instrumente, Kits und Loops
+
 ## Grundsatz
 
 Jedes Update bringt auch neue Sounds mit.
@@ -117,6 +129,6 @@ Jedes Update bringt auch neue Sounds mit.
 
 ## Starten
 
-- Windows: `Klangwerk-0.8.0-win.zip` entpacken, `Klangwerk.exe` starten
+- Windows: `Klangwerk-0.8.5-win.zip` entpacken, `Klangwerk.exe` starten
 - Entwicklung: `npm install`, dann `npm start`
 - Windows-Build: `npm run dist:win`
