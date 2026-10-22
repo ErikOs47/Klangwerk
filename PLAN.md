@@ -71,16 +71,33 @@ Bekannte Grenzen:
 - Zoomen mit Strg + Mausrad oder zwei Fingern um die Stelle unter dem Zeiger, auch im Piano Roll und Drum-Editor (Buttons − / +)
 - Beim Abspielen gleitet die Ansicht weich mit
 
+## Version 0.6 (fertig)
+
+- Automation wie in Logic: Taste „A“ im Spurkopf öffnet eine Spur darunter für Lautstärke, Panorama, Filter (Höhen), Hall-Send und Delay-Send. Klick setzt Punkte, Ziehen mit der Maus zeichnet eine Kurve, Punkte lassen sich verschieben, Doppelklick löscht. Regler in Spurkopf und Mixer laufen beim Abspielen mit
+- Regionen bearbeiten: am linken Rand den Anfang kürzen, mit B oder „Teilen“ an der Abspielposition schneiden, Alt+Klick schneidet an der Mausposition (für Audio, Instrumente und Drums)
+- Audio: Ein- und Ausblenden über die Griffe an der Region oder im Editor, Pegel pro Region, Normalisieren, Umkehren
+- Marker-Leiste unter dem Lineal für Intro, Strophe, Refrain: Klick springt hin, Shift+Klick setzt den Cycle auf den Teil, Ziehen verschiebt, Doppelklick auf den Namen benennt um; „,“ und „.“ springen zum vorigen/nächsten Marker
+- Kopieren, Ausschneiden, Einfügen (Strg+C/X/V) an der Abspielposition, auch auf eine andere Spur
+- Drum-Bibliothek: jedes Instrument einzeln aus jedem Kit wählbar (z. B. Kick aus Trap, Snare aus 808), auch im Drum-Editor unter „Klang aus“; Suche nach Kit oder Instrument
+- Neue Sounds:
+  - 17 Instrumente (jetzt 74): Wurlitzer, Spielzeug-Klavier, Lo-Fi Keys, FM-Bass, Moog-Bass, Mundharmonika, Pfeifen, Shimmer-Pad, Chor (Ooh), Synth-Brass, Violine, 12-saitige Gitarre, Ukulele, Mandoline, Glockenspiel, Röhrenglocken, Riser
+  - 6 neue Drumkits (jetzt 11): 909, Trap, Jazz (Besen), Boom Bap, Industrial, Percussion
+  - 4 neue Drum-Instrumente (jetzt 12): Crash, Ride, Shaker, Conga
+  - 5 neue Pattern: Jazz-Swing, Shuffle, Bossa Nova, Afrobeat, Drum & Bass
+
+## Grundsatz
+
+Jedes Update bringt auch neue Sounds mit.
+
 ## Fahrplan
 
-1. **v0.6 Bearbeitung**: Automation (Lautstärke, Pan, Effekte als Kurven), Audio schneiden und blenden, Marker für Songteile, Kopieren/Einfügen über Spuren
-2. **v0.7 Sampler-Instrumente** mit freien Sample-Bibliotheken (Flügel, Gitarre, echte Drumkits)
-3. **v0.8 Aufnahme-Feinschliff**: Vorzähler, Latenzausgleich, Takes im Cycle
-4. **v0.9 Web-App/iPhone**: Installation als PWA, Touch-Bedienung weiter verbessern
-5. **Später**: VST3-Plug-ins in der Windows-Version
+1. **v0.7 Sampler-Instrumente** mit freien Sample-Bibliotheken (Flügel, Gitarre, echte Drumkits)
+2. **v0.8 Aufnahme-Feinschliff**: Vorzähler, Latenzausgleich, Takes im Cycle
+3. **v0.9 Web-App/iPhone**: Installation als PWA, Touch-Bedienung weiter verbessern
+4. **Später**: VST3-Plug-ins in der Windows-Version
 
 ## Starten
 
-- Windows: `Klangwerk-0.5.0-win.zip` entpacken, `Klangwerk.exe` starten
+- Windows: `Klangwerk-0.6.0-win.zip` entpacken, `Klangwerk.exe` starten
 - Entwicklung: `npm install`, dann `npm start`
 - Windows-Build: `npm run dist:win`
