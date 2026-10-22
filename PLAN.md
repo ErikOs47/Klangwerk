@@ -97,18 +97,26 @@ Bekannte Grenzen:
 - Neue Sounds: 20 echte Instrumente (jetzt 94 Klänge): Konzertflügel, Westerngitarre, Konzertgitarre, E-Gitarre (Jazz), E-Bass, Kontrabass, Cello, Geige, Konzertharfe, Querflöte, Klarinette, Saxophon, Fagott, Trompete, Posaune, Waldhorn, Tuba, Pfeifenorgel, Harmonium, Xylophon
 - Quelle der Samples: [tonejs-instruments](https://github.com/nbrosowsky/tonejs-instruments) von Nicholas Brosowsky, CC-BY 3.0. `node scripts/fetch-samples.js` lädt und verkleinert sie neu (braucht curl und ffmpeg)
 
+## Version 0.8 (fertig)
+
+- Neue Aufnahme-Engine: Das Mikrofon wird direkt im Audio-Graphen mitgeschnitten, dadurch hat jedes Sample eine feste Zeit und die Aufnahme sitzt genau auf dem Raster
+- Vorzähler: Aus, 1 oder 2 Takte (unter Geräte, wird im Projekt gespeichert), mit großer Anzeige und Klicks auch ohne Metronom
+- Latenzausgleich: automatisch aus der Ausgabelatenz geschätzt, als eigener Wert einstellbar oder per „Latenz messen“ (drei Klicks über die Lautsprecher, das Mikrofon hört mit). Gilt pro Gerät. MIDI-Noten werden um die Ausgabelatenz früher eingetragen
+- Takes im Cycle: Mit eingeschaltetem Cycle entsteht pro Durchgang ein Take (Audio und MIDI). Die Region zeigt „Take 2/3“, im Editor wählst du den Take aus oder behältst nur einen
+- Neue Sounds: 7 echte Drumcomputer als Samples (jetzt 18 Kits): TR-808, LinnDrum LM-2, Casio RZ-1, Roland CR-8000, MFB-512, Yamaha MR-10, Casio SK-1. Einzelne Klänge daraus lassen sich wie gewohnt mit anderen Kits mischen; fehlende Instrumente ergänzt ein passendes Synth-Kit
+- Quelle der Drum-Samples: [smpldsnds/drum-machines](https://github.com/smpldsnds/drum-machines), gemeinfrei. `node scripts/fetch-drums.js` lädt sie neu
+
 ## Grundsatz
 
 Jedes Update bringt auch neue Sounds mit.
 
 ## Fahrplan
 
-1. **v0.8 Aufnahme-Feinschliff**: Vorzähler, Latenzausgleich, Takes im Cycle. Neue Sounds: echte Drumkits aus Samples
-2. **v0.9 Web-App/iPhone**: Installation als PWA, Touch-Bedienung weiter verbessern
-3. **Später**: VST3-Plug-ins in der Windows-Version
+1. **v0.9 Web-App/iPhone**: Installation als PWA, Touch-Bedienung weiter verbessern
+2. **Später**: VST3-Plug-ins in der Windows-Version
 
 ## Starten
 
-- Windows: `Klangwerk-0.7.0-win.zip` entpacken, `Klangwerk.exe` starten
+- Windows: `Klangwerk-0.8.0-win.zip` entpacken, `Klangwerk.exe` starten
 - Entwicklung: `npm install`, dann `npm start`
 - Windows-Build: `npm run dist:win`

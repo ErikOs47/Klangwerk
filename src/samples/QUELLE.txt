@@ -4,3 +4,8 @@ Lizenz der Samples: CC-BY 3.0 (https://creativecommons.org/licenses/by/3.0/)
 Die Aufnahmen stammen laut Projekt aus gemeinfreien Quellen.
 
 Für Klangwerk gekürzt, in Mono und mit 64 kbit/s neu kodiert (scripts/fetch-samples.js).
+
+Drum-Samples (drums-*.js) aus "drum-machines" von smpldsnds
+https://github.com/smpldsnds/drum-machines
+Laut Projekt gemeinfreie Samples verschiedener Drumcomputer (TR-808, LM-2, RZ-1, CR-8000, MFB-512, MR-10, SK-1).
+Für Klangwerk gekürzt, in Mono und mit 96 kbit/s neu kodiert (scripts/fetch-drums.js).

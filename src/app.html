@@ -96,13 +96,21 @@ input[type=checkbox] { accent-color: var(--accent); }
 .menu button:hover svg { fill: #1b1400; }
 .menu button:hover kbd { color: #1b1400aa; }
 .menu svg { width: 18px; height: 18px; fill: var(--muted); }
-.devmenu { left: auto; right: 0; width: 290px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; transform-origin: top right; }
+.devmenu { left: auto; right: 0; width: 290px; max-height: calc(100vh - 80px); overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; transform-origin: top right; }
 .devmenu[hidden] { display: none; }
 .devmenu h4 { margin: 4px 0 0; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
 .devmenu .sbtn, .devmenu select { height: 30px; border-radius: 8px; border: 1px solid var(--line); background: var(--raise); padding: 0 10px; font-size: 13px; width: 100%; justify-content: center; }
 .devmenu .sbtn:hover { background: #2f343e; }
 .devlist { font-size: 13px; display: flex; flex-direction: column; gap: 3px; }
 .devlist span::before { content: "●  "; color: var(--play); }
+.devrow { display: grid; grid-template-columns: 1fr 1.3fr; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
+.devrow[hidden] { display: none; }
+.devrow output { text-align: right; font-variant-numeric: tabular-nums; color: var(--fg); }
+.countin { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); z-index: 60; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 18px 34px; border-radius: 18px; background: #0d0e12d9; box-shadow: 0 10px 40px #000a, inset 0 0 0 1px #ffffff14; backdrop-filter: blur(6px); }
+.countin[hidden] { display: none; }
+.countin b { font-size: 64px; line-height: 1; font-weight: 700; color: var(--rec); font-variant-numeric: tabular-nums; }
+.countin span { font-size: 12px; color: var(--muted); letter-spacing: .04em; }
+.tsel { height: 28px; border-radius: 7px; border: 1px solid var(--line); background: var(--raise); color: var(--fg); padding: 0 8px; font-size: 12.5px; }
 .devnote { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.45; }
 .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--line); display: inline-block; }
 .dot.on { background: var(--play); box-shadow: 0 0 8px var(--play); }
@@ -525,6 +533,12 @@ input[type=checkbox] { accent-color: var(--accent); }
           <select id="inSel" aria-label="Audio-Eingang"><option value="">Standardgerät</option></select>
           <button class="sbtn" id="bInScan">Eingänge suchen</button>
           <p class="devnote">Eingehende MIDI-Noten spielen auf der ausgewählten Spur und werden bei laufender Aufnahme mitgeschnitten.</p>
+          <h4>Aufnahme</h4>
+          <label class="devrow"><span>Vorzähler</span><select id="countSel"><option value="0">Aus</option><option value="1">1 Takt</option><option value="2">2 Takte</option></select></label>
+          <label class="devrow"><span>Latenzausgleich</span><select id="latMode"><option value="auto">Automatisch</option><option value="manual">Eigener Wert</option></select></label>
+          <div class="devrow" id="latRow" hidden><input type="range" id="latMs" min="0" max="400" step="1" aria-label="Latenz in Millisekunden"><output id="latOut"></output></div>
+          <button class="sbtn" id="bLatMeasure">Latenz messen</button>
+          <p class="devnote">Beim Messen spielt Klangwerk drei Klicks über die Lautsprecher und hört sie über das Mikrofon. Kopfhörer dafür abnehmen. Mit Cycle (Schleife) entsteht pro Durchgang ein eigener Take.</p>
         </div>
       </div>
     </div>
@@ -538,6 +552,7 @@ input[type=checkbox] { accent-color: var(--accent); }
   <div class="mid">
     <aside class="lib" id="lib" aria-label="Bibliothek"></aside>
     <main class="arrange" id="arrange">
+      <div class="countin" id="countin" hidden><b>1</b><span></span></div>
       <div id="scroller"><div id="grid">
         <div class="ruler-row"><div class="corner"><span>Spuren</span><label class="zoomer" title="Zoom (Strg + Mausrad oder zwei Finger)"><svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M6.5 1a5.5 5.5 0 0 1 4.4 8.8l3.9 3.9-1.1 1.1-3.9-3.9A5.5 5.5 0 1 1 6.5 1zm0 1.5a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM5.8 4.5h1.4v1.3h1.3v1.4H7.2v1.3H5.8V7.2H4.5V5.8h1.3z"/></svg><input type="range" id="zoom" min="8" max="160" value="30" aria-label="Zoom"></label></div><div class="ruler" id="ruler"></div></div>
         <div class="marker-row"><div class="corner"><span>Marker</span><button class="sm" id="bMarker" title="Marker an der Abspielposition setzen">+ Marker</button></div><div class="mlane" id="mlane" title="Doppelklick = neuer Marker"></div></div>
@@ -682,6 +697,14 @@ const KITS = {
   jazz:     { name: 'Jazz (Besen)', kick: { f0: 100, f1: 60, sweep: .05, dec: .35, g: .8 }, snare: { hp: 600, dec: .4, tone: .15, brush: 1 }, hat: { hp: 5000, dec: .08 }, ohat: { hp: 5000, dec: .7 }, tom: { f0: 140, f1: 115, dec: .6 }, rim: { f: 1100, dec: .07 }, crash: { hp: 3000, dec: 2.6 }, ride: { dec: 2.4, bell: .3, g: .16 }, lp: 7000 },
   boombap:  { name: 'Boom Bap', kick: { f0: 130, f1: 48, sweep: .07, dec: .45, g: 1.2, click: .2 }, snare: { hp: 1100, dec: .24, tone: .5, tf: 210 }, clap: { bp: 1000, dec: .28 }, hat: { hp: 7000, dec: .045 }, ohat: { hp: 6500, dec: .4 }, lp: 6000, drive: 1.5, gain: .8 },
   industrial: { name: 'Industrial', kick: { f0: 180, f1: 40, sweep: .09, dec: .6, g: 1.2, drive: 6 }, snare: { hp: 900, dec: .3, tone: .5 }, clap: { bp: 900, dec: .4 }, hat: { hp: 6000, dec: .08, metal: 1 }, ohat: { hp: 5500, dec: .6, metal: 1 }, tom: { f0: 110, f1: 50, dec: .5 }, cow: { f1: 400, f2: 590, dec: .5 }, crash: { hp: 2500, dec: 2, metal: 1 }, drive: 3, gain: .55 },
+  // Neu in v0.8: echte Drumcomputer als Samples (gemeinfrei, smpldsnds/drum-machines). fb: Ersatz für fehlende Instrumente
+  s_tr808:  { name: 'TR-808 (echt)', smp: 'tr808', fb: 'k808' },
+  s_lm2:    { name: 'LinnDrum (echt)', smp: 'lm2', fb: 'electro' },
+  s_rz1:    { name: 'Casio RZ-1 (echt)', smp: 'rz1', fb: 'electro', has: 'kick snare clap hat ohat tom rim cow crash ride' },
+  s_cr8000: { name: 'Roland CR-8000 (echt)', smp: 'cr8000', fb: 'k808', has: 'kick snare clap hat ohat tom rim cow crash conga' },
+  s_mfb512: { name: 'MFB-512 (echt)', smp: 'mfb512', fb: 'electro', has: 'kick snare clap hat ohat tom crash' },
+  s_mr10:   { name: 'Yamaha MR-10 (echt)', smp: 'mr10', fb: 'lofi', has: 'kick snare hat ohat tom rim crash ride shaker' },
+  s_sk1:    { name: 'Casio SK-1 (echt)', smp: 'sk1', fb: 'lofi', has: 'kick snare hat ohat tom' },
   perc:     { name: 'Percussion', kick: { f0: 90, f1: 55, sweep: .05, dec: .5, g: 1 }, snare: { hp: 2000, dec: .1, tone: .7, tf: 330 }, clap: { bp: 1800, dec: .2 }, hat: { hp: 5500, dec: .04 }, tom: { f0: 240, f1: 180, dec: .45 }, rim: { f: 2400, dec: .05 }, cow: { f1: 720, f2: 1080, dec: .25 }, shaker: { bp: 5000, dec: .12, att: .02 }, conga: { f0: 400, f1: 360, dec: .35, slap: .4 } }
 };
 const DRUMS = [
@@ -725,7 +748,7 @@ function normProject(p) {
     for (const d of DRUMS) { r.steps[d.id] ||= Array(16).fill(0); r.pitch[d.id] ||= Array(16).fill(0); }
   }
   for (const t of p.tracks) if (t.type === 'synth' && (!PRESETS[t.preset] || (t.preset === 'user' && !t.usmp))) t.preset = 'epiano';
-  p.markers ||= [];
+  p.markers ||= []; p.countIn ??= 1;
   return p;
 }
 
@@ -987,7 +1010,7 @@ function loopZone(z) {
   z.ls = ls / sr; z.le = le / sr;
 }
 const usedSamples = () => [...new Set(P.tracks.filter(t => t.type === 'synth').map(t => PRESETS[t.preset]?.smp).filter(s => s && s !== 'user'))];
-const samplesReady = () => Promise.all(usedSamples().map(id => loadSamples(id).catch(() => { })));
+const samplesReady = () => Promise.all([...usedSamples().map(id => loadSamples(id).catch(() => { })), ...usedDrumSets().map(id => loadDrumSet(id).catch(() => { }))]);
 // Eigenes Sample einer Spur: eine Zone mit dem Grundton, bei Bedarf als Schleife (Kopie, das Original bleibt unverändert)
 const userZoneCache = new Map();
 function userZones(tr) {
@@ -1110,8 +1133,36 @@ const KIT_BASE = {
 };
 function kitParam(kit, drum) { return { ...KIT_BASE[drum], ...(KITS[kit]?.[drum] || {}) }; }
 const METAL = [205.3, 304.4, 369.6, 522.7, 540, 800]; // Rechteck-Cluster wie in der 808 für metallische Becken
+// Drumcomputer-Samples: pro Kit eine Datei samples/drums-<id>.js mit einem Klang je Instrument
+const drumSets = new Map(), DRUM_LVL = { kick: 1, snare: .85, clap: .55, hat: .5, ohat: .5, tom: .8, rim: .55, cow: .45, crash: .42, ride: .38, shaker: .45, conga: .7 };
+function loadDrumSet(id) {
+  let s = drumSets.get(id); if (s) return s.wait;
+  s = { map: null }; drumSets.set(id, s); smpDec ||= new OfflineAudioContext(1, 1, 44100);
+  const key = 'drums-' + id;
+  s.wait = (smpRaw[key] ? Promise.resolve() : loadScript('samples/' + key + '.js'))
+    .then(() => Promise.all(Object.entries(smpRaw[key]).map(async ([p, b]) => { const buf = await smpDec.decodeAudioData(unb64(b).buffer); peakNorm(buf); return [p, { buf, off: leadIn(buf) }]; })))
+    .then(e => { s.map = Object.fromEntries(e); delete smpRaw[key]; })
+    .catch(e => { drumSets.delete(id); toast('Die Drum-Samples ließen sich nicht laden.'); throw e; });
+  return s.wait;
+}
+// true, wenn das Kit diesen Klang als Sample hat (solange es lädt, bleibt es still)
+function drumSample(id, piece, dest, t, vel, pitch) {
+  const s = drumSets.get(id);
+  if (!s?.map) { loadDrumSet(id).catch(() => { }); return true; }
+  const z = s.map[piece]; if (!z) return false;
+  const src = ctx.createBufferSource(), g = ctx.createGain();
+  src.buffer = z.buf; src.playbackRate.value = Math.pow(2, (pitch || 0) / 12);
+  g.gain.value = Math.pow(vel, 1.2) * (DRUM_LVL[piece] || .7);
+  src.connect(g).connect(dest); src.start(t, z.off);
+  return true;
+}
+// Vorhören erst, wenn die Samples des Kits geladen sind
+const whenKit = (kit, fn) => { const id = KITS[kit]?.smp; if (id && !drumSets.get(id)?.map) loadDrumSet(id).then(fn, () => { }); else fn(); };
+const usedDrumSets = () => [...new Set(P.tracks.filter(t => t.type === 'drums').flatMap(t => [t.kit || 'standard', ...Object.values(t.pieces || {})]).map(k => KITS[k]?.smp).filter(Boolean))];
 function playDrum(id, dest, t, vel = 1, kit = 'standard', pitch = 0) {
-  const K = KITS[kit] || KITS.standard, k = kitParam(kit, id);
+  let K = KITS[kit] || KITS.standard;
+  if (K.smp) { if (drumSample(K.smp, id, dest, t, vel, pitch)) return; kit = K.fb || 'standard'; K = KITS[kit]; }
+  const k = kitParam(kit, id);
   const pr = Math.pow(2, pitch / 12), bq = (type, f, q) => biq(type, Math.min(20000, f * pr), q);
   const nz = (tt, dur) => { const n = noise(tt, dur / pr); n.playbackRate.value = pr; return n; };
   if (K.gain) { const kg = ctx.createGain(); kg.gain.value = K.gain; kg.connect(dest); dest = kg; }
@@ -1269,7 +1320,7 @@ function addBuffer(buf, id = uid()) {
   idb.put(id, { sr: buf.sampleRate, ch }).catch(() => { });
   return id;
 }
-const bufferIds = () => [...new Set(P.tracks.flatMap(t => t.type === 'audio' ? t.regions.map(r => r.buf) : t.usmp ? [t.usmp.buf] : []))];
+const bufferIds = () => [...new Set(P.tracks.flatMap(t => t.type === 'audio' ? t.regions.flatMap(r => [r.buf, ...(r.takes || []).map(k => k.buf)]) : t.usmp ? [t.usmp.buf] : []))];
 function makeBuffer(sr, ch) {
   const b = new AudioBuffer({ length: ch[0].length, sampleRate: sr, numberOfChannels: ch.length });
   ch.forEach((d, i) => b.copyToChannel(d, i)); return b;
@@ -1432,6 +1483,7 @@ function play() {
   const t0 = ctx.currentTime + .05;
   cur = { time: t0, beat: playPos };
   segs = [{ ...cur }];
+  recMark(cur);
   startAudioAt(playPos, t0);
   timer = setInterval(tick, 25);
   tick();
@@ -1469,11 +1521,12 @@ function tick() {
   let guard = 0;
   while (cur.time < target - 1e-6 && guard++ < 16) {
     const b1 = cur.beat + (target - cur.time) / spb();
-    const loopActive = L.on && L.end > L.start && !(rec && rec.type === 'audio');
+    const loopActive = L.on && L.end > L.start;
     if (loopActive && cur.beat < L.end && b1 >= L.end) {
       schedule(cur.beat, L.end, cur.time);
       cur = { time: cur.time + (L.end - cur.beat) * spb(), beat: L.start };
       segs.push({ ...cur });
+      recMark(cur);
       startAudioAt(L.start, cur.time);
     } else {
       schedule(cur.beat, b1, cur.time);
@@ -1484,7 +1537,8 @@ function tick() {
 function schedule(b0, b1, t0) {
   if (b1 <= b0) return;
   const s = spb(), at = b => t0 + (b - b0) * s;
-  if (P.metro || (rec && rec.countClick)) for (let b = Math.ceil(b0 - 1e-9); b < b1; b++) click(at(b), b % 4 === 0);
+  // Metronom, und im Vorzähler auch ohne Metronom
+  if (P.metro || (rec && b0 < rec.countUntil)) for (let b = Math.ceil(b0 - 1e-9); b < b1; b++) if (P.metro || b < rec?.countUntil) click(at(b), ((b % 4) + 4) % 4 === 0);
   for (const tr of P.tracks) {
     scheduleAuto(tr, b0, b1, at);
     for (const r of tr.regions) {
@@ -1538,55 +1592,130 @@ function setBpm(v) {
 }
 
 // ================= Aufnahme =================
+// Gerätebezogene Einstellung (bleibt im Browser): Latenzausgleich in ms, null = automatisch
+const recPrefs = (() => { try { return JSON.parse(localStorage.getItem('klangwerk.rec') || '{}'); } catch (e) { return {}; } })();
+const saveRecPrefs = () => { try { localStorage.setItem('klangwerk.rec', JSON.stringify(recPrefs)); } catch (e) { } };
+// Was man hört, kommt um die Ausgabelatenz später aus dem Lautsprecher; das Mikrofon braucht noch etwas dazu
+const outLatency = () => ctx ? (ctx.outputLatency || 0) + (ctx.baseLatency || 0) : 0;
+const autoLatency = () => outLatency() + .012;
+const recLatency = () => recPrefs.lat != null ? recPrefs.lat / 1000 : autoLatency();
+const micConstraints = () => ({ audio: { deviceId: inputDevice ? { exact: inputDevice } : undefined, echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+// Mikrofon über den Audio-Graphen mitschneiden: jedes Sample hat so eine feste Zeit im Audio-Takt
+function startCapture(stream) {
+  const B = 2048, src = ctx.createMediaStreamSource(stream), sp = ctx.createScriptProcessor(B, 2, 1), mute = ctx.createGain();
+  mute.gain.value = 0;
+  const cap = { chunks: [], t0: null, sr: ctx.sampleRate, src, sp, mute, stream, level: 0 };
+  sp.onaudioprocess = e => {
+    // Der Eingangsblock wurde etwa zwei Blocklängen vor seiner Ausgabezeit aufgenommen
+    if (cap.t0 === null) cap.t0 = e.playbackTime - 2 * B / ctx.sampleRate;
+    const a = e.inputBuffer.getChannelData(0), b = e.inputBuffer.numberOfChannels > 1 ? e.inputBuffer.getChannelData(1) : a, d = new Float32Array(a.length);
+    let pk = 0; for (let i = 0; i < a.length; i++) { d[i] = (a[i] + b[i]) / 2; pk = Math.max(pk, Math.abs(d[i])); }
+    cap.chunks.push(d); cap.level = Math.max(pk, cap.level * .8);
+  };
+  src.connect(sp); sp.connect(mute).connect(ctx.destination);
+  return cap;
+}
+function endCapture(cap) {
+  cap.sp.onaudioprocess = null; cap.src.disconnect(); cap.sp.disconnect(); cap.mute.disconnect();
+  cap.stream.getTracks().forEach(t => t.stop());
+  const n = cap.chunks.reduce((a, c) => a + c.length, 0), d = new Float32Array(n);
+  let o = 0; for (const c of cap.chunks) { d.set(c, o); o += c.length; }
+  return d;
+}
 async function toggleRecord() {
   if (rec) { stopRecording(); return; }
+  if (recPending) return;
   ensureCtx();
   const tr = findTrack(selTrack);
   if (!tr || tr.type === 'drums') { toast('Wähle zuerst eine Instrument- oder Audiospur aus.'); return; }
+  let cap = null;
   if (tr.type === 'audio') {
-    let stream;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: inputDevice ? { exact: inputDevice } : undefined, echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
-    } catch (e) {
-      toast('Kein Mikrofonzugriff. Erlaube das Mikrofon oder importiere eine Audiodatei.'); return;
-    }
-    const mr = new MediaRecorder(stream), chunks = [];
-    mr.ondataavailable = e => chunks.push(e.data);
-    rec = { type: 'audio', track: tr.id, startBeat: playPos, mr, stream, chunks };
-    mr.onstop = async () => {
-      stream.getTracks().forEach(t => t.stop());
-      try {
-        const buf = await ctx.decodeAudioData(await new Blob(chunks).arrayBuffer());
-        const id = addBuffer(buf);
-        pushUndo();
-        const n = tr.regions.length + 1;
-        tr.regions.push({ id: uid(), name: 'Aufnahme ' + n, start: rec0.startBeat, len: buf.duration / spb(), buf: id, offset: 0, file: 'Aufnahme ' + n });
-        save(); render();
-      } catch (e) { toast('Die Aufnahme konnte nicht gelesen werden.'); }
-    };
-    const rec0 = rec;
-    mr.start();
-    if (!playing) play();
-  } else {
-    rec = { type: 'midi', track: tr.id, region: null, startBeat: playPos, held: new Map() };
-    if (!playing) play();
-    toast('Aufnahme läuft. Spiele mit den Tasten A bis L.');
+    recPending = true;
+    try { cap = startCapture(await navigator.mediaDevices.getUserMedia(micConstraints())); }
+    catch (e) { toast('Kein Mikrofonzugriff. Erlaube das Mikrofon oder importiere eine Audiodatei.'); return; }
+    finally { recPending = false; }
   }
+  const start = playing ? currentBeat() : playPos, ci = playing ? 0 : (P.countIn ?? 1) * 4;
+  rec = { type: tr.type === 'audio' ? 'audio' : 'midi', track: tr.id, startBeat: start, countUntil: start, cap, marks: [], region: null, held: new Map(), pass: 0 };
+  if (playing) rec.marks.push({ time: ctx.currentTime, beat: start });
+  else { playPos = start - ci; play(); }
+  if (rec.type === 'midi') toast(ci ? 'Vorzähler läuft, dann wird aufgenommen.' : 'Aufnahme läuft. Spiele mit den Tasten A bis L oder dem MIDI-Keyboard.');
   updateTransport();
+}
+let recPending = false;
+// Wird beim Start und bei jedem Cycle-Sprung aufgerufen: neuer Durchgang = neuer Take
+function recMark(m) {
+  if (!rec) return;
+  rec.marks.push({ ...m });
+  if (rec.type === 'midi' && rec.region && rec.marks.length > 1) newMidiTake(rec);
 }
 function stopRecording() {
   const r = rec; rec = null;
-  if (r.type === 'audio') r.mr.stop();
-  else { r.held.forEach((n, code) => endRecNote(r, code)); save(); render(); }
-  removeGhost(); updateTransport();
+  if (r.type === 'audio') finishAudio(r);
+  else {
+    r.held.forEach((n, code) => endRecNote(r, code));
+    const reg = r.region;
+    // Leerer letzter Durchgang zählt nicht als Take
+    if (reg?.takes?.length > 1 && !reg.notes.length) { reg.takes.pop(); useTake(reg, reg.takes.length - 1, true); }
+    if (reg?.takes?.length === 1) { delete reg.takes; delete reg.take; }
+    save(); render();
+  }
+  removeGhost(); hideCount(); updateTransport();
+}
+// Aus dem Mitschnitt die Takes schneiden: ohne Cycle eine Region, mit Cycle ein Take pro Durchgang
+function finishAudio(r) {
+  const data = endCapture(r.cap), sr = r.cap.sr, end = ctx.currentTime, tr = findTrack(r.track), s = spb();
+  if (!tr || r.cap.t0 === null || !data.length) { toast('Es wurde nichts aufgenommen.'); return; }
+  const idx = t => Math.round((t + recLatency() - r.cap.t0) * sr);
+  const passes = r.marks.map((m, i) => {
+    const t1 = i + 1 < r.marks.length ? r.marks[i + 1].time : end;
+    return { b0: Math.max(m.beat, r.startBeat), b1: m.beat + (t1 - m.time) / s, m };
+  }).filter(p => p.b1 > p.b0 + .05);
+  if (!passes.length) { toast('Es wurde nichts aufgenommen.'); return; }
+  const L = P.loop, looped = r.marks.length > 1;
+  const S = looped ? Math.min(L.start, passes[0].b0) : passes[0].b0, E = looped ? L.end : passes[0].b1;
+  const len = E - S, N = Math.round(len * s * sr);
+  // Kurze Reste am Ende (Stopp kurz nach dem Cycle-Sprung) verwerfen, solange es andere Takes gibt
+  const keep = passes.filter((p, i) => i === 0 || p.b1 - p.b0 >= Math.min(1, (L.end - L.start) / 4));
+  const bufs = keep.map(p => {
+    const out = new Float32Array(N), from = idx(p.m.time + (p.b0 - p.m.beat) * s), at = Math.round((p.b0 - S) * s * sr), n = Math.min(Math.round((p.b1 - p.b0) * s * sr), N - at);
+    for (let i = 0; i < n; i++) { const j = from + i; if (j >= 0 && j < data.length) out[at + i] = data[j]; }
+    return addBuffer(makeBuffer(sr, [out]));
+  });
+  pushUndo();
+  const n = tr.regions.length + 1, reg = { id: uid(), name: 'Aufnahme ' + n, start: S, len, buf: bufs.at(-1), offset: 0, file: 'Aufnahme ' + n };
+  if (bufs.length > 1) { reg.takes = bufs.map(b => ({ buf: b })); reg.take = bufs.length - 1; toast(`${bufs.length} Takes aufgenommen. Im Editor wählst du den besten aus.`); }
+  tr.regions.push(reg); selTrack = tr.id; selRegion = reg.id; edTab = 'region';
+  save(); render();
+}
+// Takes: alle teilen sich die Zeitachse der Region, gewechselt wird nur der Inhalt (Audio) bzw. die Noten (MIDI)
+function useTake(r, i, skipStore) {
+  if (!r.takes?.[i]) return;
+  const cur = r.takes[r.take];
+  if (cur && !skipStore) { if (r.notes) cur.notes = r.notes; else cur.buf = r.buf; }
+  r.take = i;
+  if (r.notes) r.notes = r.takes[i].notes; else r.buf = r.takes[i].buf;
+}
+function newMidiTake(R) {
+  const r = R.region;
+  R.held.forEach((n, code) => endRecNote(R, code));
+  if (!r.notes.length) return; // im letzten Durchgang nichts gespielt: Take wiederverwenden
+  r.takes ||= [{ notes: r.notes }]; r.take ??= 0;
+  r.takes[r.take].notes = r.notes;
+  r.takes.push({ notes: [] }); r.take = r.takes.length - 1; r.notes = r.takes[r.take].notes;
+  renderArrange(); if (selRegion === r.id) renderEditor();
 }
 function recNoteStart(code, midi, vel = .8) {
   const tr = findTrack(rec.track); if (!tr) return;
-  const b = currentBeat();
+  // Gespielt wird zu dem, was man hört: also um die Ausgabelatenz früher eintragen
+  let b = currentBeat() - outLatency() / spb();
+  if (b < rec.startBeat - .25) return; // im Vorzähler gespielt
+  b = Math.max(b, rec.startBeat);
   if (!rec.region) {
     pushUndo();
-    const start = P.loop.on ? Math.min(P.loop.start, Math.floor(rec.startBeat / 4) * 4) : Math.floor(b / 4) * 4;
-    rec.region = { id: uid(), name: 'Aufnahme', start, len: P.loop.on ? Math.max(4, P.loop.end - start) : 4, notes: [] };
+    const L = P.loop, inLoop = L.on && rec.startBeat >= L.start && rec.startBeat < L.end;
+    const start = inLoop ? L.start : Math.max(0, Math.floor(rec.startBeat / 4) * 4);
+    rec.region = { id: uid(), name: 'Aufnahme', start, len: inLoop ? L.end - L.start : 4, notes: [] };
     tr.regions.push(rec.region); selRegion = rec.region.id;
   }
   const r = rec.region;
@@ -1599,11 +1728,56 @@ function recNoteStart(code, midi, vel = .8) {
 function endRecNote(r, code) {
   const h = r.held.get(code); if (!h) return;
   r.held.delete(code);
-  let l = currentBeat() - h.b;
+  let l = currentBeat() - outLatency() / spb() - h.b;
   if (l <= 0) l = .25;
   h.n.l = Math.max(.05, l);
   r.region.len = Math.max(r.region.len, Math.ceil((h.n.s + h.n.l) / 4) * 4);
 }
+// Vorzähler-Anzeige
+const countEl = $('#countin');
+function showCount(b) {
+  const left = rec.countUntil - b;
+  if (left <= 0) { hideCount(); return; }
+  const n = Math.floor(((b % 4) + 4) % 4) + 1;
+  countEl.hidden = false; countEl.firstChild.textContent = n; countEl.lastChild.textContent = `Vorzähler · noch ${Math.ceil(left / 4)} Takt${Math.ceil(left / 4) > 1 ? 'e' : ''}`;
+}
+function hideCount() { countEl.hidden = true; }
+// Latenz messen: drei Klicks über die Lautsprecher, das Mikrofon hört mit
+async function measureLatency() {
+  ensureCtx(); if (playing) stop();
+  let cap;
+  try { cap = startCapture(await navigator.mediaDevices.getUserMedia(micConstraints())); }
+  catch (e) { toast('Kein Mikrofonzugriff. Erlaube das Mikrofon.'); return; }
+  toast('Messung läuft: Kopfhörer abnehmen und kurz still sein …');
+  const t0 = ctx.currentTime + .6, clicks = [0, .7, 1.4].map(x => t0 + x);
+  for (const t of clicks) { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'square'; o.frequency.value = 1000; g.gain.setValueAtTime(.8, t); g.gain.setTargetAtTime(0, t + .01, .005); o.connect(g).connect(ctx.destination); o.start(t); o.stop(t + .05); }
+  await new Promise(r => setTimeout(r, 2600));
+  const d = endCapture(cap), sr = cap.sr;
+  const found = clicks.map(t => {
+    const a = Math.max(0, Math.round((t - .05 - cap.t0) * sr)), z = Math.min(d.length, a + Math.round(.6 * sr));
+    let pk = 0; for (let i = a; i < z; i++) pk = Math.max(pk, Math.abs(d[i]));
+    let noise = 0; for (let i = Math.max(0, a - 2000); i < a; i++) noise = Math.max(noise, Math.abs(d[i]));
+    if (pk < .02 || pk < noise * 4) return null;
+    for (let i = a; i < z; i++) if (Math.abs(d[i]) > pk * .4) return (i / sr + cap.t0) - t;
+    return null;
+  }).filter(x => x != null && x > -.01 && x < .55).sort((a, b) => a - b);
+  if (found.length < 2) { toast('Keine Klicks gehört. Lautsprecher lauter stellen, Kopfhörer abnehmen und nochmal messen.'); return; }
+  recPrefs.lat = Math.max(0, Math.round(found[found.length >> 1] * 1000)); saveRecPrefs(); renderRecSettings();
+  toast(`Latenz gemessen: ${recPrefs.lat} ms. Aufnahmen werden ab jetzt so ausgeglichen.`);
+}
+function renderRecSettings() {
+  $('#countSel').value = String(P.countIn ?? 1);
+  const manual = recPrefs.lat != null;
+  $('#latMode').value = manual ? 'manual' : 'auto';
+  $('#latMode').options[0].textContent = `Automatisch (${Math.round(autoLatency() * 1000)} ms)`;
+  $('#latRow').hidden = !manual;
+  $('#latMs').value = manual ? recPrefs.lat : Math.round(autoLatency() * 1000);
+  $('#latOut').textContent = (manual ? recPrefs.lat : Math.round(autoLatency() * 1000)) + ' ms';
+}
+$('#countSel').onchange = e => { P.countIn = +e.target.value; save(); };
+$('#latMode').onchange = e => { recPrefs.lat = e.target.value === 'manual' ? Math.round(autoLatency() * 1000) : null; saveRecPrefs(); renderRecSettings(); };
+$('#latMs').oninput = e => { recPrefs.lat = +e.target.value; $('#latOut').textContent = recPrefs.lat + ' ms'; saveRecPrefs(); };
+$('#bLatMeasure').onclick = measureLatency;
 
 // ================= Darstellung: Arrangement =================
 const rowsEl = $('#rows'), rulerEl = $('#ruler'), gridEl = $('#grid'), playheadEl = $('#playhead');
@@ -1617,6 +1791,7 @@ function songLen() {
 function render() { renderArrange(); renderEditor(); updateTransport(); renderLib(); }
 function renderArrange() {
   for (const id of usedSamples()) if (!smpSets.has(id)) loadSamples(id).catch(() => { });
+  for (const id of usedDrumSets()) if (!drumSets.has(id)) loadDrumSet(id).catch(() => { });
   const beats = songLen(), W = beats * ppb;
   rulerEl.style.width = W + 'px';
   let rh = '';
@@ -1637,7 +1812,7 @@ function renderArrange() {
       const fades = au ? `<div class="fh fi" title="Einblenden (ziehen)" style="left:${clamp((r.fi || 0) / total, 0, 1) * 100}%"></div><div class="fh fo" title="Ausblenden (ziehen)" style="left:${(1 - clamp((r.fo || 0) / total, 0, 1)) * 100}%"></div>` : '';
       const gain = au && r.gain ? `<span class="rgain">${r.gain > 0 ? '+' : ''}${String(Math.round(r.gain * 10) / 10).replace('.', ',')} dB</span>` : '';
       return `<div class="region ${r.id === selRegion ? 'sel' : ''} ${missing ? 'missing' : ''}" data-region="${r.id}" style="left:${r.start * ppb}px;width:${Math.max(4, r.len * ppb)}px">
-        <div class="rname">${esc(r.name)}${missing ? ' (Audio nicht gespeichert)' : ''}</div>${gain}<canvas></canvas><div class="lh" title="Anfang kürzen"></div><div class="rh" title="Länge ändern"></div>${fades}</div>`;
+        <div class="rname">${esc(r.name)}${r.takes?.length > 1 ? ` · Take ${r.take + 1}/${r.takes.length}` : ''}${missing ? ' (Audio nicht gespeichert)' : ''}</div>${gain}<canvas></canvas><div class="lh" title="Anfang kürzen"></div><div class="rh" title="Länge ändern"></div>${fades}</div>`;
     }).join('');
     const av = k => autoOn(tr, k) ? 'disabled title="Wird von der Automation gesteuert"' : '';
     let row = `<div class="track-row ${sel}" data-track="${tr.id}" style="--c:${tr.color}">
@@ -1743,8 +1918,8 @@ function drawWave(g, buf, off, dur, w, h, color, gain = 1) {
 }
 function updatePlayhead() {
   const b = currentBeat();
-  playheadEl.style.left = (hw() + b * ppb) + 'px';
-  const bar = Math.floor(b / 4) + 1, beat = Math.floor(b % 4) + 1, six = Math.floor((b % 1) * 4) + 1;
+  playheadEl.style.left = (hw() + Math.max(0, b) * ppb) + 'px';
+  const m = x => ((x % 4) + 4) % 4, bar = Math.floor(b / 4) + 1, beat = Math.floor(m(b)) + 1, six = Math.floor((((b % 1) + 1) % 1) * 4) + 1;
   $('#lcdPos').textContent = `${String(bar).padStart(3, '0')} ${beat} ${six}`;
   if (!playing && autoPos !== playPos) { autoPos = playPos; applyAutoStatic(); }
 }
@@ -1776,8 +1951,10 @@ function updateGhost() {
     ghostEl = document.createElement('div'); ghostEl.className = 'region ghost';
     ghostEl.innerHTML = '<div class="rname">● Aufnahme</div>'; lane.appendChild(ghostEl);
   }
-  ghostEl.style.left = rec.startBeat * ppb + 'px';
-  ghostEl.style.width = Math.max(2, (currentBeat() - rec.startBeat) * ppb) + 'px';
+  const g0 = rec.marks.length > 1 ? P.loop.start : rec.startBeat;
+  ghostEl.style.left = g0 * ppb + 'px';
+  ghostEl.style.width = Math.max(2, (currentBeat() - g0) * ppb) + 'px';
+  ghostEl.firstChild.textContent = rec.marks.length > 1 ? `● Take ${rec.marks.length}` : '● Aufnahme';
 }
 function removeGhost() { ghostEl?.remove(); ghostEl = null; }
 
@@ -1799,6 +1976,7 @@ function renderEditor() {
 }
 eHead.addEventListener('click', e => {
   const z = e.target.closest('[data-ez]'); if (z) { edZoom(+z.dataset.ez); return; }
+  if (e.target.closest('[data-takeonly]')) { const [, r] = findRegion(selRegion); if (r?.takes) { pushUndo(); useTake(r, r.take); delete r.takes; delete r.take; save(); render(); toast('Die anderen Takes wurden verworfen.'); } return; }
   if (e.target.closest('[data-rdel]')) { focusArea = 'arr'; deleteSelection(); toast('Region gelöscht. Strg+Z holt sie zurück.'); return; }
   const b = e.target.closest('[data-tab]'); if (b && !b.disabled) { edTab = b.dataset.tab; renderEditor(); }
 });
@@ -1813,6 +1991,7 @@ function renderRegionEditor() {
         <p>Regionen verschiebst du mit der Maus, am rechten Rand änderst du die Länge, am linken Rand kürzt du den Anfang. Zum Löschen eine Region antippen und oben im Editor „Region löschen“ wählen (oder Entf). Ziehen im Lineal oben setzt den Cycle-Bereich.</p>
         <p>Mit „A“ im Spurkopf öffnest du die Automation: Lautstärke, Panorama, Filter, Hall und Delay als Kurve über die Zeit. Marker für Intro, Strophe, Refrain setzt du mit „+ Marker“ oder per Doppelklick in die Marker-Leiste.</p>
         <p>In der Bibliothek (I) findest du unter „Echte Instrumente“ aufgenommene Klänge wie Flügel, Gitarren, Streicher und Bläser. Mit „Eigenes Sample laden …“ machst du aus einer beliebigen Audiodatei ein spielbares Instrument.</p>
+        <p>Aufnahme (R) startet mit einem Takt Vorzähler. Ist der Cycle an, entsteht pro Durchgang ein eigener Take, den besten wählst du im Editor. Vorzähler und Latenzausgleich stellst du unter Geräte ein.</p>
         <p class="hint">Instrument-Samples: <a href="https://github.com/nbrosowsky/tonejs-instruments" target="_blank" rel="noopener">tonejs-instruments</a> von Nicholas Brosowsky, Lizenz CC-BY 3.0.</p></div>
       <div><h3>Tastatur</h3><dl>
         <dt>Leertaste</dt><dd>Abspielen / Stopp</dd>
@@ -1845,7 +2024,9 @@ function renderRegionEditor() {
   else renderAudioEditor(tr, r);
   const rn = $('#rname'); if (rn) rn.onchange = e => { pushUndo(); r.name = e.target.value || r.name; save(); renderArrange(); };
   const del = `<button class="sbtn rdel" data-rdel title="Ganze Region aus der Spur löschen (Entf)">Region löschen</button>`;
-  rn ? rn.insertAdjacentHTML('afterend', del) : eHead.insertAdjacentHTML('beforeend', del);
+  const takes = r.takes?.length > 1 ? `<select class="tsel" id="takeSel" title="Take auswählen">${r.takes.map((_, i) => `<option value="${i}" ${i === r.take ? 'selected' : ''}>Take ${i + 1}</option>`).join('')}</select><button class="sbtn" data-takeonly title="Alle anderen Takes verwerfen">Nur diesen Take</button>` : '';
+  rn ? rn.insertAdjacentHTML('afterend', takes + del) : eHead.insertAdjacentHTML('beforeend', takes + del);
+  const ts = $('#takeSel'); if (ts) ts.onchange = e => { pushUndo(); useTake(r, +e.target.value); save(); renderArrange(); renderEditor(); };
   const sc2 = eBody.querySelector('.pr, .seq');
   if (keep && sc2) { sc2.scrollLeft = keep.left; sc2.scrollTop = keep.top; }
 }
@@ -1906,7 +2087,7 @@ function splitRegion(tr, r, b) {
   const right = JSON.parse(JSON.stringify(r));
   right.id = uid(); right.start = b; right.len = r.len - d; r.len = d;
   if (tr.type === 'audio') { right.offset = (r.offset || 0) + d * spb(); right.fi = 0; r.fo = 0; }
-  else if (tr.type === 'synth') { right.notes = r.notes.filter(n => n.s >= d).map(n => ({ ...n, s: n.s - d })); r.notes = r.notes.filter(n => n.s < d); }
+  else if (tr.type === 'synth') { right.notes = r.notes.filter(n => n.s >= d).map(n => ({ ...n, s: n.s - d })); r.notes = r.notes.filter(n => n.s < d); for (const x of [r, right]) { delete x.takes; delete x.take; } }
   else right.phase = (r.phase || 0) + d;
   tr.regions.push(right);
   return right;
@@ -2679,7 +2860,7 @@ function regionDrag(e, el) {
       const d = ns - s0;
       r.start = ns; r.len = l0 - d;
       if (tr.type === 'audio') r.offset = Math.max(0, o0 + d * spb());
-      else if (tr.type === 'synth') r.notes.forEach((n, i) => { n.s = notes0[i] - d; });
+      else if (tr.type === 'synth') { r.notes.forEach((n, i) => { n.s = notes0[i] - d; }); delete r.takes; delete r.take; }
       else r.phase = ph0 + d;
     }
     else r.start = Math.max(0, Math.round((s0 + db) / snap) * snap);
@@ -2925,7 +3106,7 @@ function liveNoteOff(id) {
 // ================= Externe Geräte =================
 let midiAccess = null, inputDevice = '';
 const devMenu = $('#devMenu');
-$('#bDev').onclick = e => { e.stopPropagation(); devMenu.hidden = !devMenu.hidden; };
+$('#bDev').onclick = e => { e.stopPropagation(); devMenu.hidden = !devMenu.hidden; if (!devMenu.hidden) renderRecSettings(); };
 devMenu.onclick = e => e.stopPropagation();
 async function connectMidi(quiet) {
   if (!navigator.requestMIDIAccess) { if (!quiet) toast('Dieser Browser unterstützt kein MIDI. In der Windows-App und in Chrome/Edge geht es.'); return; }
@@ -3007,6 +3188,7 @@ function frame() {
     if (!P.loop.on && !rec && b >= songLen()) { stop(); playPos = 0; updatePlayhead(); }
     if (rec && b > P.bars * 4 - 8) { P.bars += 8; renderArrange(); }
     updateGhost();
+    if (rec && b < rec.countUntil) showCount(b); else if (!countEl.hidden) hideCount();
     followPlayhead(b);
     if (++autoFrame % 3 === 0) followAuto(b);
     if (liveCells) {
@@ -3210,7 +3392,7 @@ function setPieceKit(tr, id, kit) {
     if (!Object.keys(tr.pieces).length) delete tr.pieces;
     save();
   }
-  ensureCtx(); playDrum(id, chan(tr).input, ctx.currentTime, 1, kit);
+  ensureCtx(); whenKit(kit, () => playDrum(id, chan(tr).input, ctx.currentTime, 1, kit));
   libKey = ''; renderLib(); renderArrange(); if (edTab === 'region' || edTab === 'mix') renderEditor();
 }
 function setLib(open) {
@@ -3237,7 +3419,7 @@ function libBody(tr) {
     let html = kits.length ? group('Drumkits', kits.map(([k, v]) => item(`data-kit="${k}"`, k === (tr.kit || 'standard'), v.name, k === (tr.kit || 'standard') && tr.pieces && Object.keys(tr.pieces).length ? '<small>gemischt</small>' : '')).join(''), kits.length) : '';
     // Einzelne Instrumente aus allen Kits: z. B. nur die Kick aus dem 808-Kit
     const pieces = DRUMS.map(d => {
-      const its = Object.entries(KITS).filter(([, v]) => hit(d.name + ' ' + v.name)).map(([k, v]) => item(`data-pk="${k}" data-pd="${d.id}"`, k === pieceKit(tr, d.id), v.name, '<span class="play">▶</span>'));
+      const its = Object.entries(KITS).filter(([, v]) => (!v.has || v.has.split(' ').includes(d.id)) && hit(d.name + ' ' + v.name)).map(([k, v]) => item(`data-pk="${k}" data-pd="${d.id}"`, k === pieceKit(tr, d.id), v.name, '<span class="play">▶</span>'));
       return its.length ? group(d.name, its.join(''), its.length) : '';
     }).join('');
     if (pieces) html += `<p class="lib-sub">Einzelne Sounds</p>` + pieces;
@@ -3287,7 +3469,7 @@ libEl.addEventListener('click', e => {
     // Ein ganzes Kit wählen ersetzt auch einzeln gewählte Instrumente
     if ((tr.kit || 'standard') !== b.dataset.kit || tr.pieces) { pushUndo(); tr.kit = b.dataset.kit; delete tr.pieces; save(); }
     libKey = ''; renderLib(); renderArrange(); if (edTab === 'mix' || edTab === 'region') renderEditor();
-    ensureCtx(); const t = ctx.currentTime; playDrum('kick', chan(tr).input, t, 1, tr.kit); playDrum('hat', chan(tr).input, t + .2, .7, tr.kit); playDrum('snare', chan(tr).input, t + .4, 1, tr.kit);
+    ensureCtx(); whenKit(tr.kit, () => { const t = ctx.currentTime; playDrum('kick', chan(tr).input, t, 1, tr.kit); playDrum('hat', chan(tr).input, t + .2, .7, tr.kit); playDrum('snare', chan(tr).input, t + .4, 1, tr.kit); });
   }
   if (b.dataset.pk) { setPieceKit(tr, b.dataset.pd, b.dataset.pk); return; }
   if (b.dataset.pat) {
