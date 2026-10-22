@@ -85,19 +85,27 @@ Bekannte Grenzen:
   - 4 neue Drum-Instrumente (jetzt 12): Crash, Ride, Shaker, Conga
   - 5 neue Pattern: Jazz-Swing, Shuffle, Bossa Nova, Afrobeat, Drum & Bass
 
+## Version 0.7 (fertig)
+
+- Sampler: Instrumente aus echten Aufnahmen. Etwa alle drei Halbtöne liegt ein Sample, dazwischen wird umgestimmt; Bläser, Streicher und Orgeln halten lange Töne per Schleife. Leiser angeschlagene Noten klingen auch dunkler
+- Eigenes Sample: in der Bibliothek „Eigenes Sample laden …“ macht aus jeder Audiodatei ein spielbares Instrument. Der Grundton wird erkannt und lässt sich unter Klang & Effekte ändern, dazu „Ton halten (Schleife)“. Das Sample wird im Projekt mitgespeichert
+- Samples werden erst geladen, wenn eine Spur sie nutzt; der Export wartet darauf
+- Fehler behoben: Klang & Effekte (wie schon der EQ) wechseln jetzt mit, wenn man eine andere Spur antippt. Jeder Klick in einen Spurkopf wählt die Spur aus, auch auf Name, Instrument und Regler
+- Neue Sounds: 20 echte Instrumente (jetzt 94 Klänge): Konzertflügel, Westerngitarre, Konzertgitarre, E-Gitarre (Jazz), E-Bass, Kontrabass, Cello, Geige, Konzertharfe, Querflöte, Klarinette, Saxophon, Fagott, Trompete, Posaune, Waldhorn, Tuba, Pfeifenorgel, Harmonium, Xylophon
+- Quelle der Samples: [tonejs-instruments](https://github.com/nbrosowsky/tonejs-instruments) von Nicholas Brosowsky, CC-BY 3.0. `node scripts/fetch-samples.js` lädt und verkleinert sie neu (braucht curl und ffmpeg)
+
 ## Grundsatz
 
 Jedes Update bringt auch neue Sounds mit.
 
 ## Fahrplan
 
-1. **v0.7 Sampler-Instrumente** mit freien Sample-Bibliotheken (Flügel, Gitarre, echte Drumkits)
-2. **v0.8 Aufnahme-Feinschliff**: Vorzähler, Latenzausgleich, Takes im Cycle
-3. **v0.9 Web-App/iPhone**: Installation als PWA, Touch-Bedienung weiter verbessern
-4. **Später**: VST3-Plug-ins in der Windows-Version
+1. **v0.8 Aufnahme-Feinschliff**: Vorzähler, Latenzausgleich, Takes im Cycle. Neue Sounds: echte Drumkits aus Samples
+2. **v0.9 Web-App/iPhone**: Installation als PWA, Touch-Bedienung weiter verbessern
+3. **Später**: VST3-Plug-ins in der Windows-Version
 
 ## Starten
 
-- Windows: `Klangwerk-0.6.0-win.zip` entpacken, `Klangwerk.exe` starten
+- Windows: `Klangwerk-0.7.0-win.zip` entpacken, `Klangwerk.exe` starten
 - Entwicklung: `npm install`, dann `npm start`
 - Windows-Build: `npm run dist:win`

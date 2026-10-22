@@ -1,0 +1,6 @@
+Instrument-Samples aus "tonejs-instruments" von Nicholas Brosowsky
+https://github.com/nbrosowsky/tonejs-instruments
+Lizenz der Samples: CC-BY 3.0 (https://creativecommons.org/licenses/by/3.0/)
+Die Aufnahmen stammen laut Projekt aus gemeinfreien Quellen.
+
+Für Klangwerk gekürzt, in Mono und mit 64 kbit/s neu kodiert (scripts/fetch-samples.js).

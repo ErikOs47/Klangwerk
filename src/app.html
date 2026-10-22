@@ -144,6 +144,8 @@ input[type=checkbox] { accent-color: var(--accent); }
 .card h3 { margin: 0 0 3px; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--fg); }
 .card h3 label { display: flex; align-items: center; gap: 6px; }
 .knob { display: grid; grid-template-columns: 92px 1fr 64px; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+.knob.chk { grid-template-columns: auto 1fr; cursor: pointer; }
+.card h3 small { font-size: 10px; font-weight: 500; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; margin-left: 4px; vertical-align: 1px; }
 .knob input[type=range], .knob select { min-width: 0; width: 100%; }
 .knob select { grid-column: 2 / 4; height: 26px; background-color: var(--raise); border: 1px solid var(--line); border-radius: 7px; font-size: 12px; padding-left: 8px; }
 .knob output { text-align: right; color: var(--fg); font-variant-numeric: tabular-nums; }
@@ -509,7 +511,7 @@ input[type=checkbox] { accent-color: var(--accent); }
       </div>
       <button class="tbtn" id="bUndo" title="Rückgängig (Strg+Z)"><svg viewBox="0 0 16 16"><path d="M5.5 3L1.5 6.5 5.5 10V7.6h4a2.9 2.9 0 0 1 0 5.8H6V15h3.5a4.5 4.5 0 0 0 0-9h-4z"/></svg></button>
       <button class="tbtn" id="bImport" title="Audiodatei importieren"><svg viewBox="0 0 16 16"><path d="M7 1.5h2v6.6l2.3-2.3 1.4 1.4L8 11.9 3.3 7.2l1.4-1.4L7 8.1zM2 12h2v1.5h8V12h2v3.5H2z"/></svg></button>
-      <input type="file" id="fileIn" accept="audio/*" hidden>
+      <input type="file" id="fileIn" accept="audio/*" hidden><input type="file" id="smpIn" accept="audio/*" hidden>
       <div class="menu-wrap">
         <button class="tbtn" id="bDev" title="MIDI-Keyboard und Audio-Eingang"><svg viewBox="0 0 16 16"><path d="M5 1h2v3h2V1h2v3h1.5v4A4.5 4.5 0 0 1 9 12.4V15H7v-2.6A4.5 4.5 0 0 1 3.5 8V4H5z"/></svg><span id="midiDot" class="dot"></span></button>
         <div class="menu devmenu" id="devMenu" hidden>
@@ -662,7 +664,8 @@ function presetOptions(sel) {
   for (const [k, v] of Object.entries(PRESETS)) (cats[v.cat] ||= []).push(`<option value="${k}" ${k === sel ? 'selected' : ''}>${v.name}</option>`);
   return Object.entries(cats).map(([c, o]) => `<optgroup label="${c}">${o.join('')}</optgroup>`).join('');
 }
-const instName = tr => tr.type === 'synth' ? PRESETS[tr.preset]?.name || tr.preset : tr.type === 'drums' ? 'Kit: ' + (KITS[tr.kit || 'standard']?.name || 'Standard') + (Object.keys(tr.pieces || {}).length ? ' · gemischt' : '') : 'Audio';
+const presetName = tr => tr.preset === 'user' ? (tr.usmp?.name || 'Eigenes Sample') : PRESETS[tr.preset]?.name || tr.preset;
+const instName = tr => tr.type === 'synth' ? presetName(tr) : tr.type === 'drums' ? 'Kit: ' + (KITS[tr.kit || 'standard']?.name || 'Standard') + (Object.keys(tr.pieces || {}).length ? ' · gemischt' : '') : 'Audio';
 // Drumkits: Abweichungen vom Standard-Kit, pro Instrument. lp/drive wirken auf das ganze Kit.
 const KITS = {
   standard: { name: 'Standard' },
@@ -718,6 +721,7 @@ function normProject(p) {
     r.pitch ||= zeros(); r.trip ||= [false, false, false, false];
     for (const d of DRUMS) { r.steps[d.id] ||= Array(16).fill(0); r.pitch[d.id] ||= Array(16).fill(0); }
   }
+  for (const t of p.tracks) if (t.type === 'synth' && (!PRESETS[t.preset] || (t.preset === 'user' && !t.usmp))) t.preset = 'epiano';
   p.markers ||= [];
   return p;
 }
@@ -924,9 +928,114 @@ function ksBuffer(midi, ks, sr) {
 }
 function driveCurve(k) { const c = new Float32Array(1024); for (let i = 0; i < 1024; i++) { const x = i / 511.5 - 1; c[i] = Math.tanh(k * x) / Math.tanh(k); } return c; }
 const tweakOf = tr => (tr.tweak ||= { bright: 0, attack: 0, release: 0, oct: 0 });
+// ================= Sampler =================
+// Echte Instrumente: Aufnahmen aus tonejs-instruments (CC-BY 3.0, aus gemeinfreien Quellen).
+// Etwa alle drei Halbtöne liegt ein Sample, dazwischen wird umgestimmt. hold: Ton hält per Schleife, solange die Taste gedrückt ist.
+const SAMPLED = {
+  piano: ['Konzertflügel', { r: .45, level: .52 }], 'guitar-acoustic': ['Westerngitarre', { r: .3 }], 'guitar-nylon': ['Konzertgitarre', { r: .3 }],
+  'guitar-electric': ['E-Gitarre (Jazz)', { r: .25, level: .52 }], 'bass-electric': ['E-Bass (echt)', { r: .12, prev: 40 }], contrabass: ['Kontrabass (gestrichen)', { hold: 1, a: .04, r: .3, prev: 40 }],
+  cello: ['Cello', { hold: 1, a: .05, r: .35, prev: 48 }], violin: ['Geige (echt)', { hold: 1, a: .05, r: .35, prev: 69 }], harp: ['Konzertharfe', { r: .8 }],
+  flute: ['Querflöte', { hold: 1, a: .04, r: .25, prev: 72 }], clarinet: ['Klarinette', { hold: 1, a: .03, r: .2 }], saxophone: ['Saxophon', { hold: 1, a: .03, r: .2 }],
+  bassoon: ['Fagott', { hold: 1, a: .03, r: .2, prev: 48 }], trumpet: ['Trompete', { hold: 1, a: .02, r: .2, prev: 67 }], trombone: ['Posaune', { hold: 1, a: .03, r: .2, prev: 48 }],
+  'french-horn': ['Waldhorn', { hold: 1, a: .05, r: .3, prev: 53 }], tuba: ['Tuba', { hold: 1, a: .04, r: .2, prev: 36 }], organ: ['Pfeifenorgel', { hold: 1, a: .03, r: .4 }],
+  harmonium: ['Harmonium', { hold: 1, a: .05, r: .3 }], xylophone: ['Xylophon', { r: .3, prev: 72 }]
+};
+for (const [id, [name, o]] of Object.entries(SAMPLED))
+  PRESETS['s_' + id] = { cat: 'Echte Instrumente', name, smp: id, hold: !!o.hold, prev: o.prev, env: { a: o.a || .002, d: 1, s: 1, r: o.r }, cut: 20000, level: o.level || (o.hold ? .38 : .48) };
+PRESETS.user = { cat: 'Eigene Samples', name: 'Eigenes Sample', smp: 'user', env: { a: .002, d: 1, s: 1, r: .25 }, cut: 20000, level: .9 };
+const smpSets = new Map(), smpRaw = {};
+let smpDec = null;
+window.KW_SMP = (id, data) => { smpRaw[id] = data; }; // wird von samples/<id>.js aufgerufen
+const loadScript = src => new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
+// Lädt ein Instrument einmal (Datei samples/<id>.js) und dekodiert seine Töne
+function loadSamples(id) {
+  let s = smpSets.get(id); if (s) return s.wait;
+  s = { zones: null }; smpSets.set(id, s);
+  smpDec ||= new OfflineAudioContext(1, 1, 44100);
+  s.wait = (smpRaw[id] ? Promise.resolve() : loadScript('samples/' + id + '.js'))
+    .then(() => Promise.all(Object.entries(smpRaw[id]).map(async ([m, b]) => ({ m: +m, buf: await smpDec.decodeAudioData(unb64(b).buffer) }))))
+    .then(z => { z.sort((a, b) => a.m - b.m); const hold = SAMPLED[id]?.[1].hold; z.forEach(x => { peakNorm(x.buf); x.off = hold ? swellIn(x.buf) : leadIn(x.buf); if (hold) loopZone(x); }); s.zones = z; delete smpRaw[id]; })
+    .catch(e => { smpSets.delete(id); toast(`Die Samples für „${SAMPLED[id]?.[0] || id}“ ließen sich nicht laden.`); throw e; });
+  return s.wait;
+}
+// Einzelne leisere Aufnahmen auf gleichen Spitzenpegel bringen
+function peakNorm(buf) {
+  let pk = 0; for (let c = 0; c < buf.numberOfChannels; c++) for (const v of buf.getChannelData(c)) pk = Math.max(pk, Math.abs(v));
+  if (pk > .01 && pk < .95) for (let c = 0; c < buf.numberOfChannels; c++) { const d = buf.getChannelData(c); for (let i = 0; i < d.length; i++) d[i] /= pk; }
+}
+// Stille am Anfang überspringen, damit der Ton genau auf dem Schlag kommt
+function leadIn(buf) { const d = buf.getChannelData(0), n = Math.min(d.length, buf.sampleRate * .2); let i = 0; while (i < n && Math.abs(d[i]) < .004) i++; return Math.max(0, i - 32) / buf.sampleRate; }
+// Manche Bläser- und Streicheraufnahmen schwellen langsam an: dort erst ab dem vollen Ton starten, damit Noten sofort da sind
+function swellIn(buf) {
+  const d = buf.getChannelData(0), blk = Math.floor(buf.sampleRate * .02), pk = [];
+  for (let i = 0; i + blk <= d.length; i += blk) { let m = 0; for (let k = i; k < i + blk; k++) m = Math.max(m, Math.abs(d[k])); pk.push(m); }
+  const top = Math.max(...pk), at = pk.findIndex(v => v >= top * .45);
+  return Math.max(leadIn(buf), (at - 1) * blk / buf.sampleRate);
+}
+// Schleife im hinteren Teil des Samples mit Überblendung, damit lange Noten ohne Knackser weiterklingen
+function loopZone(z) {
+  const sr = z.buf.sampleRate, len = z.buf.length, le = Math.floor(len - .3 * sr), ls = Math.floor(Math.max(z.off * sr + .25 * sr, len * .45));
+  const xf = Math.min(Math.floor(.15 * sr), ls - Math.floor(z.off * sr), le - ls - 1);
+  if (le <= ls || xf < 64) return;
+  for (let c = 0; c < z.buf.numberOfChannels; c++) {
+    const d = z.buf.getChannelData(c);
+    for (let i = 0; i < xf; i++) { const w = i / xf * Math.PI / 2; d[le - xf + i] = d[le - xf + i] * Math.cos(w) + d[ls - xf + i] * Math.sin(w); }
+  }
+  z.ls = ls / sr; z.le = le / sr;
+}
+const usedSamples = () => [...new Set(P.tracks.filter(t => t.type === 'synth').map(t => PRESETS[t.preset]?.smp).filter(s => s && s !== 'user'))];
+const samplesReady = () => Promise.all(usedSamples().map(id => loadSamples(id).catch(() => { })));
+// Eigenes Sample einer Spur: eine Zone mit dem Grundton, bei Bedarf als Schleife (Kopie, das Original bleibt unverändert)
+const userZoneCache = new Map();
+function userZones(tr) {
+  const u = tr.usmp, buf = u && audioBuffers.get(u.buf); if (!buf) return null;
+  const key = u.buf + (u.loop ? '|loop' : '');
+  let z = userZoneCache.get(key);
+  if (!z || z.src !== buf) {
+    const b = u.loop ? makeBuffer(buf.sampleRate, Array.from({ length: buf.numberOfChannels }, (_, i) => buf.getChannelData(i).slice())) : buf;
+    z = { src: buf, buf: b }; z.off = leadIn(b); if (u.loop) loopZone(z); userZoneCache.set(key, z);
+  }
+  return [{ ...z, m: u.root }];
+}
+// Grundton eines Samples schätzen (Autokorrelation über ein kurzes Stück nach dem Anschlag)
+function detectRoot(buf) {
+  const sr = buf.sampleRate, d = buf.getChannelData(0), st = Math.floor(leadIn(buf) * sr + .08 * sr), N = 4096;
+  if (st + N * 2 > d.length) return 60;
+  let best = 0, lag = 0;
+  for (let l = Math.floor(sr / 1500); l < Math.floor(sr / 40); l++) {
+    let s = 0, e1 = 0, e2 = 0;
+    for (let i = 0; i < N; i++) { const a = d[st + i], b = d[st + i + l]; s += a * b; e1 += a * a; e2 += b * b; }
+    const c = s / Math.sqrt(e1 * e2 || 1);
+    if (c > best + .01) { best = c; lag = l; }
+  }
+  return best > .8 && lag ? clamp(Math.round(69 + 12 * Math.log2(sr / lag / 440)), 24, 96) : 60;
+}
+function samplerOn(tr, P_, dest, midi, time, vel, tw) {
+  const zones = P_.smp === 'user' ? userZones(tr) : smpSets.get(P_.smp)?.zones;
+  if (!zones?.length) { if (P_.smp !== 'user') loadSamples(P_.smp).catch(() => { }); return { release() { } }; }
+  let z = zones[0]; for (const x of zones) if (Math.abs(x.m - midi) < Math.abs(z.m - midi)) z = x;
+  const am = Math.pow(4, tw.attack || 0), rm = Math.pow(4, tw.release || 0), cm = Math.pow(4, tw.bright || 0);
+  const a = P_.env.a * am, r = P_.env.r * rm, src = ctx.createBufferSource(), filt = ctx.createBiquadFilter(), g = ctx.createGain();
+  src.buffer = z.buf; src.playbackRate.value = Math.pow(2, (midi - z.m) / 12);
+  if (z.le) { src.loop = true; src.loopStart = z.ls; src.loopEnd = z.le; }
+  // Leiser angeschlagen klingt auch dunkler, wie bei echten Instrumenten
+  filt.type = 'lowpass'; filt.frequency.value = Math.min(20000, 2500 * Math.pow(8, vel) * cm); filt.Q.value = .5;
+  src.connect(filt).connect(g); g.connect(dest);
+  const peak = Math.pow(vel, 1.3) * P_.level;
+  g.gain.setValueAtTime(0, time); g.gain.linearRampToValueAtTime(peak, time + a);
+  src.start(time, z.off || 0);
+  return {
+    release(t) {
+      t = Math.max(t, time + a + .01);
+      g.gain.setTargetAtTime(0, t, r / 3);
+      src.stop(t + r * 4 + .05);
+    }
+  };
+}
 function noteOn(tr, dest, midi, time, vel = .8) {
   const P_ = PRESETS[tr.preset] || PRESETS.epiano, tw = tweakOf(tr);
   midi += 12 * (tw.oct || 0);
+  if (P_.smp) return samplerOn(tr, P_, dest, midi, time, vel, tw);
   const f = mtof(midi), am = Math.pow(4, tw.attack || 0), rm = Math.pow(4, tw.release || 0), cm = Math.pow(4, tw.bright || 0);
   const a = P_.env.a * am, d = P_.env.d, s = P_.env.s, r = P_.env.r * rm;
   const g = ctx.createGain(), filt = ctx.createBiquadFilter();
@@ -1157,7 +1266,7 @@ function addBuffer(buf, id = uid()) {
   idb.put(id, { sr: buf.sampleRate, ch }).catch(() => { });
   return id;
 }
-const bufferIds = () => [...new Set(P.tracks.flatMap(t => t.type === 'audio' ? t.regions.map(r => r.buf) : []))];
+const bufferIds = () => [...new Set(P.tracks.flatMap(t => t.type === 'audio' ? t.regions.map(r => r.buf) : t.usmp ? [t.usmp.buf] : []))];
 function makeBuffer(sr, ch) {
   const b = new AudioBuffer({ length: ch[0].length, sampleRate: sr, numberOfChannels: ch.length });
   ch.forEach((d, i) => b.copyToChannel(d, i)); return b;
@@ -1258,6 +1367,7 @@ async function renderSong() {
   for (const t of P.tracks) for (const r of t.regions) end = Math.max(end, r.start + r.len);
   if (!end) { toast('Der Song ist noch leer.'); return null; }
   if (playing) stop();
+  await samplesReady();
   ensureCtx();
   let tail = 0;
   for (const t of P.tracks) if (t.type === 'synth') tail = Math.max(tail, PRESETS[t.preset]?.env.r * 4 || 0);
@@ -1503,6 +1613,7 @@ function songLen() {
 }
 function render() { renderArrange(); renderEditor(); updateTransport(); renderLib(); }
 function renderArrange() {
+  for (const id of usedSamples()) if (!smpSets.has(id)) loadSamples(id).catch(() => { });
   const beats = songLen(), W = beats * ppb;
   rulerEl.style.width = W + 'px';
   let rh = '';
@@ -1639,6 +1750,8 @@ function markSelection() {
   rowsEl.querySelectorAll('.track-row').forEach(el => { const s = el.dataset.track === selTrack; el.classList.toggle('sel', s); el.querySelector('.lane')?.classList.toggle('sel', s); });
   rowsEl.querySelectorAll('.region').forEach(el => el.classList.toggle('sel', el.dataset.region === selRegion));
   eBody.querySelectorAll('.strip[data-track]').forEach(el => el.classList.toggle('sel', el.dataset.track === selTrack));
+  // EQ und Klang & Effekte zeigen immer die ausgewählte Spur
+  if ((edTab === 'eq' || edTab === 'fx') && eqView && eqView.tr.id !== selTrack) renderEditor();
   renderLib();
 }
 function updateTransport() {
@@ -1694,7 +1807,9 @@ function renderRegionEditor() {
       <div><h3>So geht's los</h3>
         <p>Doppelklicke in eine leere Stelle einer Spur, um eine Region zu erstellen. Ein Klick auf eine Region öffnet sie hier im Editor.</p>
         <p>Regionen verschiebst du mit der Maus, am rechten Rand änderst du die Länge, am linken Rand kürzt du den Anfang. Ziehen im Lineal oben setzt den Cycle-Bereich.</p>
-        <p>Mit „A“ im Spurkopf öffnest du die Automation: Lautstärke, Panorama, Filter, Hall und Delay als Kurve über die Zeit. Marker für Intro, Strophe, Refrain setzt du mit „+ Marker“ oder per Doppelklick in die Marker-Leiste.</p></div>
+        <p>Mit „A“ im Spurkopf öffnest du die Automation: Lautstärke, Panorama, Filter, Hall und Delay als Kurve über die Zeit. Marker für Intro, Strophe, Refrain setzt du mit „+ Marker“ oder per Doppelklick in die Marker-Leiste.</p>
+        <p>In der Bibliothek (I) findest du unter „Echte Instrumente“ aufgenommene Klänge wie Flügel, Gitarren, Streicher und Bläser. Mit „Eigenes Sample laden …“ machst du aus einer beliebigen Audiodatei ein spielbares Instrument.</p>
+        <p class="hint">Instrument-Samples: <a href="https://github.com/nbrosowsky/tonejs-instruments" target="_blank" rel="noopener">tonejs-instruments</a> von Nicholas Brosowsky, Lizenz CC-BY 3.0.</p></div>
       <div><h3>Tastatur</h3><dl>
         <dt>Leertaste</dt><dd>Abspielen / Stopp</dd>
         <dt>R</dt><dd>Aufnahme auf ausgewählter Spur</dd>
@@ -2025,7 +2140,11 @@ function renderFx(tr) {
   };
   eHead.innerHTML = `<span class="note" style="color:${tr.color};font-weight:600">${esc(tr.name)}</span><span class="note hint">Hall und Delay sind gemeinsame Effekte. Jede Spur schickt über ihren Regler unterschiedlich viel Signal hinein.</span>`;
   eBody.innerHTML = `<div class="fx">
-    ${tr.type === 'synth' ? `<section class="card"><h3>Klang · ${PRESETS[tr.preset].name}</h3>
+    ${tr.preset === 'user' && tr.type === 'synth' ? `<section class="card"><h3>Sample · ${esc(tr.usmp.name)}</h3>
+      <label class="knob"><span>Grundton</span><select id="usRoot">${Array.from({ length: 73 }, (_, i) => i + 24).map(m => `<option value="${m}" ${m === tr.usmp.root ? 'selected' : ''}>${noteName(m)}</option>`).join('')}</select></label>
+      <label class="knob chk"><input type="checkbox" id="usLoop" ${tr.usmp.loop ? 'checked' : ''}><span>Ton halten (Schleife)</span></label>
+      <button class="sbtn" data-us="load">Anderes Sample …</button></section>` : ''}
+    ${tr.type === 'synth' ? `<section class="card"><h3>Klang · ${esc(presetName(tr))}${PRESETS[tr.preset].smp && tr.preset !== 'user' ? ' <small>Sample</small>' : ''}</h3>
       ${sl('tw.bright', 'Helligkeit', -1, 1, .05, FMT['tw.bright'])}${sl('tw.attack', 'Einschwingen', -1, 1, .05, FMT['tw.attack'])}
       ${sl('tw.release', 'Ausklingen', -1, 1, .05, FMT['tw.release'])}${sl('tw.oct', 'Oktave', -2, 2, 1, FMT['tw.oct'])}
       <button class="sbtn" data-reset="tw">Zurücksetzen</button></section>` : ''}
@@ -2067,8 +2186,10 @@ function renderFx(tr) {
     if (e.target.id === 'compOn') { pushUndo(); fx.comp.on = e.target.checked; applyFx(tr); save(); markHeader(); }
     if (e.target.id === 'compPre' && COMP_PRESETS[e.target.value]) { pushUndo(); Object.assign(fx.comp, COMP_PRESETS[e.target.value], { on: true }); applyFx(tr); save(); renderEditor(); markHeader(); }
     if (e.target.id === 'delDiv') { pushUndo(); bus.del.div = +e.target.value; applyBuses(); save(); }
+    if (e.target.id === 'usRoot') { pushUndo(); tr.usmp.root = +e.target.value; save(); previewNote(tr, 60); }
+    if (e.target.id === 'usLoop') { pushUndo(); tr.usmp.loop = e.target.checked; save(); previewNote(tr, tr.usmp.root); }
   };
-  box.onclick = e => { if (e.target.dataset.reset === 'tw') { pushUndo(); tr.tweak = null; tweakOf(tr); save(); renderEditor(); } };
+  box.onclick = e => { if (e.target.dataset.us === 'load') { smpTarget = tr.id; $('#smpIn').click(); } if (e.target.dataset.reset === 'tw') { pushUndo(); tr.tweak = null; tweakOf(tr); save(); renderEditor(); } };
   eqView = { tr, draw: () => { const b = $('#grBar'); if (b) b.style.width = Math.min(100, -c.comp.reduction / 20 * 100) + '%'; } };
 }
 
@@ -2110,7 +2231,7 @@ function velLane(host, width, getItems, setV, done) {
 
 function renderPianoRoll(tr, r, bars) {
   selNotes = new Set([...selNotes].filter(n => r.notes.includes(n)));
-  eHead.innerHTML = `<input class="rn" id="rname" value="${esc(r.name)}" aria-label="Regionsname"><span class="note">${esc(tr.name)} · ${PRESETS[tr.preset].name} · ${bars} Takte</span>
+  eHead.innerHTML = `<input class="rn" id="rname" value="${esc(r.name)}" aria-label="Regionsname"><span class="note">${esc(tr.name)} · ${esc(presetName(tr))} · ${bars} Takte</span>
     ${toolButtons(TOOLS, prTool)}
     <label class="note">Raster <select id="prSnap">${SNAPS.map(([v, n]) => `<option value="${v}" ${near(v, prSnap) ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
     <label class="note">Länge <select id="prLen"><option value="">–</option>${LENS.map(([v, n]) => `<option value="${v}">${n}</option>`).join('')}</select></label>
@@ -2286,8 +2407,11 @@ function drawNotes(r) {
   box.innerHTML = r.notes.map((n, i) => n.p < PR.lo || n.p > PR.hi ? '' :
     `<div class="nt ${selNotes.has(n) ? 'sel' : ''}" data-i="${i}" title="${noteName(n.p)} · Anschlag ${Math.round(n.v * 127)}" style="left:${n.s * PR.bw}px;top:${(PR.hi - n.p) * PR.rh}px;width:${Math.max(6, n.l * PR.bw)}px;opacity:${.45 + n.v * .55}"></div>`).join('');
 }
+const prevPitch = tr => tr.preset === 'user' ? tr.usmp.root : PRESETS[tr.preset].prev || (PRESETS[tr.preset].cat === 'Bass' ? 40 : 60);
 function previewNote(tr, p) {
   ensureCtx();
+  const id = PRESETS[tr.preset]?.smp;
+  if (id && id !== 'user' && !smpSets.get(id)?.zones) { loadSamples(id).then(() => previewNote(tr, p), () => { }); return; }
   const v = noteOn(tr, chan(tr).input, p, ctx.currentTime, .8);
   v.release(ctx.currentTime + .3);
 }
@@ -2426,12 +2550,14 @@ rowsEl.addEventListener('pointerdown', e => {
   const reg = e.target.closest('.region');
   if (reg) { regionDrag(e, reg); return; }
   const row = e.target.closest('.track-row[data-track]');
-  if (row && !e.target.closest('input,button,select')) {
-    focusArea = 'arr';
-    if (selTrack !== row.dataset.track || e.target.closest('.lane')) {
+  // Jeder Klick in eine Spur wählt sie aus, auch auf Name, Regler und Knöpfe (außer Löschen)
+  const ctl = e.target.closest('input,button,select');
+  if (row && ctl?.dataset.act !== 'del') {
+    if (!ctl) focusArea = 'arr';
+    if (selTrack !== row.dataset.track || (!ctl && e.target.closest('.lane'))) {
       selTrack = row.dataset.track;
       if (e.target.closest('.lane')) selRegion = null;
-      if (e.target.closest('.lane') || edTab === 'eq') renderEditor();
+      if (e.target.closest('.lane') || edTab === 'eq' || edTab === 'fx') renderEditor();
       markSelection();
     }
   }
@@ -2660,6 +2786,26 @@ addMenu.onclick = e => {
 let importTarget = null;
 $('#bImport').onclick = () => { importTarget = null; $('#fileIn').click(); };
 $('#fileIn').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) importFile(f, importTarget, null); };
+// Eigenes Sample: Datei wird zum spielbaren Instrument, der Grundton wird erkannt
+let smpTarget = null;
+$('#smpIn').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) loadUserSample(f, smpTarget); };
+async function loadUserSample(file, trackId) {
+  ensureCtx();
+  let buf;
+  try { buf = await ctx.decodeAudioData(await file.arrayBuffer()); }
+  catch (e) { toast(`„${file.name}“ ist keine lesbare Audiodatei.`); return; }
+  // Längere Dateien werden auf 20 Sekunden gekürzt
+  const max = Math.min(buf.length, buf.sampleRate * 20);
+  if (max < buf.length) buf = makeBuffer(buf.sampleRate, Array.from({ length: buf.numberOfChannels }, (_, i) => buf.getChannelData(i).slice(0, max)));
+  pushUndo();
+  let tr = findTrack(trackId);
+  if (!tr || tr.type !== 'synth') { tr = newTrack('synth'); P.tracks.push(tr); applyMix(); }
+  const root = detectRoot(buf), name = file.name.replace(/\.[^.]+$/, '').slice(0, 32);
+  tr.usmp = { buf: addBuffer(buf), root, name, loop: false }; tr.preset = 'user';
+  selTrack = tr.id; save(); libKey = ''; render();
+  previewNote(tr, root);
+  toast(`„${name}“ ist jetzt ein Instrument. Grundton: ${noteName(root)}. Ändern kannst du ihn unter Klang & Effekte.`);
+}
 async function importFile(file, trackId, beat) {
   ensureCtx();
   let buf;
@@ -3046,9 +3192,11 @@ function libBody(tr) {
   const group = (name, items, count) => { const shut = libShut.has(name) && !libQuery.trim(); return `<button class="lib-cat ${shut ? 'shut' : ''}" data-cat="${esc(name)}">${esc(name)}<span>${count}</span></button><div class="lib-items ${shut ? 'shut' : ''}"><div>${items}</div></div>`; };
   if (!tr) return `<p class="lib-note">Wähle links eine Spur aus oder lege eine neue an.</p><div class="lib-btns"><button data-lib-add="synth">+ Software-Instrument</button><button data-lib-add="drums">+ Drummer</button><button data-lib-add="audio">+ Audio-Spur</button></div>`;
   if (tr.type === 'synth') {
-    const q = libQuery.trim().toLowerCase(), cats = {};
-    for (const [k, v] of Object.entries(PRESETS)) if (!q || v.name.toLowerCase().includes(q) || v.cat.toLowerCase().includes(q)) (cats[v.cat] ||= []).push(item(`data-preset="${k}"`, k === tr.preset, v.name));
-    return Object.entries(cats).map(([c, items]) => group(c, items.join(''), items.length)).join('') || '<p class="lib-note">Kein Sound gefunden.</p>';
+    const q = libQuery.trim().toLowerCase(), cats = { 'Eigene Samples': [], 'Echte Instrumente': [] };
+    if (tr.usmp && (!q || (tr.usmp.name + ' sample').toLowerCase().includes(q))) cats['Eigene Samples'].push(item('data-preset="user"', tr.preset === 'user', tr.usmp.name));
+    for (const [k, v] of Object.entries(PRESETS)) if (k !== 'user' && (!q || v.name.toLowerCase().includes(q) || v.cat.toLowerCase().includes(q))) (cats[v.cat] ||= []).push(item(`data-preset="${k}"`, k === tr.preset, v.name, v.smp ? '<small>Sample</small>' : ''));
+    const html = Object.entries(cats).filter(([, items]) => items.length).map(([c, items]) => group(c, items.join(''), items.length)).join('');
+    return (q ? '' : `<div class="lib-btns"><button data-lib-act="usmp">${tr.usmp ? 'Anderes eigenes Sample laden …' : 'Eigenes Sample laden …'}</button></div>`) + (html || '<p class="lib-note">Kein Sound gefunden.</p>');
   }
   if (tr.type === 'drums') {
     const [rt] = findRegion(selRegion), into = rt === tr, q = libQuery.trim().toLowerCase(), hit = s => !q || s.toLowerCase().includes(q);
@@ -3071,7 +3219,7 @@ function renderLib() {
   libEl.classList.toggle('closed', !libOpen); $('#bLib').classList.toggle('on', libOpen);
   if (!libOpen) return;
   const tr = findTrack(selTrack);
-  const key = [tr?.id, tr?.type, tr?.preset, tr?.kit, JSON.stringify(tr?.pieces || {}), tr?.color, tr?.name, selRegion].join('|');
+  const key = [tr?.id, tr?.type, tr?.preset, tr?.kit, JSON.stringify(tr?.pieces || {}), tr?.usmp?.buf, tr?.usmp?.name, tr?.color, tr?.name, selRegion].join('|');
   if (key === libKey) return;
   libKey = key;
   const top = libEl.querySelector('.lib-list')?.scrollTop || 0, same = libEl.dataset.track === (tr?.id || '');
@@ -3095,12 +3243,13 @@ libEl.addEventListener('click', e => {
   if (b.dataset.libAdd) { pushUndo(); const t = newTrack(b.dataset.libAdd); P.tracks.push(t); selTrack = t.id; selRegion = null; applyMix(); save(); render(); return; }
   if (b.dataset.libAct === 'import') { importTarget = tr?.id; $('#fileIn').click(); return; }
   if (b.dataset.libAct === 'rec') { toggleRecord(); return; }
+  if (b.dataset.libAct === 'usmp') { smpTarget = tr?.id; $('#smpIn').click(); return; }
   if (!tr) return;
   const pick = () => { libEl.querySelectorAll('.lib-item.on').forEach(x => x !== b && !b.dataset.pat && x.classList.remove('on')); if (!b.dataset.pat) b.classList.add('on'); };
   if (b.dataset.preset) {
     if (tr.preset !== b.dataset.preset) { pushUndo(); tr.preset = b.dataset.preset; save(); }
     pick(); libKey = ''; renderArrange(); if (edTab !== 'eq') renderEditor();
-    previewNote(tr, PRESETS[tr.preset].cat === 'Bass' ? 40 : 60);
+    previewNote(tr, prevPitch(tr));
   }
   if (b.dataset.kit) {
     // Ein ganzes Kit wählen ersetzt auch einzeln gewählte Instrumente
