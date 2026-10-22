@@ -1,6 +1,6 @@
 {
   "name": "klangwerk",
-  "version": "0.8.5",
+  "version": "0.9.0",
   "description": "Sound Groot – eine DAW nach Logic-Vorbild",
   "main": "main.js",
   "scripts": {

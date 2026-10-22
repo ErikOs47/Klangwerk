@@ -118,17 +118,28 @@ Bekannte Grenzen:
 - Neue Sounds: 12 Loops zum Choppen (Funk-, Boom-Bap- und Shuffle-Break, Cajón, Conga & Bongos, Soul-Piano, Vibraphon, Kalimba, Marimba, Harfe, Orgel, Saxophon), 10 echte Instrumente (jetzt 104 Klänge): Vibraphon, Marimba, Kalimba, Balafon, Tenorsaxophon, Mundharmonika, Okarina, Cembalo, Renaissance-Orgel, Keltische Harfe, und 2 akustische Kits (jetzt 20 Kits): Akustik-Set und Percussion (Cajón, Shaker, Tamburin, Congas, Claves, Agogo, Triangel)
 - Quelle: [Versilian Community Sample Library](https://github.com/sgossner/VCSL), CC0 (gemeinfrei). `node scripts/fetch-vcsl.js` lädt die Aufnahmen und baut daraus Instrumente, Kits und Loops
 
+## Version 0.9 (fertig): Sound Groot und Web-App fürs iPhone
+
+- Neuer Name **Sound Groot** mit Bonsai-Logo (Krone aus Pegelbalken in Prismafarben), Ladebildschirm im Browser und eigenes Startfenster unter Windows. Projektdateien heißen jetzt `.soundgroot`, alte `.klangwerk`-Dateien öffnen weiter. Gespeicherte Songs und Einstellungen bleiben erhalten
+- Web-App (PWA): Auf dem iPhone in Safari „Teilen → Zum Home-Bildschirm“, dann startet Sound Groot im Vollbild mit eigenem Icon (Hinweis kommt beim ersten Besuch). In Chrome und Edge über „Datei → Als App installieren“
+- Offline: App und alle bereits genutzten Sounds sind gespeichert. „Datei → Alle Sounds offline speichern“ lädt den Rest (ca. 21 MB). Nach einem Update fragt die App, ob sie neu laden soll; nur geänderte Sounds werden neu geladen
+- Bildschirm-Keyboard (Knopf oben rechts): zum Spielen ohne MIDI-Keyboard, etwa auf dem iPhone. Mehrere Finger gleichzeitig, über die Tasten gleiten, weiter unten angeschlagen klingt lauter, Oktave wechseln, „Halten“ lässt Töne weiterklingen. Auf Drum-Spuren 12 Pads, auf Sampler-Spuren die 16 MPC-Pads. Spielt und nimmt auf wie ein MIDI-Keyboard
+- iPhone-Feinschliff: Ränder für Notch und Home-Leiste, kein Zoomen der ganzen Seite, kein Hineinzoomen beim Tippen in Felder, Handy quer zeigt Arrangement und Keyboard ohne Editor
+- Veröffentlichung: `.github/workflows/pages.yml` stellt die Web-App bei jedem Merge auf main über GitHub Pages bereit
+- Neue Sounds: 10 echte Instrumente (jetzt 114 Klänge): FM-E-Piano und Clavi-Synth (Yamaha TX81Z), Klavier (Upright), Kirchenorgel, Glockenspiel, Röhrenglocken, Handglocken, Đàn Tranh (Zither), Blockflöte, Mbira; 2 neue Kits (jetzt 22): Welt-Percussion (Darbuka, Rahmentrommel, Schlitztrommel, Cabasa, Guiro …) und Orchester (Große Trommel, Pauken, Gong, Becken, Röhrenglocke, Ratsche …). Quelle: VCSL, CC0. `node scripts/fetch-vcsl.js instruments <ids>` baut einzelne neu
+
 ## Grundsatz
 
 Jedes Update bringt auch neue Sounds mit.
 
 ## Fahrplan
 
-1. **v0.9 Web-App/iPhone**: Installation als PWA, Touch-Bedienung weiter verbessern
+1. **v1.0**: Drums live über Pads einspielen, Touch-Gesten im Piano Roll (langes Drücken für Menüs), Feinschliff nach Tests auf dem iPhone
 2. **Später**: VST3-Plug-ins in der Windows-Version
 
 ## Starten
 
-- Windows: `Klangwerk-0.8.5-win.zip` entpacken, `Klangwerk.exe` starten
+- Windows: `SoundGroot-0.9.0-win.zip` entpacken, `Sound Groot.exe` starten
+- iPhone/Browser: https://erikos47.github.io/Klangwerk/ öffnen (sobald GitHub Pages eingeschaltet ist), dann „Zum Home-Bildschirm“
 - Entwicklung: `npm install`, dann `npm start`
 - Windows-Build: `npm run dist:win`
