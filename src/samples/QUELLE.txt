@@ -9,3 +9,11 @@ Drum-Samples (drums-*.js) aus "drum-machines" von smpldsnds
 https://github.com/smpldsnds/drum-machines
 Laut Projekt gemeinfreie Samples verschiedener Drumcomputer (TR-808, LM-2, RZ-1, CR-8000, MFB-512, MR-10, SK-1).
 Für Klangwerk gekürzt, in Mono und mit 96 kbit/s neu kodiert (scripts/fetch-drums.js).
+
+Instrumente (vibraphone, marimba, kalimba, balafon, tenor-sax, harmonica, ocarina, harpsichord,
+renaissance-organ, folk-harp), die Kits drums-vcsl.js und drums-vcslperc.js sowie die Loops loop-*.js
+aus der "Versilian Community Sample Library" (VCSL) von Versilian Studios / Sam Gossner
+https://github.com/sgossner/VCSL
+Lizenz: CC0 1.0 (gemeinfrei, https://creativecommons.org/publicdomain/zero/1.0/)
+Die Loops wurden aus einzelnen VCSL-Anschlägen und -Tönen zusammengesetzt. Alles gekürzt, in Mono
+und neu kodiert (scripts/fetch-vcsl.js).

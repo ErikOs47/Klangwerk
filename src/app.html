@@ -305,8 +305,14 @@ input[type=checkbox] { accent-color: var(--accent); }
 .seq-name small { font-size: 9.5px; font-weight: 600; color: var(--c); margin-left: auto; margin-right: 5px; max-width: 46px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lib-item .play { margin-left: auto; color: var(--faint); font-size: 10px; }
 .lib-sub { margin: 14px 8px 2px; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
-.drop-hint { position: absolute; inset: 8px; border: 2px dashed var(--accent); border-radius: 14px; background: #f2b84b12; display: none; align-items: center; justify-content: center; font-size: 16px; z-index: 20; pointer-events: none; }
+.drop-hint { position: absolute; inset: 8px; display: none; gap: 10px; z-index: 20; pointer-events: none; }
 .arrange.dragging .drop-hint { display: flex; }
+.dz { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; border: 2px dashed #ffffff30; border-radius: 14px; background: #0f101488; color: var(--muted); font-size: 13px; transition: border-color .12s, background .12s, opacity .12s; }
+.dz b { font-size: 16px; color: var(--fg); }
+.dz.on { border-color: var(--accent); background: #f2b84b1a; color: var(--fg); }
+.arrange[data-dz=lane] .dz { opacity: 0; }
+.dz-lane { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); padding: 8px 14px; border-radius: 10px; background: #23262dee; border: 1px solid var(--accent); font-size: 13px; display: none; }
+.arrange[data-dz=lane] .dz-lane { display: block; }
 
 /* ---------- Editor ---------- */
 .editor { height: var(--edh, 340px); max-height: calc(100% - 140px); flex: none; display: flex; flex-direction: column; background: var(--panel); border-top: 1px solid #000; position: relative; box-shadow: 0 -8px 24px #0005; z-index: 10; }
@@ -402,6 +408,61 @@ input[type=checkbox] { accent-color: var(--accent); }
 .cell.now { box-shadow: inset 0 0 0 2px #fff; }
 .wave { position: absolute; inset: 12px var(--gut-r) 12px var(--gut-l); }
 .wave canvas { width: 100%; height: 100%; border-radius: 10px; background: #0d0e11; }
+
+/* Sampler mit Pads */
+.smp { position: absolute; inset: 0; display: flex; gap: 14px; padding-block: 10px; padding-left: var(--gut-l); padding-right: var(--gut-r); overflow: auto; }
+.smp-l { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.smp-wave { position: relative; flex: 1 1 auto; min-height: 96px; border-radius: 10px; background: #0d0e11; box-shadow: inset 0 0 0 1px #ffffff0a; overflow: hidden; touch-action: pan-y; cursor: crosshair; }
+.smp-wave.tool-cut { cursor: col-resize; }
+.smp-wave canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.smp-head { position: absolute; top: 0; bottom: 0; width: 1px; background: #fff; box-shadow: 0 0 6px #fff8; pointer-events: none; display: none; }
+.smp-tip { position: absolute; top: 4px; padding: 1px 6px; border-radius: 5px; background: #000c; font-size: 10.5px; font-variant-numeric: tabular-nums; pointer-events: none; white-space: nowrap; }
+.smp-over { position: relative; flex: none; height: 16px; border-radius: 5px; background: #0b0c0f; overflow: hidden; cursor: grab; touch-action: none; }
+.smp-over canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.smp-win { position: absolute; top: 0; bottom: 0; border-radius: 4px; background: #ffffff1a; box-shadow: inset 0 0 0 1px #ffffff40; pointer-events: none; }
+.smp-chops { flex: none; display: flex; gap: 5px; overflow-x: auto; padding: 2px 1px 4px; min-height: 30px; scrollbar-width: thin; }
+.chip { flex: none; height: 26px; display: inline-flex; align-items: center; gap: 6px; padding: 0 10px 0 4px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--cc) 45%, transparent); background: color-mix(in srgb, var(--cc) 14%, #16181d); font-size: 12px; font-weight: 600; color: #e6e8ee; touch-action: none; cursor: grab; transition: background .12s, border-color .12s, transform .12s; }
+.chip b { min-width: 22px; height: 18px; padding: 0 4px; box-sizing: border-box; border-radius: 5px; background: var(--cc); color: #101114; font-size: 10px; display: inline-flex; align-items: center; justify-content: center; }
+.chip b.nopad { background: #ffffff14; color: var(--muted); }
+.chip:hover { background: color-mix(in srgb, var(--cc) 24%, #16181d); }
+.chip.sel { border-color: #fff; box-shadow: 0 0 0 1px #fff, 0 0 12px color-mix(in srgb, var(--cc) 50%, transparent); }
+.chip.before { box-shadow: -4px 0 0 -1px var(--accent); }
+.chip.after { box-shadow: 4px 0 0 -1px var(--accent); }
+.chip-ghost { position: fixed; z-index: 90; pointer-events: none; opacity: .9; transform: translate(-50%, -60%) scale(1.06); box-shadow: 0 10px 30px #000c; }
+.smp-ctl { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 8px 10px; border-radius: 10px; background: var(--panel-2); box-shadow: inset 0 0 0 1px #ffffff08; font-size: 12px; color: var(--muted); }
+.smp-ctl .rn { background: var(--bg-deep); border: 1px solid var(--line); border-radius: 7px; padding: 3px 8px; width: 120px; height: 26px; box-sizing: border-box; outline: none; color: var(--fg); }
+.smp-ctl .rn:focus { border-color: #f2b84b88; }
+.smp-ctl label { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.smp-ctl input[type=range] { width: 84px; }
+.smp-ctl output { min-width: 50px; color: var(--fg); font-variant-numeric: tabular-nums; }
+.smp-ctl select, .smp-ctl .sbtn { height: 26px; border-radius: 7px; border: 1px solid #ffffff12; background-color: #ffffff0a; padding: 0 10px; font-size: 12px; }
+.smp-ctl .sbtn:hover { background-color: #ffffff16; }
+.smp-ctl .cdot { width: 10px; height: 10px; border-radius: 3px; background: var(--cc); flex: none; }
+.smp-ctl .info { font-variant-numeric: tabular-nums; }
+.smp-r { flex: none; display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+.pads { display: grid; grid-template-columns: repeat(4, var(--ps, 64px)); grid-auto-rows: var(--ps, 64px); gap: 7px; padding: 9px; border-radius: 14px; background: linear-gradient(180deg, #1a1c21, #121317); box-shadow: inset 0 1px 0 #ffffff0c, 0 6px 20px #0006, inset 0 0 0 1px #000; }
+.pad { position: relative; border: 0; border-radius: 9px; padding: 5px 6px; display: flex; flex-direction: column; justify-content: space-between; text-align: left; background: linear-gradient(180deg, #33363e, #262930); box-shadow: inset 0 1px 0 #ffffff14, inset 0 -2px 0 #0008, 0 2px 4px #0008; color: var(--muted); font-size: 10px; touch-action: none; overflow: hidden; transition: transform .06s, box-shadow .12s, background .12s; }
+.pad.on { background: linear-gradient(180deg, color-mix(in srgb, var(--cc) 44%, #34373f), color-mix(in srgb, var(--cc) 24%, #23262c)); color: #eef0f5; }
+.pad:active, .pad.down { transform: scale(.96); }
+.pad.sel { box-shadow: inset 0 0 0 2px #fff, 0 2px 4px #0008; }
+.pad.hit { animation: padhit .32s ease-out; }
+@keyframes padhit { 0% { filter: brightness(1.9); box-shadow: 0 0 22px var(--cc, #fff), inset 0 0 0 2px #fff; } 100% { filter: none; } }
+.pad.drop { box-shadow: inset 0 0 0 2px var(--accent), 0 0 16px #f2b84b66; }
+.pad .pn { font-weight: 700; font-size: 10.5px; display: flex; justify-content: space-between; }
+.pad .pk { font-family: var(--font-mono); font-size: 9.5px; color: #ffffff70; }
+.pad .pc { font-size: 10.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pad-opts { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+.pad-opts label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.smp-empty { flex: 1; min-height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; border: 2px dashed #ffffff1f; border-radius: 12px; color: var(--muted); text-align: center; padding: 16px; font-size: 13px; }
+.smp-empty b { color: var(--fg); font-size: 14px; }
+.smp-empty .row { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.smp-empty .sbtn { height: 28px; border-radius: 8px; border: 1px solid var(--line); background: var(--raise); padding: 0 12px; font-size: 12.5px; }
+.smp-empty .sbtn:hover { background: #2f343e; }
+.editor.dropping .smp-empty, .editor.dropping .smp-wave { box-shadow: inset 0 0 0 2px var(--accent); }
+.pr-keys.pads { width: 104px; }
+.pr-keys .pkey { background: #1f2127; color: #d5d8e0; border-bottom-color: #15161a; font-size: 10px; text-align: left; padding: 0 4px 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-left: 3px solid var(--cc, #ffffff20); }
+.pr-keys .pkey.empty { color: var(--faint); }
+@media (max-width: 760px) { .smp { flex-direction: column-reverse; } .smp-r { align-items: center; } .smp-l { min-height: 300px; } }
 
 /* ---------- Mixer ---------- */
 .mixer { position: absolute; inset: 0; overflow: auto; display: flex; gap: 6px; padding-block: 10px; padding-left: var(--gut-l); padding-right: var(--gut-r); align-items: stretch; }
@@ -518,11 +579,12 @@ input[type=checkbox] { accent-color: var(--accent); }
           <button data-add="synth"><svg viewBox="0 0 16 16"><path d="M1 3h14v10H1zm2 1v8h2V8H4V4zm3 0v4h1v4h2V8h1V4zm5 0v4h-1v4h2V4z"/></svg>Software-Instrument</button>
           <button data-add="drums"><svg viewBox="0 0 16 16"><path d="M8 3c4 0 7 1.3 7 3v5c0 1.7-3 3-7 3s-7-1.3-7-3V6c0-1.7 3-3 7-3zm0 1.5C4.7 4.5 2.5 5.4 2.5 6S4.7 7.5 8 7.5s5.5-.9 5.5-1.5S11.3 4.5 8 4.5z"/></svg>Drummer (Pattern)</button>
           <button data-add="audio"><svg viewBox="0 0 16 16"><path d="M2 7h1v2H2zm2-3h1v8H4zm2 2h1v4H6zm2-5h1v14H8zm2 3h1v8h-1zm2 2h1v4h-1z"/></svg>Audio (Mikrofon / Datei)</button>
+          <button data-add="sampler"><svg viewBox="0 0 16 16"><path d="M1.5 1.5h5.5v5.5H1.5zm7.5 0h5.5v5.5H9zM1.5 9h5.5v5.5H1.5zM9 9h5.5v5.5H9z"/></svg>Sampler (MPC-Pads)</button>
         </div>
       </div>
       <button class="tbtn" id="bUndo" title="Rückgängig (Strg+Z)"><svg viewBox="0 0 16 16"><path d="M5.5 3L1.5 6.5 5.5 10V7.6h4a2.9 2.9 0 0 1 0 5.8H6V15h3.5a4.5 4.5 0 0 0 0-9h-4z"/></svg></button>
       <button class="tbtn" id="bImport" title="Audiodatei importieren"><svg viewBox="0 0 16 16"><path d="M7 1.5h2v6.6l2.3-2.3 1.4 1.4L8 11.9 3.3 7.2l1.4-1.4L7 8.1zM2 12h2v1.5h8V12h2v3.5H2z"/></svg></button>
-      <input type="file" id="fileIn" accept="audio/*" hidden><input type="file" id="smpIn" accept="audio/*" hidden>
+      <input type="file" id="fileIn" accept="audio/*" hidden><input type="file" id="smpIn" accept="audio/*" hidden><input type="file" id="smpFileIn" accept="audio/*" multiple hidden>
       <div class="menu-wrap">
         <button class="tbtn" id="bDev" title="MIDI-Keyboard und Audio-Eingang"><svg viewBox="0 0 16 16"><path d="M5 1h2v3h2V1h2v3h1.5v4A4.5 4.5 0 0 1 9 12.4V15H7v-2.6A4.5 4.5 0 0 1 3.5 8V4H5z"/></svg><span id="midiDot" class="dot"></span></button>
         <div class="menu devmenu" id="devMenu" hidden>
@@ -559,7 +621,7 @@ input[type=checkbox] { accent-color: var(--accent); }
         <div id="rows"></div>
         <div id="playhead"></div>
       </div></div>
-      <div class="drop-hint">Audiodatei hier ablegen</div>
+      <div class="drop-hint"><div class="dz" data-dz="audio"><b>Neue Audio-Spur</b><span>Datei als Region abspielen und schneiden</span></div><div class="dz" data-dz="sampler"><b>Neuer Sampler</b><span>In Chops schneiden und auf 16 Pads spielen</span></div><div class="dz-lane"></div></div>
     </main>
   </div>
 
@@ -582,7 +644,8 @@ const COLORS = ['#e9b949', '#5ba4f5', '#62c785', '#b48af0', '#f07a7a', '#4fd1c5'
 const ICONS = {
   synth: '<svg class="ticon" viewBox="0 0 16 16"><path d="M1 3h14v10H1zm2 1v8h2V8H4V4zm3 0v4h1v4h2V8h1V4zm5 0v4h-1v4h2V4z"/></svg>',
   drums: '<svg class="ticon" viewBox="0 0 16 16"><path d="M8 3c4 0 7 1.3 7 3v5c0 1.7-3 3-7 3s-7-1.3-7-3V6c0-1.7 3-3 7-3zm0 1.5C4.7 4.5 2.5 5.4 2.5 6S4.7 7.5 8 7.5s5.5-.9 5.5-1.5S11.3 4.5 8 4.5z"/></svg>',
-  audio: '<svg class="ticon" viewBox="0 0 16 16"><path d="M2 7h1v2H2zm2-3h1v8H4zm2 2h1v4H6zm2-5h1v14H8zm2 3h1v8h-1zm2 2h1v4h-1z"/></svg>'
+  audio: '<svg class="ticon" viewBox="0 0 16 16"><path d="M2 7h1v2H2zm2-3h1v8H4zm2 2h1v4H6zm2-5h1v14H8zm2 3h1v8h-1zm2 2h1v4h-1z"/></svg>',
+  sampler: '<svg class="ticon" viewBox="0 0 16 16"><path d="M1.5 1.5h5.5v5.5H1.5zm7.5 0h5.5v5.5H9zM1.5 9h5.5v5.5H1.5zM9 9h5.5v5.5H9z"/></svg>'
 };
 
 // ================= Klangerzeugung =================
@@ -683,7 +746,7 @@ function presetOptions(sel) {
   return Object.entries(cats).map(([c, o]) => `<optgroup label="${c}">${o.join('')}</optgroup>`).join('');
 }
 const presetName = tr => tr.preset === 'user' ? (tr.usmp?.name || 'Eigenes Sample') : PRESETS[tr.preset]?.name || tr.preset;
-const instName = tr => tr.type === 'synth' ? presetName(tr) : tr.type === 'drums' ? 'Kit: ' + (KITS[tr.kit || 'standard']?.name || 'Standard') + (Object.keys(tr.pieces || {}).length ? ' · gemischt' : '') : 'Audio';
+const instName = tr => tr.type === 'synth' ? presetName(tr) : tr.type === 'sampler' ? (tr.srcs?.[tr.src]?.name || 'Kein Sample geladen') : tr.type === 'drums' ? 'Kit: ' + (KITS[tr.kit || 'standard']?.name || 'Standard') + (Object.keys(tr.pieces || {}).length ? ' · gemischt' : '') : 'Audio';
 // Drumkits: Abweichungen vom Standard-Kit, pro Instrument. lp/drive wirken auf das ganze Kit.
 const KITS = {
   standard: { name: 'Standard' },
@@ -705,6 +768,9 @@ const KITS = {
   s_mfb512: { name: 'MFB-512 (echt)', smp: 'mfb512', fb: 'electro', has: 'kick snare clap hat ohat tom crash' },
   s_mr10:   { name: 'Yamaha MR-10 (echt)', smp: 'mr10', fb: 'lofi', has: 'kick snare hat ohat tom rim crash ride shaker' },
   s_sk1:    { name: 'Casio SK-1 (echt)', smp: 'sk1', fb: 'lofi', has: 'kick snare hat ohat tom' },
+  // Neu in v0.85: akustische Aufnahmen aus dem VCSL (CC0)
+  s_vcsl:   { name: 'Akustik-Set (echt)', smp: 'vcsl', fb: 'jazz' },
+  s_vcslperc: { name: 'Percussion (echt)', smp: 'vcslperc', fb: 'perc', lbl: { kick: 'Cajón Bass', snare: 'Cajón Slap', clap: 'Klatschen', hat: 'Shaker', ohat: 'Tamburin', tom: 'Tumba', rim: 'Claves', cow: 'Agogo hoch', crash: 'Triangel', ride: 'Agogo tief', shaker: 'Großer Shaker', conga: 'Quinto' } },
   perc:     { name: 'Percussion', kick: { f0: 90, f1: 55, sweep: .05, dec: .5, g: 1 }, snare: { hp: 2000, dec: .1, tone: .7, tf: 330 }, clap: { bp: 1800, dec: .2 }, hat: { hp: 5500, dec: .04 }, tom: { f0: 240, f1: 180, dec: .45 }, rim: { f: 2400, dec: .05 }, cow: { f1: 720, f2: 1080, dec: .25 }, shaker: { bp: 5000, dec: .12, att: .02 }, conga: { f0: 400, f1: 360, dec: .35, slap: .4 } }
 };
 const DRUMS = [
@@ -715,6 +781,7 @@ const DRUMS = [
 ];
 // Jedes Instrument einer Drum-Spur kann aus einem anderen Kit kommen (tr.pieces überschreibt tr.kit)
 const pieceKit = (tr, id) => tr.pieces?.[id] || tr.kit || 'standard';
+const pieceLbl = (tr, id) => KITS[pieceKit(tr, id)]?.lbl?.[id]; // eigener Name eines Sounds in diesem Kit (z. B. Cajón statt Kick)
 const PATTERNS = {
   'Pop':       { kick: 'x.......x.x.....', snare: '....X.......X...', hat: 'x.x.x.x.x.x.x.x.', ohat: '..............x.' },
   'Rock':      { kick: 'X.....x.X.x.....', snare: '....X.......X...', hat: 'x.x.x.x.x.x.x.x.' },
@@ -748,6 +815,7 @@ function normProject(p) {
     for (const d of DRUMS) { r.steps[d.id] ||= Array(16).fill(0); r.pitch[d.id] ||= Array(16).fill(0); }
   }
   for (const t of p.tracks) if (t.type === 'synth' && (!PRESETS[t.preset] || (t.preset === 'user' && !t.usmp))) t.preset = 'epiano';
+  for (const t of p.tracks) if (t.type === 'sampler') normSampler(t);
   p.markers ||= []; p.countIn ??= 1;
   return p;
 }
@@ -964,7 +1032,12 @@ const SAMPLED = {
   flute: ['Querflöte', { hold: 1, a: .04, r: .25, prev: 72 }], clarinet: ['Klarinette', { hold: 1, a: .03, r: .2 }], saxophone: ['Saxophon', { hold: 1, a: .03, r: .2 }],
   bassoon: ['Fagott', { hold: 1, a: .03, r: .2, prev: 48 }], trumpet: ['Trompete', { hold: 1, a: .02, r: .2, prev: 67 }], trombone: ['Posaune', { hold: 1, a: .03, r: .2, prev: 48 }],
   'french-horn': ['Waldhorn', { hold: 1, a: .05, r: .3, prev: 53 }], tuba: ['Tuba', { hold: 1, a: .04, r: .2, prev: 36 }], organ: ['Pfeifenorgel', { hold: 1, a: .03, r: .4 }],
-  harmonium: ['Harmonium', { hold: 1, a: .05, r: .3 }], xylophone: ['Xylophon', { r: .3, prev: 72 }]
+  harmonium: ['Harmonium', { hold: 1, a: .05, r: .3 }], xylophone: ['Xylophon', { r: .3, prev: 72 }],
+  // Neu in v0.85: aus dem VCSL (CC0)
+  vibraphone: ['Vibraphon (echt)', { r: .9, prev: 69 }], marimba: ['Marimba (echt)', { r: .4, prev: 67 }], kalimba: ['Kalimba (echt)', { r: .6, prev: 71 }],
+  balafon: ['Balafon', { r: .35, prev: 72 }], 'tenor-sax': ['Tenorsaxophon', { hold: 1, a: .03, r: .2, prev: 58 }], harmonica: ['Mundharmonika (echt)', { hold: 1, a: .03, r: .2, prev: 72 }],
+  ocarina: ['Okarina', { hold: 1, a: .03, r: .2, prev: 76 }], harpsichord: ['Cembalo (echt)', { r: .3 }], 'renaissance-organ': ['Renaissance-Orgel', { hold: 1, a: .02, r: .3 }],
+  'folk-harp': ['Keltische Harfe', { r: .8 }]
 };
 for (const [id, [name, o]] of Object.entries(SAMPLED))
   PRESETS['s_' + id] = { cat: 'Echte Instrumente', name, smp: id, hold: !!o.hold, prev: o.prev, env: { a: o.a || .002, d: 1, s: 1, r: o.r }, cut: 20000, level: o.level || (o.hold ? .38 : .48) };
@@ -1250,6 +1323,7 @@ function newTrack(type, extra = {}) {
   if (type === 'synth') Object.assign(base, { name: 'Instrument ' + (n + 1), preset: 'epiano' });
   if (type === 'drums') Object.assign(base, { name: 'Drummer', color: COLORS[0] });
   if (type === 'audio') Object.assign(base, { name: 'Audio ' + (n + 1) });
+  if (type === 'sampler') Object.assign(base, { name: 'Sampler ' + (n + 1), srcs: [], src: 0, chops: [], pads: Array(16).fill(null), mono: true, full: true });
   return Object.assign(base, extra);
 }
 function demoProject() {
@@ -1320,7 +1394,7 @@ function addBuffer(buf, id = uid()) {
   idb.put(id, { sr: buf.sampleRate, ch }).catch(() => { });
   return id;
 }
-const bufferIds = () => [...new Set(P.tracks.flatMap(t => t.type === 'audio' ? t.regions.flatMap(r => [r.buf, ...(r.takes || []).map(k => k.buf)]) : t.usmp ? [t.usmp.buf] : []))];
+const bufferIds = () => [...new Set(P.tracks.flatMap(t => t.type === 'audio' ? t.regions.flatMap(r => [r.buf, ...(r.takes || []).map(k => k.buf)]) : t.type === 'sampler' ? [...t.srcs.map(x => x.buf), ...t.chops.map(c => c.buf)] : t.usmp ? [t.usmp.buf] : []))];
 function makeBuffer(sr, ch) {
   const b = new AudioBuffer({ length: ch[0].length, sampleRate: sr, numberOfChannels: ch.length });
   ch.forEach((d, i) => b.copyToChannel(d, i)); return b;
@@ -1500,7 +1574,7 @@ function stop() {
   const now = ctx.currentTime;
   for (const g of session.gains.values()) { g.gain.setTargetAtTime(0, now, .02); setTimeout(() => g.disconnect(), 600); }
   for (const s of session.sources) { try { s.stop(now + .08); } catch (e) { } }
-  session = null;
+  session = null; padHits.length = 0;
   applyAutoStatic();
   updateTransport();
 }
@@ -1541,9 +1615,15 @@ function schedule(b0, b1, t0) {
   if (P.metro || (rec && b0 < rec.countUntil)) for (let b = Math.ceil(b0 - 1e-9); b < b1; b++) if (P.metro || b < rec?.countUntil) click(at(b), ((b % 4) + 4) % 4 === 0);
   for (const tr of P.tracks) {
     scheduleAuto(tr, b0, b1, at);
+    const hits = [];
     for (const r of tr.regions) {
       if (r.start + r.len <= b0 || r.start >= b1) continue;
-      if (tr.type === 'synth') {
+      if (tr.type === 'sampler') {
+        for (const n of r.notes) {
+          const nb = r.start + n.s;
+          if (n.s >= 0 && n.s < r.len && nb >= b0 && nb < b1) hits.push({ n, t: at(nb), end: at(nb + Math.min(n.l, r.len - n.s)) });
+        }
+      } else if (tr.type === 'synth') {
         for (const n of r.notes) {
           if (n.s >= r.len || n.s < 0) continue;
           const nb = r.start + n.s;
@@ -1561,6 +1641,9 @@ function schedule(b0, b1, t0) {
         }
       } else if (tr.type === 'audio' && r.start >= b0 && r.start < b1) startAudioRegion(tr, r, at(r.start), 0);
     }
+    // Pads in zeitlicher Reihenfolge, damit sich Chops richtig abschneiden
+    hits.sort((a, b) => a.t - b.t);
+    for (const h of hits) { const v = padPlay(tr, sessionOut(tr), h.n.p, h.t, h.n.v, session.mono ||= new Map()); if (v) { v.release(h.end); session.sources.push(v.src); } }
   }
 }
 function startAudioAt(beat, t) {
@@ -1639,7 +1722,7 @@ async function toggleRecord() {
   rec = { type: tr.type === 'audio' ? 'audio' : 'midi', track: tr.id, startBeat: start, countUntil: start, cap, marks: [], region: null, held: new Map(), pass: 0 };
   if (playing) rec.marks.push({ time: ctx.currentTime, beat: start });
   else { playPos = start - ci; play(); }
-  if (rec.type === 'midi') toast(ci ? 'Vorzähler läuft, dann wird aufgenommen.' : 'Aufnahme läuft. Spiele mit den Tasten A bis L oder dem MIDI-Keyboard.');
+  if (rec.type === 'midi') toast(ci ? 'Vorzähler läuft, dann wird aufgenommen.' : tr.type === 'sampler' ? 'Aufnahme läuft. Spiele die Pads (Maus, Tasten oder MIDI). Stopp mit der Leertaste.' : 'Aufnahme läuft. Spiele mit den Tasten A bis L oder dem MIDI-Keyboard.');
   updateTransport();
 }
 let recPending = false;
@@ -1803,7 +1886,8 @@ function renderArrange() {
   rowsEl.innerHTML = P.tracks.map(tr => {
     const sel = tr.id === selTrack ? 'sel' : '';
     let ctrl = '';
-    if (tr.type !== 'audio') ctrl = `<button class="tinst" data-act="lib" title="Klang in der Bibliothek wählen"><span>${esc(instName(tr))}</span></button>`;
+    if (tr.type === 'sampler') ctrl = `<button class="tinst" data-act="smp" title="Sampler mit Chops und Pads öffnen"><span>${esc(instName(tr))}</span></button>`;
+    else if (tr.type !== 'audio') ctrl = `<button class="tinst" data-act="lib" title="Klang in der Bibliothek wählen"><span>${esc(instName(tr))}</span></button>`;
     else ctrl = '<button class="sm" data-act="import" title="Audiodatei importieren">Import</button><span class="tsub">Mikro</span>';
     ctrl += `<button class="sm eqb ${eqActive(tr) ? 'on' : ''}" data-act="eq" title="Kanal-EQ öffnen">EQ</button><button class="sm eqb fxb ${fxActive(tr) ? 'on' : ''}" data-act="fx" title="Klang & Effekte öffnen">FX</button>`;
     const hasAuto = Object.keys(AUTO).some(k => autoOn(tr, k));
@@ -1881,6 +1965,13 @@ function drawRegion(cv, tr, r) {
       if (n.s >= r.len || n.s < 0) continue;
       g.fillRect(n.s * ppb, 3 + (hi - n.p) * ((h - 6 - rh) / (hi - lo || 1)), Math.max(2, Math.min(n.l, r.len - n.s) * ppb - 1), Math.min(rh, 4));
     }
+  } else if (tr.type === 'sampler') {
+    const rh = (h - 4) / 16;
+    for (const n of r.notes) {
+      if (n.s >= r.len || n.s < 0) continue;
+      g.fillStyle = padChop(tr, n.p)?.color || tr.color;
+      g.fillRect(n.s * ppb, 2 + (15 - n.p) * rh, Math.max(2, Math.min(n.l, r.len - n.s) * ppb - 1), Math.max(1.5, rh - .5));
+    }
   } else if (tr.type === 'drums') {
     const used = DRUMS.filter(d => r.steps[d.id]?.some(v => v)), rows = Math.max(4, used.length), rh = (h - 4) / rows, ph = phaseOf(r);
     used.forEach((d, i) => {
@@ -1929,7 +2020,7 @@ function markSelection() {
   rowsEl.querySelectorAll('.region').forEach(el => el.classList.toggle('sel', el.dataset.region === selRegion));
   eBody.querySelectorAll('.strip[data-track]').forEach(el => el.classList.toggle('sel', el.dataset.track === selTrack));
   // EQ und Klang & Effekte zeigen immer die ausgewählte Spur
-  if ((edTab === 'eq' || edTab === 'fx') && eqView && eqView.tr.id !== selTrack) renderEditor();
+  if (((edTab === 'eq' || edTab === 'fx') && eqView && eqView.tr.id !== selTrack) || (edTab === 'smp' && smpView?.tr.id !== selTrack)) renderEditor();
   renderLib();
 }
 function updateTransport() {
@@ -1964,14 +2055,14 @@ let edState = { id: null }, lastLen = .5, liveCells = null;
 const noteName = m => ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'][m % 12] + (Math.floor(m / 12) - 2);
 let edTab = 'region', eqView = null, mixView = null, edKey = '';
 function renderEditor() {
-  liveCells = null; eqView = null; mixView = null;
+  liveCells = null; eqView = null; mixView = null; smpView = null;
   const tr = findTrack(selTrack);
-  if (edTab === 'mix') renderMixer(); else if (edTab === 'eq' && tr) renderEq(tr); else if (edTab === 'fx' && tr) renderFx(tr); else { edTab = 'region'; renderRegionEditor(); }
+  if (edTab === 'mix') renderMixer(); else if (edTab === 'eq' && tr) renderEq(tr); else if (edTab === 'fx' && tr) renderFx(tr); else if (edTab === 'smp' && tr?.type === 'sampler') renderSampler(tr); else { edTab = 'region'; renderRegionEditor(); }
   const tab = (id, label) => `<button data-tab="${id}" class="${edTab === id ? 'on' : ''}" ${tr || id === 'region' || id === 'mix' ? '' : 'disabled'}>${label}</button>`;
-  eHead.insertAdjacentHTML('afterbegin', `<div class="tabs" role="tablist">${tab('region', 'Editor')}${tab('mix', 'Mixer')}${tab('eq', 'Kanal-EQ')}${tab('fx', 'Klang & Effekte')}</div>`);
+  eHead.insertAdjacentHTML('afterbegin', `<div class="tabs" role="tablist">${tab('region', 'Editor')}${tr?.type === 'sampler' ? tab('smp', 'Pads & Chops') : ''}${tab('mix', 'Mixer')}${tab('eq', 'Kanal-EQ')}${tab('fx', 'Klang & Effekte')}</div>`);
   $('#bMix').classList.toggle('on', edTab === 'mix');
   // Sanft einblenden, wenn sich der Inhalt ändert (nicht bei jeder Bearbeitung)
-  const key = edTab + '|' + (edTab === 'region' ? selRegion + '|' + edState.piece : edTab === 'mix' ? '' : selTrack);
+  const key = edTab + '|' + (edTab === 'region' ? selRegion + '|' + edState.piece : edTab === 'mix' ? '' : selTrack + (edTab === 'smp' ? '|' + (tr?.srcs.length ? 1 : 0) : ''));
   if (key !== edKey) { edKey = key; eBody.firstElementChild?.classList.add('enter'); }
 }
 eHead.addEventListener('click', e => {
@@ -1982,6 +2073,8 @@ eHead.addEventListener('click', e => {
 });
 function renderRegionEditor() {
   const [tr, r] = findRegion(selRegion);
+  // Sampler-Spur ohne ausgewählte Region: gleich Pads und Chops zeigen
+  if (!r && findTrack(selTrack)?.type === 'sampler') { edTab = 'smp'; renderSampler(findTrack(selTrack)); return; }
   if (!r) {
     edState = { id: null };
     eHead.innerHTML = `<span class="note">Wähle eine Region im Arrangement aus.</span>`;
@@ -1991,8 +2084,9 @@ function renderRegionEditor() {
         <p>Regionen verschiebst du mit der Maus, am rechten Rand änderst du die Länge, am linken Rand kürzt du den Anfang. Zum Löschen eine Region antippen und oben im Editor „Region löschen“ wählen (oder Entf). Ziehen im Lineal oben setzt den Cycle-Bereich.</p>
         <p>Mit „A“ im Spurkopf öffnest du die Automation: Lautstärke, Panorama, Filter, Hall und Delay als Kurve über die Zeit. Marker für Intro, Strophe, Refrain setzt du mit „+ Marker“ oder per Doppelklick in die Marker-Leiste.</p>
         <p>In der Bibliothek (I) findest du unter „Echte Instrumente“ aufgenommene Klänge wie Flügel, Gitarren, Streicher und Bläser. Mit „Eigenes Sample laden …“ machst du aus einer beliebigen Audiodatei ein spielbares Instrument.</p>
+        <p>Sampler wie eine MPC: Zieh eine Audiodatei ins Arrangement (rechte Hälfte) oder lege mit „+ Spur“ einen Sampler an. Klangwerk schneidet sie in Chops und legt sie auf 16 Pads. Jeden Chop kannst du stimmen, ein- und ausblenden, umdrehen und filtern. Gespielt wird mit Maus, Tasten oder Pad-Controller; R (auf der Sampler-Spur Umschalt+R) nimmt auf.</p>
         <p>Aufnahme (R) startet mit einem Takt Vorzähler. Ist der Cycle an, entsteht pro Durchgang ein eigener Take, den besten wählst du im Editor. Vorzähler und Latenzausgleich stellst du unter Geräte ein.</p>
-        <p class="hint">Instrument-Samples: <a href="https://github.com/nbrosowsky/tonejs-instruments" target="_blank" rel="noopener">tonejs-instruments</a> von Nicholas Brosowsky, Lizenz CC-BY 3.0.</p></div>
+        <p class="hint">Instrument-Samples: <a href="https://github.com/nbrosowsky/tonejs-instruments" target="_blank" rel="noopener">tonejs-instruments</a> von Nicholas Brosowsky, Lizenz CC-BY 3.0. Weitere Instrumente, Percussion und Loops: <a href="https://github.com/sgossner/VCSL" target="_blank" rel="noopener">Versilian Community Sample Library</a> (CC0).</p></div>
       <div><h3>Tastatur</h3><dl>
         <dt>Leertaste</dt><dd>Abspielen / Stopp</dd>
         <dt>R</dt><dd>Aufnahme auf ausgewählter Spur</dd>
@@ -2002,6 +2096,7 @@ function renderRegionEditor() {
         <dt>Strg+Mausrad</dt><dd>Zoomen (am Handy mit zwei Fingern)</dd>
         <dt>A … L</dt><dd>Musical Typing: Noten spielen (W, E, T, Z, U = schwarze Tasten)</dd>
         <dt>Y / X</dt><dd>Oktave runter / hoch</dd>
+        <dt>1–4 Q–R A–F Y–V</dt><dd>Pads 1–16 auf einer Sampler-Spur</dd>
         <dt>Strg+D</dt><dd>Region duplizieren</dd>
         <dt>Strg+C / X / V</dt><dd>Region kopieren, ausschneiden, an der Abspielposition einfügen (auch auf eine andere Spur)</dd>
         <dt>B</dt><dd>Region an der Abspielposition teilen</dd>
@@ -2019,7 +2114,7 @@ function renderRegionEditor() {
   edState = { id: r.id, kind: tr.type, piece: same ? edState.piece : null, scrolled: same && edState.scrolled };
   eBody.style.setProperty('--c', tr.color);
   const bars = (r.len / 4).toFixed(r.len % 4 ? 2 : 0).replace('.', ',');
-  if (tr.type === 'synth') renderPianoRoll(tr, r, bars);
+  if (tr.type === 'synth' || tr.type === 'sampler') renderPianoRoll(tr, r, bars);
   else if (tr.type === 'drums') { normProject({ tracks: [tr] }); edState.piece ? renderDrumRoll(tr, r, edState.piece) : renderSteps(tr, r, bars); }
   else renderAudioEditor(tr, r);
   const rn = $('#rname'); if (rn) rn.onchange = e => { pushUndo(); r.name = e.target.value || r.name; save(); renderArrange(); };
@@ -2039,7 +2134,7 @@ function renderAudioEditor(tr, r) {
   eHead.innerHTML = `<input class="rn" id="rname" value="${esc(r.name)}" aria-label="Regionsname"><span class="note">${buf ? f1(total) + ' s von ' + f1(buf.duration) + ' s' : 'Audiodaten nicht im Speicher. Bitte neu importieren.'}</span>
     ${buf ? `${sl('afi', 'Einblenden', 0, fmax, .01, r.fi || 0, f1(r.fi || 0) + ' s')}${sl('afo', 'Ausblenden', 0, fmax, .01, r.fo || 0, f1(r.fo || 0) + ' s')}
     ${sl('again', 'Pegel', -24, 24, .5, r.gain || 0, fmtG(r.gain || 0))}
-    <button class="sbtn" id="anorm" title="Lautesten Punkt auf 0 dB anheben">Normalisieren</button><button class="sbtn" id="arev" title="Audio rückwärts abspielen">Umkehren</button><button class="sbtn" id="asplit" title="An der Abspielposition teilen (B)">Teilen</button>` : ''}`;
+    <button class="sbtn" id="anorm" title="Lautesten Punkt auf 0 dB anheben">Normalisieren</button><button class="sbtn" id="arev" title="Audio rückwärts abspielen">Umkehren</button><button class="sbtn" id="asplit" title="An der Abspielposition teilen (B)">Teilen</button><button class="sbtn" id="asmp" title="Diesen Ausschnitt in einen neuen Sampler laden, in Chops schneiden und auf Pads spielen">Im Sampler öffnen</button>` : ''}`;
   eBody.innerHTML = `<div class="wave"><canvas id="wavecv"></canvas><div class="ed-play" id="edplay"></div></div>`;
   const cv = $('#wavecv');
   const draw = () => {
@@ -2077,6 +2172,553 @@ function renderAudioEditor(tr, r) {
     save(); render(); toast(r.reversed ? 'Region wird rückwärts abgespielt.' : 'Region wieder vorwärts.');
   };
   $('#asplit').onclick = () => splitAtPlayhead();
+  $('#asmp').onclick = () => regionToSampler(tr, r);
+}
+
+// ================= Sampler mit Pads (wie eine MPC) =================
+// Eine Sampler-Spur hat geladene Audiodateien (tr.srcs), daraus geschnittene Chops (tr.chops) und 16 Pads (tr.pads = Chop-IDs).
+// Ein Chop: Ausschnitt c.s … c.e (Sekunden im Sample), Tonhöhe in Halbtönen und Cent (höher = schneller, wie bei der MPC),
+// Ein-/Ausblenden in Sekunden, Pegel in dB, Filter (0…1), rückwärts, Modus: one = ganz abspielen, gate = nur solange gedrückt, loop = Schleife beim Halten.
+// Regionen der Spur enthalten Noten wie im Piano Roll, p ist dabei das Pad (0–15).
+const PADKEYS = { KeyZ: 0, KeyX: 1, KeyC: 2, KeyV: 3, KeyA: 4, KeyS: 5, KeyD: 6, KeyF: 7, KeyQ: 8, KeyW: 9, KeyE: 10, KeyR: 11, Digit1: 12, Digit2: 13, Digit3: 14, Digit4: 15 };
+const KEYLBL = { KeyZ: 'Y', KeyX: 'X', KeyC: 'C', KeyV: 'V', KeyA: 'A', KeyS: 'S', KeyD: 'D', KeyF: 'F', KeyQ: 'Q', KeyW: 'W', KeyE: 'E', KeyR: 'R', Digit1: '1', Digit2: '2', Digit3: '3', Digit4: '4' };
+try { navigator.keyboard?.getLayoutMap?.().then(m => { for (const k in KEYLBL) { const v = m.get(k); if (v) KEYLBL[k] = v.toUpperCase(); } }).catch(() => { }); } catch (e) { }
+const padKey = i => KEYLBL[Object.keys(PADKEYS).find(k => PADKEYS[k] === i)];
+const CHOP_COLORS = ['#f2b84b', '#5ab4ff', '#7bd88f', '#b48af0', '#f07a7a', '#4fd1c5', '#f39c5a', '#d78ad8', '#e6e07a', '#8fb4ff', '#ff9ec7', '#9be3a8'];
+const CHOP_MODES = [['one', 'Ganz abspielen'], ['gate', 'Nur solange gedrückt'], ['loop', 'Schleife beim Halten']];
+const SMP_MAX = 300; // längere Dateien werden auf 5 Minuten gekürzt
+const chopById = (tr, id) => tr.chops.find(c => c.id === id);
+const padChop = (tr, i) => tr.pads?.[i] ? chopById(tr, tr.pads[i]) : null;
+const chopRate = c => Math.pow(2, ((c.pitch || 0) + (c.fine || 0) / 100) / 12);
+const chopDur = c => (c.e - c.s) / chopRate(c); // Dauer beim Abspielen in Sekunden
+const f3 = v => v.toFixed(3).replace('.', ',');
+const fmtSec = v => v < 1 ? Math.round(v * 1000) + ' ms' : v.toFixed(2).replace('.', ',') + ' s';
+function normSampler(t) {
+  t.srcs ||= []; t.chops ||= []; t.src = clamp(t.src || 0, 0, Math.max(0, t.srcs.length - 1));
+  t.pads = Array.from({ length: 16 }, (_, i) => t.pads?.[i] && t.chops.some(c => c.id === t.pads[i]) ? t.pads[i] : null);
+  t.mono ??= true; t.full ??= true;
+  for (const r of t.regions) r.notes ||= [];
+}
+function newChop(tr, buf, s, e, extra) {
+  tr.chopN = (tr.chopN || 0) + 1;
+  const c = { id: uid(), buf, s, e, name: 'Chop ' + tr.chopN, color: CHOP_COLORS[(tr.chopN - 1) % CHOP_COLORS.length], pitch: 0, fine: 0, gain: 0, fi: 0, fo: 0, cut: 1, rev: false, mode: 'one', ...extra };
+  tr.chops.push(c);
+  return c;
+}
+// Rückwärts-Kopien nur im Speicher; gespeichert wird nur das Original
+const revCache = new Map();
+function chopBuffer(c) {
+  const buf = audioBuffers.get(c.buf); if (!buf || !c.rev) return buf;
+  let r = revCache.get(c.buf);
+  if (!r || r.src !== buf) {
+    const n = new AudioBuffer({ length: buf.length, sampleRate: buf.sampleRate, numberOfChannels: buf.numberOfChannels });
+    for (let i = 0; i < buf.numberOfChannels; i++) n.copyToChannel(buf.getChannelData(i).slice().reverse(), i);
+    r = { src: buf, buf: n }; revCache.set(c.buf, r);
+  }
+  return r.buf;
+}
+const liveMono = new Map(), padHits = [];
+let smpLast = null; // zuletzt gespielter Chop, für die Abspiellinie im Editor
+// Einen Chop zur Zeit `time` starten. Gibt { end, release(t), cut(t), src } zurück
+function chopVoice(tr, c, dest, time, vel) {
+  const buf = chopBuffer(c); if (!buf || c.e - c.s < .005) return null;
+  const rate = chopRate(c), len = chopDur(c), loop = c.mode === 'loop', s = c.rev ? buf.duration - c.e : c.s;
+  const src = ctx.createBufferSource(), flt = ctx.createBiquadFilter(), g = ctx.createGain();
+  src.buffer = buf; src.playbackRate.value = rate;
+  flt.type = 'lowpass'; flt.frequency.value = Math.min(20000, cutHz(c.cut ?? 1)); flt.Q.value = .7;
+  src.connect(flt).connect(g).connect(dest);
+  const G = Math.pow(10, (c.gain || 0) / 20) * (tr.full !== false ? 1 : Math.pow(vel, 1.2));
+  const fi = Math.min(c.fi || 0, len / 2), fo = Math.min(c.fo || 0, len / 2), a = Math.max(.002, fi);
+  g.gain.setValueAtTime(0, time); g.gain.linearRampToValueAtTime(G, time + a);
+  let end = time + len;
+  if (loop) { src.loop = true; src.loopStart = s; src.loopEnd = s + (c.e - c.s); end = Infinity; src.start(time, s); }
+  else {
+    const f0 = end - Math.max(.004, fo);
+    if (f0 > time + a) g.gain.setValueAtTime(G, f0);
+    g.gain.linearRampToValueAtTime(0, end);
+    src.start(time, s); src.stop(end + .02);
+  }
+  const fade = (t, d) => { holdParam(g.gain, t); g.gain.setTargetAtTime(0, t, d / 3); try { src.stop(t + d + .05); } catch (e) { } v.end = Math.min(v.end, t + d); };
+  const v = {
+    end, src,
+    release(t) { if ((c.mode === 'gate' || loop) && t < v.end) fade(Math.max(t, time + a), Math.max(.012, fo)); },
+    cut(t) { if (t < v.end) fade(Math.max(t, time + .002), .012); }
+  };
+  if (!(ctx instanceof OfflineAudioContext)) smpLast = { tr: tr.id, c, time, rate, len, loop, v };
+  return v;
+}
+// Pad spielen; mono: Map pro Spur für den letzten Klang, damit sich Chops gegenseitig abschneiden
+function padPlay(tr, dest, pad, time, vel, mono) {
+  const c = padChop(tr, pad); if (!c) return null;
+  const v = chopVoice(tr, c, dest, time, vel); if (!v) return null;
+  if (mono && tr.mono !== false) { const p = mono.get(tr.id); if (p && p.end > time) p.cut(time); mono.set(tr.id, v); }
+  if (!(ctx instanceof OfflineAudioContext)) { padHits.push({ id: tr.id, pad, t: time }); padHits.sort((a, b) => a.t - b.t); }
+  return v;
+}
+function flashPad(id, pad) {
+  if (smpView?.tr.id !== id) return;
+  const el = eBody.querySelector(`.pad[data-pad="${pad}"]`); if (!el) return;
+  el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit');
+}
+
+// Anschläge (Transienten) finden: Energie des hochpassgefilterten Signals, Sprünge über einer gleitenden Schwelle
+function onsets(buf, sens) {
+  const sr = buf.sampleRate, n = buf.length, hop = 256, F = Math.floor(n / hop);
+  const chs = Array.from({ length: buf.numberOfChannels }, (_, i) => buf.getChannelData(i));
+  const en = new Float32Array(F);
+  let prev = 0;
+  for (let f = 0; f < F; f++) {
+    let e = 0;
+    for (let i = f * hop; i < (f + 1) * hop; i++) { let x = 0; for (const d of chs) x += d[i]; x /= chs.length; const h = x - prev; prev = x; e += h * h + .2 * x * x; }
+    en[f] = e;
+  }
+  let mx = 0; for (const e of en) if (e > mx) mx = e;
+  mx ||= 1; const floor = mx * 2e-4;
+  const le = Array.from(en, e => Math.log10(e + floor));
+  const od = le.map((v, i) => i ? Math.max(0, v - le[i - 1] + .5 * Math.max(0, v - (le[i - 2] ?? v))) : 0);
+  const mean = od.reduce((a, b) => a + b, 0) / F, sd = Math.sqrt(od.reduce((a, b) => a + (b - mean) ** 2, 0) / F) || 1;
+  const k = [0, 2.6, 1.6, .9][sens] ?? 1.6, gap = Math.round([0, .12, .08, .05][sens] * sr / hop) || 6, W = 10;
+  const hits = [];
+  for (let f = 1; f < F - 1; f++) {
+    if (od[f] < od[f - 1] || od[f] < od[f + 1] || en[f] < mx * 1e-3) continue;
+    let loc = 0; for (let j = Math.max(0, f - W); j < Math.min(F, f + W); j++) loc += od[j]; loc /= 2 * W;
+    if (od[f] < mean + k * sd || od[f] < loc * 1.3) continue;
+    if (hits.length && f - hits.at(-1).f < gap) { if (od[f] > hits.at(-1).v) hits[hits.length - 1] = { f, v: od[f] }; continue; }
+    hits.push({ f, v: od[f] });
+  }
+  let pick = hits.length > 32 ? [...hits].sort((a, b) => b.v - a.v).slice(0, 32).sort((a, b) => a.f - b.f) : hits;
+  const t = pick.map(h => Math.max(0, (h.f - 1) * hop / sr - .004));
+  const t0 = leadIn(buf);
+  if (!t.length || t[0] > t0 + .06) t.unshift(t0);
+  return t;
+}
+// Chops automatisch schneiden. how: hits1…hits3 (Anschläge, grob bis fein), n4…n32 (gleiche Teile), beats (im Takt des Loops)
+function autoChop(tr, how) {
+  const src = tr.srcs[tr.src], buf = src && audioBuffers.get(src.buf); if (!buf) return 0;
+  const old = new Set(tr.chops.filter(c => c.buf === src.buf).map(c => c.id));
+  tr.chops = tr.chops.filter(c => !old.has(c.id)); tr.pads = tr.pads.map(p => old.has(p) ? null : p);
+  const dur = buf.duration, t0 = leadIn(buf);
+  let cuts;
+  if (how.startsWith('n')) { const n = +how.slice(1); cuts = Array.from({ length: n }, (_, i) => t0 + (dur - t0) * i / n); }
+  else if (how === 'beats' && src.bpm) { const b = 60 / src.bpm / 2; cuts = []; for (let x = 0; x < dur - .05 && cuts.length < 32; x += b) cuts.push(x); }
+  else if (how === 'one') cuts = [t0];
+  else cuts = onsets(buf, +how.slice(4) || 2);
+  const short = src.name.replace(/\s*\(.*\)$/, '').slice(0, 14);
+  const made = cuts.map((s, i) => newChop(tr, src.buf, s, i + 1 < cuts.length ? cuts[i + 1] : dur, { name: short + ' ' + (i + 1) }));
+  let k = 0;
+  for (let i = 0; i < 16 && k < made.length; i++) if (!tr.pads[i]) tr.pads[i] = made[k++].id;
+  smpUI.chop = made[0]?.id || null;
+  return made.length;
+}
+// Neue Audiodatei in einen Sampler laden (bei Bedarf neue Sampler-Spur)
+function addSamplerSource(buf, name, trackId, extra = {}) {
+  if (buf.duration > SMP_MAX) { const n = Math.floor(buf.sampleRate * SMP_MAX); buf = makeBuffer(buf.sampleRate, Array.from({ length: buf.numberOfChannels }, (_, i) => buf.getChannelData(i).slice(0, n))); toast('Die Datei ist länger als 5 Minuten und wurde gekürzt.'); }
+  pushUndo();
+  let tr = findTrack(trackId);
+  if (!tr || tr.type !== 'sampler') { tr = newTrack('sampler', { name: name.slice(0, 24) || 'Sampler' }); P.tracks.push(tr); applyMix(); }
+  tr.srcs.push({ buf: addBuffer(buf), name, ...extra }); tr.src = tr.srcs.length - 1;
+  const n = autoChop(tr, extra.bpm ? 'hits1' : 'hits2'); // fertige Loops gröber schneiden, damit die Hauptschläge auf den Pads landen
+  selTrack = tr.id; selRegion = null; edTab = 'smp'; libKey = '';
+  save(); render();
+  const onPads = tr.pads.filter(id => tr.chops.find(c => c.id === id)?.buf === tr.srcs[tr.src].buf).length;
+  toast(`„${name}“ in ${n} Chops geschnitten${onPads < n ? `, ${onPads} davon auf den Pads` : ''}. Tippe die Pads an oder nimm die Tasten 1–4, Q–R, A–F, ${padKey(0)}–V.`);
+  return tr;
+}
+async function loadSamplerFiles(files, trackId) {
+  ensureCtx();
+  for (const f of files) {
+    let buf;
+    try { buf = await ctx.decodeAudioData(await f.arrayBuffer()); }
+    catch (e) { toast(`„${f.name}“ ist keine lesbare Audiodatei.`); continue; }
+    trackId = addSamplerSource(buf, f.name.replace(/\.[^.]+$/, '').slice(0, 40), trackId).id;
+  }
+}
+// Mitgelieferte Loops zum Choppen (aus gemeinfreien VCSL-Aufnahmen gebaut, siehe scripts/fetch-vcsl.js)
+const LOOPS = [
+  { id: 'funk-break', name: 'Funk-Break', bpm: 96, cat: 'Drums' },
+  { id: 'boombap-break', name: 'Boom-Bap-Break', bpm: 88, cat: 'Drums' },
+  { id: 'shuffle-break', name: 'Shuffle-Break', bpm: 104, cat: 'Drums' },
+  { id: 'cajon-groove', name: 'Cajón-Groove', bpm: 92, cat: 'Percussion' },
+  { id: 'conga-groove', name: 'Conga & Bongos', bpm: 110, cat: 'Percussion' },
+  { id: 'soul-keys', name: 'Soul-Piano', bpm: 84, cat: 'Melodie' },
+  { id: 'vibes-phrase', name: 'Vibraphon-Phrase', bpm: 90, cat: 'Melodie' },
+  { id: 'kalimba-riff', name: 'Kalimba-Riff', bpm: 100, cat: 'Melodie' },
+  { id: 'marimba-line', name: 'Marimba-Linie', bpm: 96, cat: 'Melodie' },
+  { id: 'harp-arp', name: 'Harfen-Arpeggio', bpm: 80, cat: 'Melodie' },
+  { id: 'organ-stabs', name: 'Orgel-Akkorde', bpm: 90, cat: 'Melodie' },
+  { id: 'sax-licks', name: 'Saxophon-Licks', bpm: 92, cat: 'Melodie' }
+];
+async function loadLoop(id, trackId) {
+  const L = LOOPS.find(x => x.id === id); if (!L) return;
+  ensureCtx();
+  const key = 'loop-' + id;
+  try { if (!smpRaw[key]) await loadScript('samples/' + key + '.js'); }
+  catch (e) { toast(`Der Loop „${L.name}“ ließ sich nicht laden.`); return; }
+  const buf = await ctx.decodeAudioData(unb64(smpRaw[key]).buffer.slice(0));
+  addSamplerSource(buf, `${L.name} (${L.bpm} BPM)`, trackId, { bpm: L.bpm });
+}
+// Aus einer Audio-Region einen Sampler machen (der hörbare Ausschnitt wird übernommen)
+function regionToSampler(tr, r) {
+  const buf = audioBuffers.get(r.buf); if (!buf) return;
+  const sr = buf.sampleRate, s0 = Math.floor((r.offset || 0) * sr), n = Math.min(buf.length - s0, Math.floor(r.len * spb() * sr));
+  if (n < sr * .05) { toast('Die Region ist zu kurz.'); return; }
+  addSamplerSource(makeBuffer(sr, Array.from({ length: buf.numberOfChannels }, (_, i) => buf.getChannelData(i).slice(s0, s0 + n))), r.name.slice(0, 40), null);
+}
+// Spitzenwerte für schnelles Zeichnen langer Dateien (Maximum je 128 Samples)
+const peakCache = new WeakMap();
+function peaksOf(buf) {
+  let p = peakCache.get(buf); if (p) return p;
+  const B = 128, n = Math.ceil(buf.length / B); p = new Float32Array(n);
+  for (let c = 0; c < buf.numberOfChannels; c++) { const d = buf.getChannelData(c); for (let i = 0; i < n; i++) { let m = p[i]; for (let j = i * B, e = Math.min(d.length, j + B); j < e; j++) { const a = d[j] < 0 ? -d[j] : d[j]; if (a > m) m = a; } p[i] = m; } }
+  peakCache.set(buf, p); return p;
+}
+function drawPeaks(g, buf, t0, t1, x0, w, y0, h, color) {
+  const p = peaksOf(buf), d = buf.getChannelData(0), sr = buf.sampleRate, spp = (t1 - t0) * sr / w, mid = y0 + h / 2;
+  g.fillStyle = color;
+  for (let x = 0; x < w; x++) {
+    const a = (t0 * sr) + x * spp, b = a + Math.max(1, spp);
+    let m = 0;
+    if (spp > 256) { for (let i = Math.floor(a / 128), e = Math.min(p.length, Math.ceil(b / 128)); i < e; i++) if (p[i] > m) m = p[i]; }
+    else for (let i = Math.max(0, Math.floor(a)), e = Math.min(d.length, Math.ceil(b)); i < e; i++) { const v = Math.abs(d[i]); if (v > m) m = v; }
+    const y = Math.max(.5, Math.min(1, m) * h / 2 * .94);
+    g.fillRect(x0 + x, mid - y, 1, y * 2);
+  }
+}
+
+// Bedienoberfläche: Wellenform mit Chops, Chop-Liste, Einstellungen des Chops, 4×4 Pads
+let smpUI = { chop: null, tool: 'sel', views: {} }, smpView = null;
+function renderSampler(tr) {
+  normSampler(tr);
+  focusArea = 'smp';
+  // Pads brauchen etwas Höhe: kleinen Editor einmal vergrößern (wie beim Mixer)
+  if (editorEl.offsetHeight < 400 && !narrow() && window.innerHeight > 780) editorEl.style.setProperty('--edh', '420px');
+  let c = chopById(tr, smpUI.chop);
+  if (c && tr.srcs[tr.src]?.buf !== c.buf) { const i = tr.srcs.findIndex(x => x.buf === c.buf); if (i >= 0) tr.src = i; }
+  const src = tr.srcs[tr.src], buf = src && audioBuffers.get(src.buf);
+  if (c && c.buf !== src?.buf) c = null;
+  const srcSel = tr.srcs.length > 1 ? `<select id="smpSrc" title="Geladene Samples dieser Spur">${tr.srcs.map((x, i) => `<option value="${i}" ${i === tr.src ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>` : src ? `<span class="note">${esc(src.name)}${buf ? ' · ' + fmtSec(buf.duration) : ''}</span>` : '';
+  const tempo = src?.bpm && src.bpm !== P.bpm ? `<button class="sbtn" id="smpBpm" title="Projekttempo auf das Tempo des Loops stellen">Tempo ${src.bpm} BPM übernehmen</button>` : '';
+  eHead.innerHTML = `<span class="note" style="color:${tr.color};font-weight:600">${esc(tr.name)}</span>${srcSel}
+    <button class="sbtn" id="smpLoad" title="Audiodatei laden (oder einfach hierher ziehen)">Sample laden …</button>
+    ${src ? `<select id="smpAuto" title="Sample neu in Chops schneiden"><option value="">Auto-Chop …</option><option value="hits1">Nach Anschlägen (grob)</option><option value="hits2">Nach Anschlägen</option><option value="hits3">Nach Anschlägen (fein)</option>${src.bpm ? '<option value="beats">Im Takt (Achtel)</option>' : ''}<option value="n4">4 gleiche Teile</option><option value="n8">8 gleiche Teile</option><option value="n16">16 gleiche Teile</option><option value="n32">32 gleiche Teile</option><option value="one">Ganzes Sample als ein Chop</option></select>
+    ${toolButtons([['sel', 'Auswählen'], ['cut', 'Schere']], smpUI.tool)}
+    <span class="zoomctl"><button class="sbtn" data-sz="0.6" title="Herauszoomen (Strg + Mausrad)">−</button><button class="sbtn" data-sz="1.6" title="Hineinzoomen (Strg + Mausrad)">+</button></span>
+    <button class="sbtn" id="smpSpread" title="Chops in der Reihenfolge der Liste auf Pad 1 bis 16 legen">Auf Pads verteilen</button>
+    <button class="sbtn" id="smpSeq" title="Chops in der Reihenfolge der Liste hintereinander als Region an die Abspielposition legen">Als Region einfügen</button>${tempo}
+    <span class="note hint">Klick = Chop spielen · Ränder ziehen · leere Stelle ziehen = neuer Chop · Alt+Klick oder Schere = teilen</span>` : ''}`;
+  const pads = [12, 8, 4, 0].flatMap(r0 => [0, 1, 2, 3].map(i => r0 + i)).map(i => {
+    const pc = padChop(tr, i);
+    return `<button class="pad ${pc ? 'on' : ''} ${pc && pc === c ? 'sel' : ''}" data-pad="${i}" style="--cc:${pc?.color || '#888'}" title="Pad ${i + 1} (Taste ${padKey(i)})${pc ? ': ' + esc(pc.name) : ' – Chop hierher ziehen'}"><span class="pn">${i + 1}<span class="pk">${padKey(i)}</span></span><span class="pc">${pc ? esc(pc.name) : ''}</span></button>`;
+  }).join('');
+  const left = src ? `<div class="smp-wave tool-${smpUI.tool}" id="smpWave"><canvas id="smpcv"></canvas><div class="smp-head" id="smpHead"></div><div class="smp-tip" id="smpTip" hidden></div></div>
+      <div class="smp-over" id="smpOver" title="Ausschnitt verschieben"><canvas></canvas><div class="smp-win"></div></div>
+      <div class="smp-chops" id="smpChops"></div><div class="smp-ctl" id="smpCtl"></div>`
+    : `<div class="smp-empty"><b>Audiodatei hierher ziehen</b><span>Ein Song, ein Break, eine Stimme: Klangwerk schneidet sie in Chops und legt sie auf die Pads.</span>
+      <div class="row"><button class="sbtn" data-smp-load>Datei wählen …</button></div><span>oder einen mitgelieferten Loop nehmen:</span>
+      <div class="row">${LOOPS.map(L => `<button class="sbtn" data-loop="${L.id}">${esc(L.name)}</button>`).join('')}</div></div>`;
+  eBody.innerHTML = `<div class="smp"><div class="smp-l">${left}</div><div class="smp-r"><div class="pads" id="pads">${pads}</div>
+    <div class="pad-opts"><label title="Ein neuer Chop beendet den vorigen, wie bei der MPC"><input type="checkbox" id="smpMono" ${tr.mono !== false ? 'checked' : ''}> Chops schneiden sich ab</label>
+    <label title="Alle Pads spielen gleich laut, unabhängig vom Anschlag"><input type="checkbox" id="smpFull" ${tr.full !== false ? 'checked' : ''}> Volle Lautstärke</label></div></div></div>`;
+  const padsEl = $('#pads'), ps = clamp(Math.floor((eBody.clientHeight - 92) / 4) - 7, 44, 84);
+  padsEl.style.setProperty('--ps', ps + 'px');
+  const view = { tr, select: () => { }, del: () => { }, tick: () => { } };
+  smpView = view;
+  const audition = (ch, at) => { ensureCtx(); const v = chopVoice(tr, ch, chan(tr).input, ctx.currentTime, .9); if (v && tr.mono !== false) { liveMono.get(tr.id)?.cut(ctx.currentTime); liveMono.set(tr.id, v); } return v; };
+  const markPads = () => padsEl.querySelectorAll('.pad').forEach(el => { const pc = padChop(tr, +el.dataset.pad); el.classList.toggle('sel', !!pc && pc.id === smpUI.chop); });
+
+  // Pads: antippen spielt, auf ein anderes Pad ziehen tauscht, Rechtsklick leert
+  padsEl.onpointerdown = e => {
+    const el = e.target.closest('.pad'); if (!el || e.button > 0) return;
+    e.preventDefault(); focusArea = 'smp';
+    const i = +el.dataset.pad, pc = padChop(tr, i), r = el.getBoundingClientRect();
+    ensureCtx();
+    const vel = clamp(1 - (e.clientY - r.top) / r.height * .6, .4, 1);
+    const v = padPlay(tr, chan(tr).input, i, ctx.currentTime, vel, liveMono);
+    if (rec && rec.type === 'midi' && rec.track === tr.id && playing) recNoteStart('pad' + i, i, vel);
+    el.classList.add('down');
+    if (pc) { smpUI.chop = pc.id; view.select(pc, i); }
+    let over = null;
+    el.setPointerCapture(e.pointerId);
+    el.onpointermove = ev => {
+      const t = document.elementFromPoint(ev.clientX, ev.clientY)?.closest('.pad');
+      if (over && over !== t) over.classList.remove('drop');
+      over = t && t !== el && pc ? t : null; over?.classList.add('drop');
+    };
+    el.onpointerup = el.onpointercancel = () => {
+      el.onpointermove = el.onpointerup = el.onpointercancel = null; el.classList.remove('down');
+      v?.release(ctx.currentTime);
+      if (rec && rec.type === 'midi') endRecNote(rec, 'pad' + i);
+      if (over) { over.classList.remove('drop'); const j = +over.dataset.pad; pushUndo(); [tr.pads[i], tr.pads[j]] = [tr.pads[j], tr.pads[i]]; save(); renderEditor(); renderArrange(); }
+    };
+  };
+  padsEl.oncontextmenu = e => {
+    const el = e.target.closest('.pad'); e.preventDefault(); if (!el) return;
+    const i = +el.dataset.pad; if (!tr.pads[i]) return;
+    pushUndo(); tr.pads[i] = null; save(); renderEditor(); renderArrange(); toast(`Pad ${i + 1} geleert. Der Chop bleibt in der Liste.`);
+  };
+  $('#smpMono').onchange = e => { pushUndo(); tr.mono = e.target.checked; save(); };
+  $('#smpFull').onchange = e => { pushUndo(); tr.full = e.target.checked; save(); };
+  $('#smpLoad').onclick = () => { smpTarget2 = tr.id; $('#smpFileIn').click(); };
+  eBody.querySelector('[data-smp-load]')?.addEventListener('click', () => { smpTarget2 = tr.id; $('#smpFileIn').click(); });
+  eBody.querySelectorAll('[data-loop]').forEach(b => b.onclick = () => loadLoop(b.dataset.loop, tr.id));
+  if (!src) return;
+  if (!buf) { $('#smpWave').insertAdjacentHTML('beforeend', '<div class="smp-tip" style="left:10px">Audio wird geladen …</div>'); }
+  $('#smpSrc')?.addEventListener('change', e => { tr.src = +e.target.value; smpUI.chop = tr.chops.find(x => x.buf === tr.srcs[tr.src].buf)?.id || null; save(); renderEditor(); libKey = ''; renderLib(); });
+  $('#smpBpm')?.addEventListener('click', () => { setBpm(src.bpm); renderArrange(); renderEditor(); toast(`Tempo auf ${src.bpm} BPM gestellt.`); });
+  $('#smpAuto').onchange = e => {
+    const how = e.target.value; if (!how) return;
+    pushUndo(); const n = autoChop(tr, how); e.target.blur();
+    save(); renderEditor(); renderArrange(); toast(`${n} Chops geschnitten${how.startsWith('hits') ? ' (nach Anschlägen)' : ''}.`);
+  };
+  eHead.querySelector('.tools').onclick = e => { const b = e.target.closest('[data-tool]'); if (!b) return; smpUI.tool = b.dataset.tool; eHead.querySelectorAll('[data-tool]').forEach(x => x.classList.toggle('on', x === b)); $('#smpWave').className = 'smp-wave tool-' + smpUI.tool; };
+  $('#smpSpread').onclick = () => {
+    if (!tr.chops.length) return;
+    pushUndo(); tr.pads = Array.from({ length: 16 }, (_, i) => tr.chops[i]?.id || null); save(); renderEditor(); renderArrange();
+    toast(tr.chops.length > 16 ? `Die ersten 16 von ${tr.chops.length} Chops liegen jetzt auf den Pads.` : 'Chops liegen in der Reihenfolge der Liste auf den Pads.');
+  };
+  $('#smpSeq').onclick = () => chopsToRegion(tr);
+
+  // Ansicht (Zoom) pro Sample merken
+  const D = buf ? buf.duration : 1, vw = buf ? (smpUI.views[src.buf] ||= { v0: 0, v1: D }) : { v0: 0, v1: 1 };
+  vw.v1 = Math.min(D, vw.v1); vw.v0 = clamp(vw.v0, 0, vw.v1 - .01);
+  const wave = $('#smpWave'), cv = $('#smpcv'), tip = $('#smpTip'), head = $('#smpHead'), over = $('#smpOver');
+  const mine = () => tr.chops.filter(x => x.buf === src.buf);
+  const W = () => wave.clientWidth, X = t => (t - vw.v0) / (vw.v1 - vw.v0) * W(), T = x => clamp(vw.v0 + x / W() * (vw.v1 - vw.v0), 0, D);
+  const cur = () => chopById(tr, smpUI.chop);
+  function draw() {
+    if (!buf) return;
+    const w = W(), h = wave.clientHeight, dpr = devicePixelRatio || 1;
+    if (!w || !h) return;
+    cv.width = w * dpr; cv.height = h * dpr;
+    const g = cv.getContext('2d'); g.scale(dpr, dpr);
+    // Taktraster, wenn das Tempo des Loops bekannt ist
+    if (src.bpm) { const b = 60 / src.bpm; for (let t = 0, k = 0; t < vw.v1; t += b, k++) if (t >= vw.v0) { g.fillStyle = k % 4 ? '#ffffff0a' : '#ffffff1c'; g.fillRect(Math.round(X(t)), 0, 1, h); } }
+    drawPeaks(g, buf, vw.v0, vw.v1, 0, w, 16, h - 18, '#ffffff38');
+    const sel = cur();
+    for (const ch of [...mine().filter(x => x !== sel), ...(sel?.buf === src.buf ? [sel] : [])]) {
+      const x0 = X(ch.s), x1 = X(ch.e), on = ch === sel;
+      if (x1 < 0 || x0 > w) continue;
+      g.fillStyle = ch.color + (on ? '30' : '16'); g.fillRect(x0, 0, x1 - x0, h);
+      g.save(); g.beginPath(); g.rect(x0, 16, x1 - x0, h - 18); g.clip();
+      drawPeaks(g, buf, Math.max(vw.v0, ch.s), Math.min(vw.v1, ch.e), Math.max(0, x0), Math.max(1, Math.min(w, x1) - Math.max(0, x0)), 16, h - 18, ch.color + (on ? 'ff' : 'b0'));
+      // Ein- und Ausblenden als Linie (Zeiten gelten beim Abspielen, im Sample also mal Tonhöhenfaktor)
+      const rt = chopRate(ch), fi = Math.min(ch.fi || 0, chopDur(ch) / 2) * rt, fo = Math.min(ch.fo || 0, chopDur(ch) / 2) * rt;
+      const [fa, fb] = ch.rev ? [fo, fi] : [fi, fo];
+      if (fa > 0 || fb > 0) { g.strokeStyle = '#ffffffcc'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(x0, h - 2); g.lineTo(X(ch.s + fa), 17); g.lineTo(X(ch.e - fb), 17); g.lineTo(x1, h - 2); g.stroke(); }
+      g.restore();
+      g.fillStyle = ch.color; g.fillRect(x0, 0, Math.max(1, x1 - x0), 15);
+      g.fillStyle = on ? '#fff' : ch.color; g.fillRect(x0, 0, on ? 2 : 1, h); g.fillRect(x1 - (on ? 2 : 1), 0, on ? 2 : 1, h);
+      if (x1 - x0 > 24) {
+        const pad = tr.pads.indexOf(ch.id);
+        g.fillStyle = '#101114'; g.font = '600 10px ' + getComputedStyle(document.body).fontFamily;
+        g.save(); g.beginPath(); g.rect(x0, 0, x1 - x0, 15); g.clip();
+        g.fillText(`${pad >= 0 ? (pad + 1) + ' · ' : ''}${ch.name}${ch.rev ? ' ◀' : ''}${ch.pitch || ch.fine ? ' ' + (ch.pitch > 0 ? '+' : '') + (ch.pitch || 0) : ''}`, x0 + 4, 11);
+        g.restore();
+      }
+      if (on) { g.fillStyle = '#fff'; for (const xx of [x0, x1]) g.fillRect(xx - 3, h / 2 - 9, 6, 18); }
+    }
+    drawOver();
+  }
+  function drawOver() {
+    const w = over.clientWidth, h = over.clientHeight, oc = over.querySelector('canvas'), dpr = devicePixelRatio || 1;
+    if (!w) return;
+    if (oc.width !== w * dpr) { oc.width = w * dpr; oc.height = h * dpr; const g = oc.getContext('2d'); g.scale(dpr, dpr); drawPeaks(g, buf, 0, D, 0, w, 0, h, '#ffffff30'); for (const ch of mine()) { g.fillStyle = ch.color + '80'; g.fillRect(ch.s / D * w, h - 3, Math.max(1, (ch.e - ch.s) / D * w), 3); } }
+    const win = over.querySelector('.smp-win'); win.style.left = vw.v0 / D * 100 + '%'; win.style.width = Math.max(1, (vw.v1 - vw.v0) / D * 100) + '%';
+    over.style.display = vw.v1 - vw.v0 < D - 1e-3 ? '' : 'none';
+  }
+  const zoom = (f, cx) => {
+    if (!buf) return;
+    const span = clamp((vw.v1 - vw.v0) / f, Math.min(D, .05), D), r = wave.getBoundingClientRect(), ax = cx == null ? .5 : clamp((cx - r.left) / r.width, 0, 1);
+    const at = vw.v0 + (vw.v1 - vw.v0) * ax;
+    vw.v0 = clamp(at - span * ax, 0, D - span); vw.v1 = vw.v0 + span; over.querySelector('canvas').width = 0; draw();
+  };
+  const scroll = dt => { const span = vw.v1 - vw.v0; vw.v0 = clamp(vw.v0 + dt, 0, D - span); vw.v1 = vw.v0 + span; draw(); };
+  eHead.querySelectorAll('[data-sz]').forEach(b => b.onclick = () => zoom(+b.dataset.sz));
+  wave.addEventListener('wheel', e => {
+    if (e.ctrlKey || e.metaKey) { e.preventDefault(); zoom(Math.exp(-clamp(e.deltaY, -60, 60) * .01), e.clientX); }
+    else if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) { e.preventDefault(); scroll((e.deltaX || e.deltaY) / W() * (vw.v1 - vw.v0)); }
+  }, { passive: false });
+  over.onpointerdown = e => {
+    const r = over.getBoundingClientRect(), span = vw.v1 - vw.v0, go = ev => { vw.v0 = clamp((ev.clientX - r.left) / r.width * D - span / 2, 0, D - span); vw.v1 = vw.v0 + span; draw(); };
+    over.setPointerCapture(e.pointerId); go(e);
+    over.onpointermove = go; over.onpointerup = () => { over.onpointermove = over.onpointerup = null; };
+  };
+  const showTip = (x, txt) => { tip.hidden = false; tip.textContent = txt; tip.style.left = clamp(x + 8, 0, W() - 120) + 'px'; };
+  // Wellenform: Chops wählen und spielen, Ränder ziehen, neue Chops aufziehen, teilen
+  const splitAt = t => {
+    const ch = mine().find(x => t > x.s + .01 && t < x.e - .01);
+    pushUndo();
+    if (ch) { const n = { ...JSON.parse(JSON.stringify(ch)), id: uid(), s: t, name: ch.name + 'b' }; ch.e = t; ch.fo = 0; n.fi = 0; tr.chops.splice(tr.chops.indexOf(ch) + 1, 0, n); smpUI.chop = n.id; const k = tr.pads.indexOf(null); if (k >= 0) tr.pads[k] = n.id; }
+    else if (!mine().length) { const a = newChop(tr, src.buf, leadIn(buf), t), b = newChop(tr, src.buf, t, D); [a, b].forEach(x => { const k = tr.pads.indexOf(null); if (k >= 0) tr.pads[k] = x.id; }); smpUI.chop = b.id; }
+    else { const nx = mine().filter(x => x.s > t).sort((a, b) => a.s - b.s)[0], b = newChop(tr, src.buf, t, nx ? nx.s : D); const k = tr.pads.indexOf(null); if (k >= 0) tr.pads[k] = b.id; smpUI.chop = b.id; }
+    save(); renderEditor(); renderArrange();
+    audition(cur());
+  };
+  wave.onpointerdown = e => {
+    if (!buf || e.button > 0) return;
+    focusArea = 'smp';
+    const r = wave.getBoundingClientRect(), x = e.clientX - r.left, t = T(x), sel = cur();
+    if (smpUI.tool === 'cut' || e.altKey) { splitAt(t); return; }
+    let mode = null, ch = null;
+    if (sel?.buf === src.buf && Math.abs(x - X(sel.s)) < 8) { mode = 's'; ch = sel; }
+    else if (sel?.buf === src.buf && Math.abs(x - X(sel.e)) < 8) { mode = 'e'; ch = sel; }
+    else {
+      ch = (sel?.buf === src.buf && t >= sel.s && t < sel.e) ? sel : mine().filter(q => t >= q.s && t < q.e).sort((a, b) => (a.e - a.s) - (b.e - b.s))[0];
+      mode = ch ? 'move' : 'new';
+    }
+    if (ch && ch !== sel) { smpUI.chop = ch.id; view.select(ch); }
+    let v = null;
+    if (mode === 'move') v = audition(ch);
+    if (mode === 'new') { ensureCtx(); v = chopVoice(tr, { buf: src.buf, s: t, e: D, mode: 'gate' }, chan(tr).input, ctx.currentTime, .9); }
+    const s0 = ch?.s, e0 = ch?.e, x0 = e.clientX, touch = e.pointerType === 'touch';
+    let moved = false, ghost = null;
+    wave.setPointerCapture(e.pointerId);
+    wave.onpointermove = ev => {
+      const dx = ev.clientX - x0;
+      if (!moved && Math.abs(dx) < (touch ? 10 : 4)) return;
+      if (!moved) { moved = true; if (mode !== 'new') pushUndo(); v?.release(ctx.currentTime); v = null; }
+      const t2 = T(ev.clientX - r.left), dt = (ev.clientX - x0) / W() * (vw.v1 - vw.v0);
+      if (mode === 's') ch.s = clamp(t2, 0, ch.e - .01);
+      else if (mode === 'e') ch.e = clamp(t2, ch.s + .01, D);
+      else if (mode === 'move') { const len = e0 - s0; ch.s = clamp(s0 + dt, 0, D - len); ch.e = ch.s + len; }
+      else {
+        if (touch) return; // am Touchscreen wird nur getippt
+        ghost = { s: Math.min(t, t2), e: Math.max(t, t2) };
+        draw(); const g = cv.getContext('2d'); g.fillStyle = '#ffffff22'; g.fillRect(X(ghost.s), 0, X(ghost.e) - X(ghost.s), wave.clientHeight);
+        showTip(ev.clientX - r.left, fmtSec(ghost.e - ghost.s)); return;
+      }
+      draw(); showTip(ev.clientX - r.left, mode === 'move' ? `${f3(ch.s)} – ${f3(ch.e)} s` : `${mode === 's' ? 'Anfang' : 'Ende'} ${f3(mode === 's' ? ch.s : ch.e)} s · ${fmtSec(ch.e - ch.s)}`);
+    };
+    wave.onpointerup = wave.onpointercancel = () => {
+      wave.onpointermove = wave.onpointerup = wave.onpointercancel = null; tip.hidden = true;
+      v?.release(ctx.currentTime);
+      if (mode === 'new' && ghost && ghost.e - ghost.s > .02) {
+        pushUndo(); const n = newChop(tr, src.buf, ghost.s, ghost.e); const k = tr.pads.indexOf(null); if (k >= 0) tr.pads[k] = n.id;
+        smpUI.chop = n.id; save(); renderEditor(); renderArrange(); audition(n); return;
+      }
+      if (moved && ch) { save(); view.select(ch); renderArrange(); audition(ch); }
+      else if (mode === 'new') draw();
+    };
+  };
+  // Chop-Liste: antippen spielt, ziehen sortiert um oder legt den Chop auf ein Pad
+  const chipsEl = $('#smpChops');
+  function chips() {
+    chipsEl.innerHTML = tr.chops.length ? tr.chops.map(ch => { const p = tr.pads.indexOf(ch.id); return `<button class="chip ${ch.id === smpUI.chop ? 'sel' : ''}" data-chop="${ch.id}" style="--cc:${ch.color}" title="${esc(ch.name)}: antippen = spielen, ziehen = umsortieren oder auf ein Pad legen"><b class="${p < 0 ? 'nopad' : ''}">${p < 0 ? '–' : p + 1}</b>${esc(ch.name)}${ch.rev ? ' ◀' : ''}</button>`; }).join('')
+      : '<span class="note">Noch keine Chops. Ziehe in der Wellenform einen Bereich auf oder nimm „Auto-Chop“.</span>';
+  }
+  chipsEl.onpointerdown = e => {
+    const el = e.target.closest('.chip'); if (!el || e.button > 0) return;
+    e.preventDefault(); focusArea = 'smp';
+    const ch = chopById(tr, el.dataset.chop), x0 = e.clientX, y0 = e.clientY;
+    smpUI.chop = ch.id; view.select(ch);
+    const v = audition(ch);
+    let gh = null, tgt = null;
+    el.setPointerCapture(e.pointerId);
+    const clear = () => { eBody.querySelectorAll('.drop, .before, .after').forEach(x => x.classList.remove('drop', 'before', 'after')); };
+    el.onpointermove = ev => {
+      if (!gh && Math.hypot(ev.clientX - x0, ev.clientY - y0) < 6) return;
+      if (!gh) { gh = el.cloneNode(true); gh.classList.add('chip-ghost'); document.body.appendChild(gh); v?.release(ctx.currentTime); }
+      gh.style.left = ev.clientX + 'px'; gh.style.top = ev.clientY + 'px';
+      const at = document.elementFromPoint(ev.clientX, ev.clientY);
+      clear(); tgt = null;
+      const pad = at?.closest('.pad'), chip = at?.closest('.chip:not(.chip-ghost)');
+      if (pad) { pad.classList.add('drop'); tgt = { pad: +pad.dataset.pad }; }
+      else if (chip && chip !== el) { const rr = chip.getBoundingClientRect(), after = ev.clientX > rr.left + rr.width / 2; chip.classList.add(after ? 'after' : 'before'); tgt = { chip: chip.dataset.chop, after }; }
+    };
+    el.onpointerup = el.onpointercancel = () => {
+      el.onpointermove = el.onpointerup = el.onpointercancel = null; gh?.remove(); clear();
+      if (!gh) { v?.release(ctx.currentTime); return; }
+      if (!tgt) return;
+      pushUndo();
+      if (tgt.pad != null) { tr.pads[tgt.pad] = ch.id; toast(`„${ch.name}“ liegt jetzt auf Pad ${tgt.pad + 1}.`); }
+      else { tr.chops.splice(tr.chops.indexOf(ch), 1); const j = tr.chops.findIndex(x => x.id === tgt.chip); tr.chops.splice(j + (tgt.after ? 1 : 0), 0, ch); }
+      save(); renderEditor(); renderArrange();
+    };
+  };
+  // Einstellungen des ausgewählten Chops
+  const ctl = $('#smpCtl');
+  const SL = { pitch: [-24, 24, 1, v => (v > 0 ? '+' : '') + v + ' HT'], fine: [-50, 50, 1, v => (v > 0 ? '+' : '') + v + ' ct'], gain: [-24, 12, .5, fmtG], fi: [0, 2, .005, fmtSec], fo: [0, 2, .005, fmtSec], cut: [0, 1, .01, v => v >= .995 ? 'offen' : fmtF(cutHz(v))] };
+  const LBL = { pitch: 'Tonhöhe', fine: 'Fein', gain: 'Pegel', fi: 'Einblenden', fo: 'Ausblenden', cut: 'Filter' };
+  function controls() {
+    const ch = cur();
+    if (!ch) { ctl.innerHTML = '<span>Wähle einen Chop in der Wellenform, in der Liste oder auf einem Pad.</span>'; return; }
+    const pad = tr.pads.indexOf(ch.id), mx = Math.max(.01, Math.min(2, chopDur(ch) / 2));
+    ctl.style.setProperty('--cc', ch.color);
+    ctl.innerHTML = `<span class="cdot"></span><input class="rn" id="cName" value="${esc(ch.name)}" aria-label="Name des Chops">
+      ${Object.entries(SL).map(([k, [a, b, st, f]]) => `<label title="${LBL[k]}">${LBL[k]} <input type="range" data-ck="${k}" min="${a}" max="${k === 'fi' || k === 'fo' ? mx : b}" step="${st}" value="${ch[k] ?? (k === 'cut' ? 1 : 0)}"><output>${f(ch[k] ?? (k === 'cut' ? 1 : 0))}</output></label>`).join('')}
+      <label><input type="checkbox" id="cRev" ${ch.rev ? 'checked' : ''}> Rückwärts</label>
+      <label>Spielen <select id="cMode">${CHOP_MODES.map(([k, n]) => `<option value="${k}" ${k === (ch.mode || 'one') ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+      <span class="info" id="cInfo">${f3(ch.s)} – ${f3(ch.e)} s · ${fmtSec(chopDur(ch))}${pad >= 0 ? ' · Pad ' + (pad + 1) : ''}</span>
+      <button class="sbtn" id="cPlay" title="Chop anhören">▶</button><button class="sbtn" id="cDup" title="Kopie zum getrennten Bearbeiten, z. B. tiefer gestimmt">Duplizieren</button>
+      ${pad >= 0 ? '<button class="sbtn" id="cUnpad" title="Chop vom Pad nehmen">Vom Pad nehmen</button>' : ''}<button class="sbtn" id="cDel" title="Chop löschen (Entf)">Löschen</button>`;
+    let undone = false;
+    ctl.oninput = e => {
+      const k = e.target.dataset.ck; if (!k) return;
+      if (!undone) { pushUndo(); undone = true; }
+      ch[k] = +e.target.value; e.target.nextElementSibling.textContent = SL[k][3](ch[k]);
+      $('#cInfo').textContent = `${f3(ch.s)} – ${f3(ch.e)} s · ${fmtSec(chopDur(ch))}${pad >= 0 ? ' · Pad ' + (pad + 1) : ''}`;
+      draw();
+    };
+    ctl.onchange = e => {
+      const k = e.target.dataset.ck;
+      if (k) { undone = false; save(); if (k !== 'fi' && k !== 'fo') controls(); audition(ch); return; }
+      if (e.target.id === 'cName') { pushUndo(); ch.name = e.target.value.trim().slice(0, 24) || ch.name; save(); chips(); draw(); renderArrange(); markPadNames(); }
+      if (e.target.id === 'cRev') { pushUndo(); ch.rev = e.target.checked; save(); draw(); chips(); audition(ch); }
+      if (e.target.id === 'cMode') { pushUndo(); ch.mode = e.target.value; save(); }
+    };
+    $('#cName').onkeydown = e => { e.stopPropagation(); if (e.key === 'Enter') e.target.blur(); };
+    $('#cPlay').onclick = () => audition(ch)?.release(ctx.currentTime + chopDur(ch));
+    $('#cDup').onclick = () => {
+      pushUndo(); const n = { ...JSON.parse(JSON.stringify(ch)), id: uid(), name: (ch.name + ' Kopie').slice(0, 24) };
+      tr.chops.splice(tr.chops.indexOf(ch) + 1, 0, n); const k = tr.pads.indexOf(null); if (k >= 0) tr.pads[k] = n.id;
+      smpUI.chop = n.id; save(); renderEditor(); toast(k >= 0 ? `Kopie liegt auf Pad ${k + 1}.` : 'Kopie erstellt. Zieh sie auf ein Pad.');
+    };
+    $('#cUnpad')?.addEventListener('click', () => { pushUndo(); tr.pads[pad] = null; save(); renderEditor(); renderArrange(); });
+    $('#cDel').onclick = () => view.del();
+  }
+  const markPadNames = () => padsEl.querySelectorAll('.pad').forEach(el => { const pc = padChop(tr, +el.dataset.pad); el.querySelector('.pc').textContent = pc ? pc.name : ''; });
+  view.select = (ch) => {
+    if (!ch) return;
+    smpUI.chop = ch.id;
+    if (ch.buf !== src.buf) { renderEditor(); return; }
+    // Chop außerhalb der Ansicht: dorthin scrollen
+    if (ch.e < vw.v0 || ch.s > vw.v1) { const span = vw.v1 - vw.v0; vw.v0 = clamp(ch.s - span * .1, 0, D - span); vw.v1 = vw.v0 + span; }
+    draw(); controls(); markPads();
+    chipsEl.querySelectorAll('.chip').forEach(el => el.classList.toggle('sel', el.dataset.chop === ch.id));
+    chipsEl.querySelector('.chip.sel')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  };
+  view.del = () => {
+    const ch = cur(); if (!ch) return;
+    pushUndo();
+    const i = tr.chops.indexOf(ch); tr.chops.splice(i, 1); tr.pads = tr.pads.map(p => p === ch.id ? null : p);
+    smpUI.chop = (tr.chops[i] || tr.chops[i - 1])?.id || null; save(); renderEditor(); renderArrange();
+    toast(`„${ch.name}“ gelöscht. Strg+Z holt ihn zurück.`);
+  };
+  view.tick = () => {
+    const L = smpLast;
+    if (!L || L.tr !== tr.id || L.c.buf !== src.buf || !ctx) { head.style.display = 'none'; return; }
+    const el = ctx.currentTime - L.time, len = L.c.e - L.c.s;
+    if (el < 0 || el > Math.min(L.v.end, L.time + 600) - L.time) { head.style.display = 'none'; return; }
+    let p = el * L.rate; if (L.loop) p %= len; p = Math.min(p, len);
+    const t = L.c.rev ? L.c.e - p : L.c.s + p;
+    head.style.display = ''; head.style.left = X(t) + 'px';
+  };
+  chips(); controls(); requestAnimationFrame(draw);
+}
+// Chops in der Reihenfolge der Liste hintereinander als Region einfügen (jeder Chop so lang, wie er klingt, auf 1/16 gerundet)
+function chopsToRegion(tr) {
+  const notes = []; let pos = 0, skipped = 0;
+  for (const c of tr.chops) {
+    let pad = tr.pads.indexOf(c.id);
+    if (pad < 0) { pad = tr.pads.indexOf(null); if (pad < 0) { skipped++; continue; } tr.pads[pad] = c.id; }
+    const l = Math.max(.25, Math.round(chopDur(c) / spb() * 4) / 4);
+    notes.push({ p: pad, s: pos, l, v: .9 }); pos += l;
+  }
+  if (!notes.length) { toast('Keine Chops zum Einfügen.'); return; }
+  pushUndo();
+  const start = Math.max(0, Math.floor(currentBeat() / 4) * 4), r = { id: uid(), name: 'Chops', start, len: Math.max(4, Math.ceil(pos / 4) * 4), notes };
+  tr.regions.push(r); selTrack = tr.id; selRegion = r.id; edTab = 'region'; save(); render();
+  toast(`${notes.length} Chops als Region eingefügt${skipped ? ` (${skipped} ohne freies Pad ausgelassen)` : ''}. Im Editor kannst du sie verschieben.`);
 }
 
 // ================= Schneiden, Kopieren, Einfügen =================
@@ -2087,7 +2729,7 @@ function splitRegion(tr, r, b) {
   const right = JSON.parse(JSON.stringify(r));
   right.id = uid(); right.start = b; right.len = r.len - d; r.len = d;
   if (tr.type === 'audio') { right.offset = (r.offset || 0) + d * spb(); right.fi = 0; r.fo = 0; }
-  else if (tr.type === 'synth') { right.notes = r.notes.filter(n => n.s >= d).map(n => ({ ...n, s: n.s - d })); r.notes = r.notes.filter(n => n.s < d); for (const x of [r, right]) { delete x.takes; delete x.take; } }
+  else if (r.notes) { right.notes = r.notes.filter(n => n.s >= d).map(n => ({ ...n, s: n.s - d })); r.notes = r.notes.filter(n => n.s < d); for (const x of [r, right]) { delete x.takes; delete x.take; } }
   else right.phase = (r.phase || 0) + d;
   tr.regions.push(right);
   return right;
@@ -2382,6 +3024,8 @@ function renderFx(tr) {
 
 // ================= Piano Roll =================
 const PR = { lo: 24, hi: 108, rh: 14, bw: 88 };
+const PADROLL = { lo: 0, hi: 15, rh: 24, get bw() { return PR.bw; } };
+let PRZ = PR; // Raster des gerade offenen Piano Rolls
 const SNAPS = [[1, '1/4'], [.5, '1/8'], [.25, '1/16'], [.125, '1/32'], [2 / 3, '1/4 Triole'], [1 / 3, '1/8 Triole'], [1 / 6, '1/16 Triole']];
 const LENS = [[.125, '1/32'], [.25, '1/16'], [.5, '1/8'], [.75, '1/8 punktiert'], [1, '1/4'], [1.5, '1/4 punktiert'], [2, '1/2'], [4, '1 Takt'], [1 / 6, '1/16 Triole'], [1 / 3, '1/8 Triole'], [2 / 3, '1/4 Triole']];
 const TOOLS = [['draw', 'Zeichnen'], ['select', 'Auswählen'], ['erase', 'Löschen']];
@@ -2418,39 +3062,43 @@ function velLane(host, width, getItems, setV, done) {
 
 function renderPianoRoll(tr, r, bars) {
   selNotes = new Set([...selNotes].filter(n => r.notes.includes(n)));
-  eHead.innerHTML = `<input class="rn" id="rname" value="${esc(r.name)}" aria-label="Regionsname"><span class="note">${esc(tr.name)} · ${esc(presetName(tr))} · ${bars} Takte</span>
+  // Auf einer Sampler-Spur ist jede Zeile ein Pad (1–16) statt einer Taste
+  const pads = tr.type === 'sampler', Z = PRZ = pads ? PADROLL : PR;
+  eHead.innerHTML = `<input class="rn" id="rname" value="${esc(r.name)}" aria-label="Regionsname"><span class="note">${esc(tr.name)} · ${esc(pads ? 'Pads' : presetName(tr))} · ${bars} Takte</span>${pads ? '<button class="sbtn" data-tab="smp" title="Chops schneiden und Pads belegen">Pads & Chops</button>' : ''}
     ${toolButtons(TOOLS, prTool)}
     <label class="note">Raster <select id="prSnap">${SNAPS.map(([v, n]) => `<option value="${v}" ${near(v, prSnap) ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
     <label class="note">Länge <select id="prLen"><option value="">–</option>${LENS.map(([v, n]) => `<option value="${v}">${n}</option>`).join('')}</select></label>
     <label class="note velctl">Anschlag <input type="range" id="prVel" min="1" max="127"><output id="prVelOut">–</output></label>
     <button class="sbtn" id="prTrip" title="Ausgewählte Noten in drei gleich lange Triolen-Noten teilen">In Triole teilen</button>
     <button class="sbtn" id="quant" title="Ausgewählte (oder alle) Noten aufs Raster ziehen">Quantisieren</button>
-    <button class="sbtn" id="trDown">−12</button><button class="sbtn" id="trUp">+12</button>
+    ${pads ? '' : '<button class="sbtn" id="trDown">−12</button><button class="sbtn" id="trUp">+12</button>'}
     <button class="sbtn" id="prDel" title="Ausgewählte Noten löschen (Entf)">Löschen</button>${zoomCtl}`;
-  const rows = PR.hi - PR.lo + 1, W = Math.ceil(r.len * PR.bw), H = rows * PR.rh;
+  const rows = Z.hi - Z.lo + 1, W = Math.ceil(r.len * Z.bw), H = rows * Z.rh;
   let keys = '';
-  for (let m = PR.hi; m >= PR.lo; m--) { const bl = [1, 3, 6, 8, 10].includes(m % 12); keys += `<div class="key ${bl ? 'black' : ''}" data-p="${m}">${m % 12 === 0 ? noteName(m) : ''}</div>`; }
-  eBody.innerHTML = `<div class="prw"><div class="pr" id="pr"><div class="pr-keys" style="height:${H}px">${keys}</div>
+  if (pads) for (let m = Z.hi; m >= Z.lo; m--) { const c = padChop(tr, m); keys += `<div class="key pkey ${c ? '' : 'empty'}" data-p="${m}" style="height:${Z.rh}px;line-height:${Z.rh - 1}px;--cc:${c?.color || '#ffffff20'}" title="Pad ${m + 1}${c ? ': ' + esc(c.name) : ' (leer)'}">${m + 1} ${c ? esc(c.name) : '·'}</div>`; }
+  else for (let m = Z.hi; m >= Z.lo; m--) { const bl = [1, 3, 6, 8, 10].includes(m % 12); keys += `<div class="key ${bl ? 'black' : ''}" data-p="${m}">${m % 12 === 0 ? noteName(m) : ''}</div>`; }
+  eBody.innerHTML = `<div class="prw"><div class="pr" id="pr"><div class="pr-keys ${pads ? 'pads' : ''}" style="height:${H}px">${keys}</div>
     <div class="pr-grid tool-${prTool}" id="prgrid" style="width:${W}px;height:${H}px"><canvas id="prbg"></canvas><div id="prnotes"></div><div class="ed-play" id="edplay"></div></div></div><div class="vl" id="vl"></div></div>`;
-  edState.pxb = PR.bw; edState.bar1 = false;
+  edState.pxb = Z.bw; edState.bar1 = false;
   const pr = $('#pr'), grid = $('#prgrid');
   const drawGrid = () => {
     const cv = $('#prbg'), dpr = devicePixelRatio || 1;
     cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px';
     const g = cv.getContext('2d'); g.scale(dpr, dpr);
-    for (let m = PR.hi; m >= PR.lo; m--) {
-      const y = (PR.hi - m) * PR.rh;
-      g.fillStyle = [1, 3, 6, 8, 10].includes(m % 12) ? '#15171b' : '#1c1e24'; g.fillRect(0, y, W, PR.rh);
-      g.fillStyle = m % 12 === 0 ? '#353945' : '#121317'; g.fillRect(0, y + PR.rh - 1, W, 1);
+    for (let m = Z.hi; m >= Z.lo; m--) {
+      const y = (Z.hi - m) * Z.rh;
+      g.fillStyle = pads ? (m % 2 ? '#1a1c21' : '#1e2026') : [1, 3, 6, 8, 10].includes(m % 12) ? '#15171b' : '#1c1e24'; g.fillRect(0, y, W, Z.rh);
+      g.fillStyle = pads ? (m % 4 === 0 ? '#353945' : '#121317') : m % 12 === 0 ? '#353945' : '#121317'; g.fillRect(0, y + Z.rh - 1, W, 1);
     }
     const tripl = !near(prSnap * 4 % 1, 0) && !near(prSnap * 4 % 1, 1);
-    for (let t = 0; t <= r.len + 1e-6; t += prSnap) { g.fillStyle = tripl ? '#283040' : '#24272f'; g.fillRect(Math.round(t * PR.bw), 0, 1, H); }
-    for (let b = 0; b <= r.len; b++) { g.fillStyle = b % 4 === 0 ? '#555b69' : '#343844'; g.fillRect(b * PR.bw, 0, 1, H); }
+    for (let t = 0; t <= r.len + 1e-6; t += prSnap) { g.fillStyle = tripl ? '#283040' : '#24272f'; g.fillRect(Math.round(t * Z.bw), 0, 1, H); }
+    for (let b = 0; b <= r.len; b++) { g.fillStyle = b % 4 === 0 ? '#555b69' : '#343844'; g.fillRect(b * Z.bw, 0, 1, H); }
   };
   drawGrid();
-  const items = () => r.notes.map(n => ({ x: n.s * PR.bw, v: n.v, sel: selNotes.has(n) }));
+  const items = () => r.notes.map(n => ({ x: n.s * Z.bw, v: n.v, sel: selNotes.has(n) }));
   const vel = velLane($('#vl'), W + 60, items, (i, v) => { r.notes[i].v = v; drawNotes(r); updateInspector(); }, () => { save(); renderArrange(); });
   pr.onscroll = () => vel.sync(pr.scrollLeft);
+  if (pads) $('#vl .vl-label').style.width = '104px';
   const refresh = () => { drawNotes(r); vel.draw(); updateInspector(); };
   const commit = () => { save(); renderArrange(); };
   function updateInspector() {
@@ -2463,7 +3111,7 @@ function renderPianoRoll(tr, r, bars) {
     $('#prDel').disabled = $('#prTrip').disabled = !sel.length;
   }
   drawNotes(r); updateInspector();
-  if (!edState.scrolled) { const ps = r.notes.length ? r.notes.reduce((a, n) => a + n.p, 0) / r.notes.length : 62; pr.scrollTop = (PR.hi - ps) * PR.rh - pr.clientHeight / 2; edState.scrolled = true; }
+  if (!edState.scrolled) { const ps = r.notes.length ? r.notes.reduce((a, n) => a + n.p, 0) / r.notes.length : pads ? 8 : 62; pr.scrollTop = (Z.hi - ps) * Z.rh - pr.clientHeight / 2; edState.scrolled = true; }
 
   pr.querySelector('.pr-keys').onpointerdown = e => { const k = e.target.closest('.key'); if (k) previewNote(tr, +k.dataset.p); };
   grid.oncontextmenu = e => {
@@ -2471,8 +3119,8 @@ function renderPianoRoll(tr, r, bars) {
     const el = e.target.closest('.nt'); if (!el) return;
     pushUndo(); const n = r.notes[+el.dataset.i]; r.notes.splice(+el.dataset.i, 1); selNotes.delete(n); refresh(); commit();
   };
-  const pAt = y => clamp(PR.hi - Math.floor(y / PR.rh), PR.lo, PR.hi);
-  const sAt = x => Math.floor(x / PR.bw / prSnap + 1e-6) * prSnap;
+  const pAt = y => clamp(Z.hi - Math.floor(y / Z.rh), Z.lo, Z.hi);
+  const sAt = x => Math.floor(x / Z.bw / prSnap + 1e-6) * prSnap;
   function createAt(x, y, e) {
     const s = sAt(x); if (s >= r.len - 1e-6) return;
     pushUndo();
@@ -2490,12 +3138,12 @@ function renderPianoRoll(tr, r, bars) {
       if (!moved && Math.hypot(dx, dy) < 4) return;
       if (!pushed) { pushUndo(); pushed = true; }
       moved = true;
-      const ds = Math.round(dx / PR.bw / prSnap) * prSnap;
-      if (mode === 'draw') n.l = clamp(Math.ceil(((ev.clientX - rect.left) / PR.bw - n.s) / prSnap - 1e-6) * prSnap, prSnap, r.len - n.s);
+      const ds = Math.round(dx / Z.bw / prSnap) * prSnap;
+      if (mode === 'draw') n.l = clamp(Math.ceil(((ev.clientX - rect.left) / Z.bw - n.s) / prSnap - 1e-6) * prSnap, prSnap, r.len - n.s);
       else if (mode === 'resize') group.forEach(g => { g.m.l = clamp(g.l + ds, Math.min(prSnap, g.l), r.len - g.m.s); });
       else {
-        const dp = -Math.round(dy / PR.rh);
-        group.forEach(g => { g.m.s = clamp(g.s + ds, 0, r.len - .01); g.m.p = clamp(g.p + dp, PR.lo, PR.hi); });
+        const dp = -Math.round(dy / Z.rh);
+        group.forEach(g => { g.m.s = clamp(g.s + ds, 0, r.len - .01); g.m.p = clamp(g.p + dp, Z.lo, Z.hi); });
         if (n.p !== lastP) { lastP = n.p; previewNote(tr, n.p); }
       }
       drawNotes(r); vel.draw();
@@ -2528,7 +3176,7 @@ function renderPianoRoll(tr, r, bars) {
       if (e.shiftKey || e.ctrlKey || e.metaKey) { selNotes.has(n) ? selNotes.delete(n) : selNotes.add(n); refresh(); return; }
       if (!selNotes.has(n)) selNotes = new Set([n]);
       previewNote(tr, n.p); refresh();
-      startDrag(e, n, x > (n.s + n.l) * PR.bw - (touch ? 16 : 7) ? 'resize' : 'move');
+      startDrag(e, n, x > (n.s + n.l) * Z.bw - (touch ? 16 : 7) ? 'resize' : 'move');
       return;
     }
     if (touch) {
@@ -2548,7 +3196,7 @@ function renderPianoRoll(tr, r, bars) {
       const x2 = ev.clientX - rect.left, y2 = ev.clientY - rect.top, l = Math.min(x, x2), t = Math.min(y, y2), w = Math.abs(x2 - x), h = Math.abs(y2 - y);
       Object.assign(band.style, { left: l + 'px', top: t + 'px', width: w + 'px', height: h + 'px' });
       selNotes = new Set(base);
-      for (const n of r.notes) { const nx = n.s * PR.bw, ny = (PR.hi - n.p) * PR.rh; if (nx + n.l * PR.bw > l && nx < l + w && ny + PR.rh > t && ny < t + h) selNotes.add(n); }
+      for (const n of r.notes) { const nx = n.s * Z.bw, ny = (Z.hi - n.p) * Z.rh; if (nx + n.l * Z.bw > l && nx < l + w && ny + Z.rh > t && ny < t + h) selNotes.add(n); }
       drawNotes(r); vel.draw();
     };
     grid.onpointerup = () => { grid.onpointermove = grid.onpointerup = null; band.remove(); refresh(); };
@@ -2586,17 +3234,21 @@ function renderPianoRoll(tr, r, bars) {
   $('#prDel').onclick = () => { if (!selNotes.size) return; pushUndo(); r.notes = r.notes.filter(n => !selNotes.has(n)); selNotes.clear(); renderEditor(); commit(); };
   const target = () => selNotes.size ? [...selNotes] : r.notes;
   $('#quant').onclick = () => { pushUndo(); target().forEach(n => { n.s = Math.round(n.s / prSnap) * prSnap; n.l = Math.max(prSnap, Math.round(n.l / prSnap) * prSnap); }); refresh(); commit(); };
+  if (pads) return;
   $('#trUp').onclick = () => { pushUndo(); target().forEach(n => n.p = clamp(n.p + 12, 0, 127)); refresh(); commit(); };
   $('#trDown').onclick = () => { pushUndo(); target().forEach(n => n.p = clamp(n.p - 12, 0, 127)); refresh(); commit(); };
 }
 function drawNotes(r) {
   const box = $('#prnotes'); if (!box) return;
-  box.innerHTML = r.notes.map((n, i) => n.p < PR.lo || n.p > PR.hi ? '' :
-    `<div class="nt ${selNotes.has(n) ? 'sel' : ''}" data-i="${i}" title="${noteName(n.p)} · Anschlag ${Math.round(n.v * 127)}" style="left:${n.s * PR.bw}px;top:${(PR.hi - n.p) * PR.rh}px;width:${Math.max(6, n.l * PR.bw)}px;opacity:${.45 + n.v * .55}"></div>`).join('');
+  const Z = PRZ, tr = Z !== PR && findRegion(r.id)[0], tall = Z !== PR ? `height:${Z.rh - 1}px;` : '';
+  const bg = n => tr ? `background:${padChop(tr, n.p)?.color || '#777'};` : '';
+  box.innerHTML = r.notes.map((n, i) => n.p < Z.lo || n.p > Z.hi ? '' :
+    `<div class="nt ${selNotes.has(n) ? 'sel' : ''}" data-i="${i}" title="${Z === PR ? noteName(n.p) : 'Pad ' + (n.p + 1)} · Anschlag ${Math.round(n.v * 127)}" style="left:${n.s * Z.bw}px;top:${(Z.hi - n.p) * Z.rh}px;width:${Math.max(6, n.l * Z.bw)}px;${tall}${bg(n)}opacity:${.45 + n.v * .55}"></div>`).join('');
 }
-const prevPitch = tr => tr.preset === 'user' ? tr.usmp.root : PRESETS[tr.preset].prev || (PRESETS[tr.preset].cat === 'Bass' ? 40 : 60);
+const prevPitch = tr => tr.type === 'sampler' ? 0 : tr.preset === 'user' ? tr.usmp.root : PRESETS[tr.preset].prev || (PRESETS[tr.preset].cat === 'Bass' ? 40 : 60);
 function previewNote(tr, p) {
   ensureCtx();
+  if (tr.type === 'sampler') { padPlay(tr, chan(tr).input, p, ctx.currentTime, .9, liveMono)?.release(ctx.currentTime + .3); return; }
   const id = PRESETS[tr.preset]?.smp;
   if (id && id !== 'user' && !smpSets.get(id)?.zones) { loadSamples(id).then(() => previewNote(tr, p), () => { }); return; }
   const v = noteOn(tr, chan(tr).input, p, ctx.currentTime, .8);
@@ -2616,7 +3268,7 @@ function renderSteps(tr, r, bars) {
     <label class="note">Pattern <select id="patsel"><option value="">Wählen …</option>${Object.keys(PATTERNS).map(k => `<option>${k}</option>`).join('')}</select></label>
     <span class="note hint">Klick = Schlag, Shift+Klick = Akzent</span>`;
   const head = [0, 1, 2, 3].map(b => `<button class="beat-h ${r.trip[b] ? 'on' : ''}" data-trip="${b}" title="Schlag ${b + 1}: zwischen 16teln und Triolen umschalten">${b + 1}${r.trip[b] ? ' · Triole' : ''}</button>`).join('');
-  const rows = DRUMS.map(d => `<div class="seq-row"><button class="seq-name" data-piece="${d.id}" title="${d.name}${tr.pieces?.[d.id] ? ' aus Kit ' + KITS[tr.pieces[d.id]]?.name : ''}: Tonhöhe, Anschlag und Klang pro Schlag bearbeiten">${d.name}${tr.pieces?.[d.id] ? `<small>${esc(KITS[tr.pieces[d.id]]?.name || '')}</small>` : ''}<span>›</span></button><div class="beats">${[0, 1, 2, 3].map(b => {
+  const rows = DRUMS.map(d => `<div class="seq-row"><button class="seq-name" data-piece="${d.id}" title="${d.name}${tr.pieces?.[d.id] ? ' aus Kit ' + KITS[tr.pieces[d.id]]?.name : ''}: Tonhöhe, Anschlag und Klang pro Schlag bearbeiten">${d.name}${tr.pieces?.[d.id] || pieceLbl(tr, d.id) ? `<small>${esc(pieceLbl(tr, d.id) || KITS[tr.pieces[d.id]]?.name || '')}</small>` : ''}<span>›</span></button><div class="beats">${[0, 1, 2, 3].map(b => {
     const n = r.trip[b] ? 3 : 4;
     return `<div class="beat ${b % 2 ? 'q' : ''} ${n === 3 ? 't' : ''}">${Array.from({ length: n }, (_, i) => {
       const k = b * 4 + i, v = r.steps[d.id][k], p = r.pitch[d.id][k];
@@ -2744,7 +3396,7 @@ rowsEl.addEventListener('pointerdown', e => {
     if (selTrack !== row.dataset.track || (!ctl && e.target.closest('.lane'))) {
       selTrack = row.dataset.track;
       if (e.target.closest('.lane')) selRegion = null;
-      if (e.target.closest('.lane') || edTab === 'eq' || edTab === 'fx') renderEditor();
+      if (e.target.closest('.lane') || edTab === 'eq' || edTab === 'fx' || edTab === 'smp') renderEditor();
       markSelection();
     }
   }
@@ -2804,6 +3456,7 @@ rowsEl.addEventListener('click', e => {
     applyMix(); save(); render(); toast(`Spur „${tr.name}“ gelöscht. Strg+Z holt sie zurück.`);
   }
   if (act === 'import') { importTarget = tr.id; $('#fileIn').click(); }
+  if (act === 'smp') { selTrack = tr.id; edTab = 'smp'; markSelection(); renderEditor(); }
   if (act === 'lib') { selTrack = tr.id; markSelection(); setLib(true); $('#lib .lib-item.on')?.scrollIntoView({ block: 'center' }); }
   if (act === 'eq' || act === 'fx') { selTrack = tr.id; edTab = act; markSelection(); renderEditor(); }
   if (act === 'auto') { tr.showAuto = !tr.showAuto; save(); renderArrange(); }
@@ -2860,7 +3513,7 @@ function regionDrag(e, el) {
       const d = ns - s0;
       r.start = ns; r.len = l0 - d;
       if (tr.type === 'audio') r.offset = Math.max(0, o0 + d * spb());
-      else if (tr.type === 'synth') { r.notes.forEach((n, i) => { n.s = notes0[i] - d; }); delete r.takes; delete r.take; }
+      else if (r.notes) { r.notes.forEach((n, i) => { n.s = notes0[i] - d; }); delete r.takes; delete r.take; }
       else r.phase = ph0 + d;
     }
     else r.start = Math.max(0, Math.round((s0 + db) / snap) * snap);
@@ -3002,6 +3655,9 @@ $('#fileIn').onchange = e => { const f = e.target.files[0]; e.target.value = '';
 // Eigenes Sample: Datei wird zum spielbaren Instrument, der Grundton wird erkannt
 let smpTarget = null;
 $('#smpIn').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) loadUserSample(f, smpTarget); };
+// Sampler: eine oder mehrere Dateien in eine Sampler-Spur laden
+let smpTarget2 = null;
+$('#smpFileIn').onchange = e => { const fs = [...e.target.files]; e.target.value = ''; if (fs.length) loadSamplerFiles(fs, smpTarget2); };
 async function loadUserSample(file, trackId) {
   ensureCtx();
   let buf;
@@ -3033,16 +3689,44 @@ async function importFile(file, trackId, beat) {
   const r = { id: uid(), name: file.name.replace(/\.[^.]+$/, ''), start, len: buf.duration / spb(), buf: id, offset: 0 };
   tr.regions.push(r); selTrack = tr.id; selRegion = r.id; save(); render();
 }
+// Datei ins Arrangement ziehen: auf eine Audio- oder Sampler-Spur, sonst links = neue Audio-Spur, rechts = neuer Sampler
 const arrangeEl = $('#arrange');
-arrangeEl.addEventListener('dragover', e => { if ([...e.dataTransfer.types].includes('Files')) { e.preventDefault(); arrangeEl.classList.add('dragging'); } });
-arrangeEl.addEventListener('dragleave', e => { if (e.target === arrangeEl || !arrangeEl.contains(e.relatedTarget)) arrangeEl.classList.remove('dragging'); });
-arrangeEl.addEventListener('drop', e => {
-  e.preventDefault(); arrangeEl.classList.remove('dragging');
-  const f = e.dataTransfer.files[0]; if (!f) return;
+let dropLane = null;
+function dropTarget(e) {
   const lane = document.elementsFromPoint(e.clientX, e.clientY).find(n => n.classList?.contains('lane') && n.dataset.track);
-  const beat = lane ? Math.max(0, Math.round((e.clientX - lane.getBoundingClientRect().left) / ppb)) : null;
-  importFile(f, lane?.dataset.track || '__new', beat);
+  const tr = lane && findTrack(lane.dataset.track);
+  if (tr && (tr.type === 'audio' || tr.type === 'sampler')) return { lane, tr };
+  const r = arrangeEl.getBoundingClientRect();
+  return { zone: e.clientX < r.left + r.width / 2 ? 'audio' : 'sampler' };
+}
+arrangeEl.addEventListener('dragover', e => {
+  if (![...e.dataTransfer.types].includes('Files')) return;
+  e.preventDefault(); arrangeEl.classList.add('dragging');
+  const d = dropTarget(e);
+  if (dropLane && dropLane !== d.lane) dropLane.classList.remove('drop');
+  dropLane = d.lane || null; dropLane?.classList.add('drop');
+  arrangeEl.dataset.dz = d.lane ? 'lane' : d.zone;
+  arrangeEl.querySelectorAll('.dz').forEach(z => z.classList.toggle('on', z.dataset.dz === d.zone));
+  if (d.lane) arrangeEl.querySelector('.dz-lane').textContent = d.tr.type === 'sampler' ? `In den Sampler „${d.tr.name}“ laden und choppen` : `Als Region auf „${d.tr.name}“`;
 });
+const endDropHint = () => { arrangeEl.classList.remove('dragging'); dropLane?.classList.remove('drop'); dropLane = null; delete arrangeEl.dataset.dz; };
+arrangeEl.addEventListener('dragleave', e => { if (e.target === arrangeEl || !arrangeEl.contains(e.relatedTarget)) endDropHint(); });
+arrangeEl.addEventListener('drop', e => {
+  e.preventDefault(); endDropHint();
+  const fs = [...e.dataTransfer.files]; if (!fs.length) return;
+  const d = dropTarget(e);
+  if (d.tr?.type === 'sampler' || d.zone === 'sampler') { loadSamplerFiles(fs, d.tr?.id || null); return; }
+  const beat = d.lane ? Math.max(0, Math.round((e.clientX - d.lane.getBoundingClientRect().left) / ppb)) : null;
+  importFile(fs[0], d.tr?.id || '__new', beat);
+});
+// Datei auf den offenen Sampler im Editor ziehen
+editorElDrop();
+function editorElDrop() {
+  const ed = $('#editor');
+  ed.addEventListener('dragover', e => { if (edTab === 'smp' && smpView && [...e.dataTransfer.types].includes('Files')) { e.preventDefault(); ed.classList.add('dropping'); } });
+  ed.addEventListener('dragleave', e => { if (!ed.contains(e.relatedTarget)) ed.classList.remove('dropping'); });
+  ed.addEventListener('drop', e => { ed.classList.remove('dropping'); if (edTab !== 'smp' || !smpView) return; e.preventDefault(); const fs = [...e.dataTransfer.files]; if (fs.length) loadSamplerFiles(fs, smpView.tr.id); });
+}
 
 // Tastatur: Shortcuts und Musical Typing (physische Tastenpositionen, funktioniert auch mit QWERTZ)
 const TYPING = { KeyA: 0, KeyW: 1, KeyS: 2, KeyE: 3, KeyD: 4, KeyF: 5, KeyT: 6, KeyG: 7, KeyY: 8, KeyH: 9, KeyU: 10, KeyJ: 11, KeyK: 12, KeyO: 13, KeyL: 14, KeyP: 15, Semicolon: 16 };
@@ -3062,6 +3746,8 @@ document.addEventListener('keydown', e => {
   if (mod && e.code === 'KeyS') { e.preventDefault(); saveProject(e.shiftKey); return; }
   if (mod && e.code === 'KeyO') { e.preventDefault(); openProject(); return; }
   if (mod) return;
+  // Sampler-Spur: 4×4 Tasten wie die Pads einer MPC (Umschalt + Taste für die normalen Kürzel)
+  if (!e.shiftKey && e.code in PADKEYS && findTrack(selTrack)?.type === 'sampler') { e.preventDefault(); if (!e.repeat) liveNoteOn(e.code, PADKEYS[e.code], .9); return; }
   if (e.code === 'Space') { e.preventDefault(); playing ? stop() : play(); return; }
   if (e.code === 'Enter') { $('#bStart').click(); return; }
   if (e.code === 'KeyR' && !e.repeat) { toggleRecord(); return; }
@@ -3075,6 +3761,7 @@ document.addEventListener('keydown', e => {
   if (e.code === 'KeyX') { octave = Math.min(96, octave + 12); toast('Oktave ' + noteName(octave)); return; }
   if (e.repeat) return;
   const tr = findTrack(selTrack); if (!tr) return;
+  if (tr.type === 'sampler') return;
   if (tr.type === 'synth' && e.code in TYPING) liveNoteOn(e.code, octave + TYPING[e.code], .85);
   else if (tr.type === 'drums' && e.code in DRUMKEYS) liveNoteOn(e.code, 36 + DRUMKEYS[e.code], .9);
 });
@@ -3091,6 +3778,14 @@ function liveNoteOn(id, midi, vel) {
     held.set(id, { v: noteOn(tr, chan(tr).input, midi, ctx.currentTime, vel), midi });
     if (rec && rec.type === 'midi' && rec.track === tr.id && playing) recNoteStart(id, midi, vel);
     eBody.querySelector(`.key[data-p="${midi}"]`)?.classList.add('down');
+  } else if (tr.type === 'sampler') {
+    // MIDI-Pads ab C1 (36) wie bei der MPC, jede weitere Oktave wiederholt die 16 Pads
+    const pad = id.startsWith('midi') ? (((midi - 36) % 16) + 16) % 16 : midi;
+    const v = padPlay(tr, chan(tr).input, pad, ctx.currentTime, vel, liveMono);
+    held.set(id, { v: v || { release() { } }, midi: pad });
+    eBody.querySelector(`.pad[data-pad="${pad}"]`)?.classList.add('down');
+    if (v && smpView?.tr === tr) smpView.select(padChop(tr, pad), pad);
+    if (rec && rec.type === 'midi' && rec.track === tr.id && playing) recNoteStart(id, pad, vel);
   } else if (tr.type === 'drums') {
     const d = id.startsWith('midi') ? GM_DRUMS[midi] : DRUMS[midi - 36]?.id;
     if (d) playDrum(d, chan(tr).input, ctx.currentTime, vel, pieceKit(tr, d));
@@ -3101,6 +3796,7 @@ function liveNoteOff(id) {
   held.delete(id); h.v.release(ctx.currentTime);
   if (rec && rec.type === 'midi') endRecNote(rec, id);
   eBody.querySelector(`.key[data-p="${h.midi}"]`)?.classList.remove('down');
+  eBody.querySelector(`.pad[data-pad="${h.midi}"]`)?.classList.remove('down');
 }
 
 // ================= Externe Geräte =================
@@ -3143,6 +3839,7 @@ $('#inSel').onchange = e => { inputDevice = e.target.value; };
 // In der Windows-App ist MIDI ohne Rückfrage verfügbar, also gleich verbinden.
 if (navigator.userAgent.includes('Electron')) connectMidi(true);
 function deleteSelection() {
+  if (focusArea === 'smp' && edTab === 'smp' && smpView) { smpView.del(); return; }
   const [tr, r] = findRegion(selRegion); if (!r) return;
   pushUndo();
   if (focusArea === 'pr' && r.notes) { if (!selNotes.size) { undoStack.pop(); return; } r.notes = r.notes.filter(n => !selNotes.has(n)); selNotes.clear(); renderEditor(); save(); renderArrange(); return; }
@@ -3202,6 +3899,8 @@ function frame() {
     if (ep && er && edState.pxb) { let rel = b - er.start; ep.style.display = rel >= 0 && rel <= er.len ? '' : 'none'; if (edState.bar1) rel = (((rel + phaseOf(er)) % 4) + 4) % 4; ep.style.left = rel * edState.pxb + 'px'; }
   } else if (liveCells && liveCells.last !== -1) { liveCells.cols[liveCells.last]?.forEach(c => c.classList.remove('now')); liveCells.last = -1; }
   if (eqView && (playing || edTab === 'fx')) eqView.draw();
+  if (ctx) while (padHits.length && padHits[0].t <= ctx.currentTime + .01) { const h = padHits.shift(); flashPad(h.id, h.pad); }
+  smpView?.tick();
   updateMeters();
   requestAnimationFrame(frame);
 }
@@ -3258,7 +3957,7 @@ function renderMixer() {
   const strips = P.tracks.map(tr => {
     const fx = fxOf(tr);
     return `<div class="strip ${tr.id === selTrack ? 'sel' : ''}" data-track="${tr.id}" style="--c:${tr.color}">
-      ${tr.type === 'audio' ? '<div class="st-label">Audio</div>' : `<button class="st-btn" data-mx="lib" title="Klang in der Bibliothek wählen">${esc(instName(tr))}</button>`}
+      ${tr.type === 'audio' ? '<div class="st-label">Audio</div>' : `<button class="st-btn" data-mx="${tr.type === 'sampler' ? 'smp' : 'lib'}" title="${tr.type === 'sampler' ? 'Pads und Chops öffnen' : 'Klang in der Bibliothek wählen'}">${esc(instName(tr))}</button>`}
       <div class="st-row"><button class="st-btn st-eq ${eqActive(tr) ? 'on' : ''}" data-mx="eq" title="Kanal-EQ öffnen"><canvas></canvas></button></div>
       <div class="st-row"><button class="st-btn ${fxActive(tr) ? 'on' : ''}" data-mx="fx" title="Kompressor, Klang und Effekte">${fx.comp.on ? 'Kompressor' : 'Effekte'}</button></div>
       <div class="st-knobs">${knob('rev', 'Hall')}${knob('del', 'Delay')}${knob('pan', 'Pan')}</div>
@@ -3325,6 +4024,7 @@ function renderMixer() {
     if (act === 'mute' || act === 'solo') { tr[act] = !tr[act]; ensureCtx(); applyMix(); save(); renderArrange(); mixPaint(); }
     if (act === 'eq' || act === 'fx') { edTab = act; renderEditor(); }
     if (act === 'lib') setLib(true);
+    if (act === 'smp') { edTab = 'smp'; renderEditor(); }
   };
 }
 // Mixer-Anzeige aus dem Projekt nachziehen (ohne Neuaufbau, damit Ziehen flüssig bleibt)
@@ -3404,7 +4104,7 @@ function setLib(open) {
 function libBody(tr) {
   const item = (attr, on, label, extra = '') => `<button class="lib-item ${on ? 'on' : ''}" ${attr}><i></i>${esc(label)}${extra}</button>`;
   const group = (name, items, count) => { const shut = libShut.has(name) && !libQuery.trim(); return `<button class="lib-cat ${shut ? 'shut' : ''}" data-cat="${esc(name)}">${esc(name)}<span>${count}</span></button><div class="lib-items ${shut ? 'shut' : ''}"><div>${items}</div></div>`; };
-  if (!tr) return `<p class="lib-note">Wähle links eine Spur aus oder lege eine neue an.</p><div class="lib-btns"><button data-lib-add="synth">+ Software-Instrument</button><button data-lib-add="drums">+ Drummer</button><button data-lib-add="audio">+ Audio-Spur</button></div>`;
+  if (!tr) return `<p class="lib-note">Wähle links eine Spur aus oder lege eine neue an.</p><div class="lib-btns"><button data-lib-add="synth">+ Software-Instrument</button><button data-lib-add="drums">+ Drummer</button><button data-lib-add="audio">+ Audio-Spur</button><button data-lib-add="sampler">+ Sampler (MPC-Pads)</button></div>`;
   if (tr.type === 'synth') {
     const q = libQuery.trim().toLowerCase(), cats = { 'Eigene Samples': [], 'Echte Instrumente': [] };
     if (tr.usmp && (!q || (tr.usmp.name + ' sample').toLowerCase().includes(q))) cats['Eigene Samples'].push(item('data-preset="user"', tr.preset === 'user', tr.usmp.name));
@@ -3419,7 +4119,7 @@ function libBody(tr) {
     let html = kits.length ? group('Drumkits', kits.map(([k, v]) => item(`data-kit="${k}"`, k === (tr.kit || 'standard'), v.name, k === (tr.kit || 'standard') && tr.pieces && Object.keys(tr.pieces).length ? '<small>gemischt</small>' : '')).join(''), kits.length) : '';
     // Einzelne Instrumente aus allen Kits: z. B. nur die Kick aus dem 808-Kit
     const pieces = DRUMS.map(d => {
-      const its = Object.entries(KITS).filter(([, v]) => (!v.has || v.has.split(' ').includes(d.id)) && hit(d.name + ' ' + v.name)).map(([k, v]) => item(`data-pk="${k}" data-pd="${d.id}"`, k === pieceKit(tr, d.id), v.name, '<span class="play">▶</span>'));
+      const its = Object.entries(KITS).filter(([, v]) => (!v.has || v.has.split(' ').includes(d.id)) && hit(d.name + ' ' + v.name + ' ' + (v.lbl?.[d.id] || ''))).map(([k, v]) => item(`data-pk="${k}" data-pd="${d.id}"`, k === pieceKit(tr, d.id), v.name + (v.lbl?.[d.id] ? ' · ' + v.lbl[d.id] : ''), '<span class="play">▶</span>'));
       return its.length ? group(d.name, its.join(''), its.length) : '';
     }).join('');
     if (pieces) html += `<p class="lib-sub">Einzelne Sounds</p>` + pieces;
@@ -3427,19 +4127,28 @@ function libBody(tr) {
       + `<p class="lib-note">${into ? 'Ein Pattern ersetzt die ausgewählte Region.' : 'Ein Pattern kommt als neue Region ans Ende der Spur.'} Unter „Einzelne Sounds“ nimmst du nur ein Instrument aus einem anderen Kit, etwa die Kick aus 808 und die Snare aus Akustik.</p>`;
     return html || '<p class="lib-note">Nichts gefunden.</p>';
   }
+  if (tr.type === 'sampler') {
+    const q = libQuery.trim().toLowerCase(), hit = L => !q || (L.name + ' ' + L.cat + ' loop').toLowerCase().includes(q);
+    let html = q ? '' : `<div class="lib-btns"><button data-lib-act="smpload">Audiodatei laden …</button><button data-lib-act="smpopen">Pads & Chops öffnen</button></div>`;
+    if (tr.srcs.length) html += group('Samples dieser Spur', tr.srcs.map((x, i) => item(`data-src="${i}"`, i === tr.src, x.name, `<small>${tr.chops.filter(c => c.buf === x.buf).length} Chops</small>`)).join(''), tr.srcs.length);
+    const cats = {};
+    for (const L of LOOPS) if (hit(L)) (cats[L.cat] ||= []).push(item(`data-loop="${L.id}"`, tr.srcs.some(x => x.name.startsWith(L.name + ' (')), L.name, `<small>${L.bpm} BPM</small>`));
+    html += Object.entries(cats).map(([c, it]) => group('Loops · ' + c, it.join(''), it.length)).join('');
+    return html + `<p class="lib-note">Ein Loop wird in den Sampler geladen und nach Anschlägen in Chops geschnitten. Eigene Dateien ziehst du einfach auf die Spur. Die Loops sind aus gemeinfreien Aufnahmen (VCSL) gebaut.</p>`;
+  }
   return `<p class="lib-note">Audio-Spuren spielen Aufnahmen vom Mikrofon und importierte Dateien ab. Den Eingang wählst du oben unter Geräte.</p><div class="lib-btns"><button data-lib-act="import">Audiodatei importieren</button><button data-lib-act="rec">Aufnahme starten (R)</button></div>`;
 }
 function renderLib() {
   libEl.classList.toggle('closed', !libOpen); $('#bLib').classList.toggle('on', libOpen);
   if (!libOpen) return;
   const tr = findTrack(selTrack);
-  const key = [tr?.id, tr?.type, tr?.preset, tr?.kit, JSON.stringify(tr?.pieces || {}), tr?.usmp?.buf, tr?.usmp?.name, tr?.color, tr?.name, selRegion].join('|');
+  const key = [tr?.id, tr?.type, tr?.preset, tr?.kit, JSON.stringify(tr?.pieces || {}), tr?.usmp?.buf, tr?.usmp?.name, tr?.color, tr?.name, selRegion, tr?.srcs?.length, tr?.src, tr?.chops?.length].join('|');
   if (key === libKey) return;
   libKey = key;
   const top = libEl.querySelector('.lib-list')?.scrollTop || 0, same = libEl.dataset.track === (tr?.id || '');
   libEl.dataset.track = tr?.id || '';
   libEl.innerHTML = `<div class="lib-in" style="--c:${tr?.color || 'var(--accent)'}"><div class="lib-head"><div class="lib-title">Bibliothek${tr ? `<b>${esc(tr.name)}</b>` : ''}<button class="x" data-lib-close title="Schließen (I)">×</button></div>
-    ${tr && tr.type !== 'audio' ? `<input class="lib-search" type="search" placeholder="${tr.type === 'drums' ? 'Kit, Kick, Snare … suchen' : 'Sound suchen …'}" value="${esc(libQuery)}" aria-label="Sound suchen">` : ''}</div><div class="lib-list">${libBody(tr)}</div></div>`;
+    ${tr && tr.type !== 'audio' ? `<input class="lib-search" type="search" placeholder="${tr.type === 'drums' ? 'Kit, Kick, Snare … suchen' : tr.type === 'sampler' ? 'Loop suchen …' : 'Sound suchen …'}" value="${esc(libQuery)}" aria-label="Sound suchen">` : ''}</div><div class="lib-list">${libBody(tr)}</div></div>`;
   const list = libEl.querySelector('.lib-list');
   if (same) list.scrollTop = top; else list.querySelector('.lib-item.on')?.scrollIntoView({ block: 'nearest' });
 }
@@ -3458,6 +4167,10 @@ libEl.addEventListener('click', e => {
   if (b.dataset.libAct === 'import') { importTarget = tr?.id; $('#fileIn').click(); return; }
   if (b.dataset.libAct === 'rec') { toggleRecord(); return; }
   if (b.dataset.libAct === 'usmp') { smpTarget = tr?.id; $('#smpIn').click(); return; }
+  if (b.dataset.libAct === 'smpload') { smpTarget2 = tr?.id; $('#smpFileIn').click(); return; }
+  if (b.dataset.libAct === 'smpopen') { edTab = 'smp'; renderEditor(); return; }
+  if (b.dataset.loop) { loadLoop(b.dataset.loop, tr?.id); return; }
+  if (b.dataset.src && tr) { tr.src = +b.dataset.src; smpUI.chop = tr.chops.find(c => c.buf === tr.srcs[tr.src].buf)?.id || null; edTab = 'smp'; save(); libKey = ''; renderLib(); renderEditor(); return; }
   if (!tr) return;
   const pick = () => { libEl.querySelectorAll('.lib-item.on').forEach(x => x !== b && !b.dataset.pat && x.classList.remove('on')); if (!b.dataset.pat) b.classList.add('on'); };
   if (b.dataset.preset) {
@@ -3572,10 +4285,11 @@ function edZoom(f, clientX) {
   const pr = $('#pr'); if (!pr) return;
   const Z = edState.piece ? DR : PR, lo = edState.piece ? 60 : 24, hi = edState.piece ? 480 : 360, old = Z.bw, nb = clamp(old * f, lo, hi);
   if (Math.abs(nb - old) < .5) return;
-  const rect = pr.getBoundingClientRect(), ax = clientX == null ? pr.clientWidth / 2 : clamp(clientX - rect.left, 58, pr.clientWidth);
-  const beat = (pr.scrollLeft + ax - 58) / old;
+  const kw = pr.querySelector('.pr-keys')?.offsetWidth || 58;
+  const rect = pr.getBoundingClientRect(), ax = clientX == null ? pr.clientWidth / 2 : clamp(clientX - rect.left, kw, pr.clientWidth);
+  const beat = (pr.scrollLeft + ax - kw) / old;
   Z.bw = nb; renderEditor();
-  const p2 = $('#pr'); if (p2) p2.scrollLeft = beat * nb + 58 - ax;
+  const p2 = $('#pr'); if (p2) p2.scrollLeft = beat * nb + kw - ax;
 }
 let edWheel = null;
 eBody.addEventListener('wheel', e => {
