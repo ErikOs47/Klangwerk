@@ -117,6 +117,22 @@ input[type=checkbox] { accent-color: var(--accent); }
 .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--line); display: inline-block; }
 .dot.on { background: var(--play); box-shadow: 0 0 8px var(--play); }
 .filemenu { min-width: 250px; }
+.histmenu { width: 330px; }
+.hlist { display: flex; flex-direction: column; gap: 1px; max-height: 240px; overflow-y: auto; }
+.menu .hrow { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 6px 8px; font-size: 12.5px; flex: none; }
+.hrow span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.hrow small { flex: none; color: var(--muted); font-size: 11px; }
+.menu .hrow:hover small { color: #1b1400aa; }
+.hrow.now { border-radius: 7px; background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.hrow.fut { opacity: .5; }
+.hbtns { display: flex; gap: 6px; }
+.grvmenu { position: fixed; width: 290px; z-index: 120; }
+.grvmenu .devrow { grid-template-columns: 74px 1fr 46px; }
+.grvmenu .devrow.chk { grid-template-columns: auto 1fr; cursor: pointer; }
+.ehead .split { display: inline-flex; flex: none; }
+.ehead .split .sbtn:first-child { border-radius: 7px 0 0 7px; }
+.ehead .split .sbtn:last-child { border-radius: 0 7px 7px 0; border-left: 0; }
+.hbtns .sbtn:disabled { opacity: .4; }
 .filemenu kbd { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
 .filemenu hr { border: 0; border-top: 1px solid #ffffff12; margin: 4px 6px; }
 .pname { font-size: 13px; color: var(--muted); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 6px; }
@@ -132,7 +148,7 @@ input[type=checkbox] { accent-color: var(--accent); }
 .mini { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--muted); }
 .mini input[type=range] { width: 80px; }
 @media (max-width: 1480px) { .views .lbl { display: none; } }
-@media (max-width: 1360px) { .lcd > .lcd-sig { display: none; } }
+@media (max-width: 1700px) { .lcd > .lcd-sig { display: none; } }
 @media (max-width: 960px) { .master { display: none !important; } }
 @media (max-width: 900px) { #bImport { display: none; } .bar { gap: 6px 8px; } }
 @media (max-width: 1200px) { .brand span, .pname, .bar .tbtn .lbl { display: none; } .bar { gap: 8px 10px; } }
@@ -269,7 +285,9 @@ input[type=checkbox] { accent-color: var(--accent); }
 .region .fh.fo { margin-left: -5px; }
 .region:hover .fh, .region.sel .fh { opacity: .9; }
 .region .fh:hover { transform: scale(1.25); opacity: 1; }
-.region .rgain { position: absolute; right: 6px; top: 1px; font-size: 10px; font-weight: 700; color: #0d0e11aa; }
+.region .rtags { position: absolute; right: 6px; top: 1px; display: flex; gap: 7px; font-size: 10px; font-weight: 700; color: #0d0e11aa; pointer-events: none; }
+.region .rtags .busy { animation: blink 1s ease-in-out infinite alternate; }
+@keyframes blink { to { opacity: .35; } }
 
 /* Marker-Leiste unter dem Lineal */
 .marker-row { display: flex; position: sticky; top: 30px; z-index: 6; height: 24px; background: #121318; border-bottom: 1px solid #000; }
@@ -362,6 +380,8 @@ input[type=checkbox] { accent-color: var(--accent); }
 .tools button.on { background: var(--accent); color: #1b1400; font-weight: 600; }
 .velctl input { width: 90px; vertical-align: middle; }
 .afx output { width: 52px !important; }
+.ehead .bpmin { width: 58px; height: 26px; border-radius: 7px; border: 1px solid #ffffff12; background: #ffffff0a; padding: 0 6px; font-size: 12.5px; color: var(--fg); }
+.ehead .chk { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
 .wave .ed-play { top: 0; bottom: 0; }
 .velctl output { display: inline-block; width: 26px; text-align: right; color: var(--fg); font-variant-numeric: tabular-nums; }
 .ehead .sbtn:disabled { opacity: .4; }
@@ -476,6 +496,23 @@ input[type=checkbox] { accent-color: var(--accent); }
 .strip.sel { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 70%, transparent), 0 4px 18px #0007, 0 0 20px color-mix(in srgb, var(--c) 18%, transparent); }
 .strip.aux { background: linear-gradient(180deg, #1a1c22, #16171b); }
 .strip.master { width: 104px; background: linear-gradient(180deg, #24272f, #1b1d23); }
+.strip.grp { background: linear-gradient(180deg, color-mix(in srgb, var(--c) 10%, #1e2128), #181a1f); }
+.strip .gdel { position: absolute; right: 6px; top: 6px; width: 18px; height: 18px; border: 0; border-radius: 5px; background: transparent; color: var(--muted); font-size: 14px; line-height: 1; padding: 0; }
+.strip .gdel:hover { background: #ffffff18; color: var(--fg); }
+.st-out { height: 22px; border-radius: 6px; border: 1px solid #ffffff10; background-color: #ffffff08; font-size: 10.5px; color: #c9cdd8; padding: 0 3px; min-width: 0; width: 100%; }
+.st-out.on { border-color: color-mix(in srgb, var(--c) 60%, transparent); color: #fff; }
+input.st-gname { border: 0; text-align: center; min-width: 0; width: calc(100% + 14px); box-sizing: border-box; font: 600 10.5px var(--font-ui); color: #0d0e11; }
+input.st-gname:focus { outline: 1px solid var(--accent); border-radius: 4px; }
+.lufs { display: flex; flex-direction: column; align-items: stretch; gap: 3px; padding: 4px 5px; border-radius: 8px; background: #08090bcc; box-shadow: inset 0 1px 4px #000a; font-family: var(--font-mono); }
+.lufs span { display: flex; justify-content: space-between; align-items: baseline; gap: 4px; }
+.lufs small { font-family: var(--font-ui); font-size: 8.5px; letter-spacing: .06em; text-transform: uppercase; color: #66748c; }
+.lufs b { font-size: 12px; color: var(--lcd-fg); font-variant-numeric: tabular-nums; }
+.lufs button { height: 18px; border-radius: 5px; border: 1px solid #ffffff12; background: #ffffff0a; font-size: 9.5px; color: var(--muted); padding: 0; }
+.lufs button:hover { color: var(--fg); background: #ffffff16; }
+.lcd-lufs { cursor: pointer; }
+.lcd-lufs b { min-width: 46px; }
+.lcd-lufs.hot b { color: #ffb36b; }
+@media (max-width: 1180px) { .lcd > .lcd-lufs { display: none; } }
 .mix-sep { width: 1px; flex: none; background: #ffffff10; margin: 6px 4px; }
 .st-name { font-size: 12px; font-weight: 600; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
 .st-btn { height: 22px; border-radius: 6px; border: 1px solid #ffffff10; background: #ffffff08; font-size: 10.5px; color: #c9cdd8; padding: 0 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: background .12s, border-color .12s; }
@@ -668,6 +705,7 @@ button { touch-action: manipulation; }
       <div><small>Takt</small><b id="lcdPos">001 1 1</b></div>
       <div><small>Tempo</small><input id="bpm" type="number" min="40" max="240" step="1" value="96" aria-label="Tempo in BPM"></div>
       <div class="lcd-sig"><small>Taktart</small><b>4/4</b></div>
+      <div class="lcd-lufs" id="lcdLu" title="Lautheit der letzten 3 Sekunden in LUFS. Streaming-Dienste spielen Songs um −14 LUFS ab. Klick öffnet den Mixer mit der integrierten Messung."><small>LUFS</small><b id="lcdLufs">–</b></div>
     </div>
     <div class="spacer"></div>
     <div class="group">
@@ -681,6 +719,11 @@ button { touch-action: manipulation; }
         </div>
       </div>
       <button class="tbtn" id="bUndo" title="Rückgängig (Strg+Z)"><svg viewBox="0 0 16 16"><path d="M5.5 3L1.5 6.5 5.5 10V7.6h4a2.9 2.9 0 0 1 0 5.8H6V15h3.5a4.5 4.5 0 0 0 0-9h-4z"/></svg></button>
+      <button class="tbtn" id="bRedo" title="Wiederholen (Strg+Umschalt+Z)"><svg viewBox="0 0 16 16"><path d="M10.5 3l4 3.5-4 3.5V7.6h-4a2.9 2.9 0 0 0 0 5.8H10V15H6.5a4.5 4.5 0 0 1 0-9h4z"/></svg></button>
+      <div class="menu-wrap">
+        <button class="tbtn" id="bHist" title="Verlauf und automatische Sicherungen"><svg viewBox="0 0 16 16"><path d="M8 1.5A6.5 6.5 0 1 1 1.6 9h1.6A5 5 0 1 0 4.5 4.6L6.2 6.3H1.5V1.6l1.9 1.9A6.5 6.5 0 0 1 8 1.5zM7.3 4.5h1.4v3.2l2.4 1.4-.7 1.2-3.1-1.8z"/></svg></button>
+        <div class="menu devmenu histmenu" id="histMenu" hidden></div>
+      </div>
       <button class="tbtn" id="bImport" title="Audiodatei importieren"><svg viewBox="0 0 16 16"><path d="M7 1.5h2v6.6l2.3-2.3 1.4 1.4L8 11.9 3.3 7.2l1.4-1.4L7 8.1zM2 12h2v1.5h8V12h2v3.5H2z"/></svg></button>
       <input type="file" id="fileIn" accept="audio/*" hidden><input type="file" id="smpIn" accept="audio/*" hidden><input type="file" id="smpFileIn" accept="audio/*" multiple hidden>
       <div class="menu-wrap">
@@ -732,6 +775,7 @@ button { touch-action: manipulation; }
   <section class="kb" id="kb" hidden aria-label="Bildschirm-Keyboard"></section>
 </div>
 <div id="plugWin" class="plugwin" hidden role="dialog" aria-label="Plugin"><div class="pw-head"><span class="pw-t"></span><button class="x" title="Schließen">×</button></div><div class="pw-body"></div></div>
+<div id="grvMenu" class="menu devmenu grvmenu" hidden></div>
 <div id="toast" hidden></div>
 <div id="banner" hidden><span></span><div class="bn-acts"></div></div>
 
@@ -875,6 +919,7 @@ const KITS = {
   s_vcslperc: { name: 'Percussion (echt)', smp: 'vcslperc', fb: 'perc', lbl: { kick: 'Cajón Bass', snare: 'Cajón Slap', clap: 'Klatschen', hat: 'Shaker', ohat: 'Tamburin', tom: 'Tumba', rim: 'Claves', cow: 'Agogo hoch', crash: 'Triangel', ride: 'Agogo tief', shaker: 'Großer Shaker', conga: 'Quinto' } },
   // Neu in v0.9
   s_vcslworld: { name: 'Welt-Percussion (echt)', smp: 'vcslworld', fb: 'perc', lbl: { kick: 'Darbuka Doum', snare: 'Darbuka Tek', clap: 'Darbuka Ka', hat: 'Cabasa', ohat: 'Schellen', tom: 'Rahmentrommel', rim: 'Holzblock', cow: 'Schlitztrommel hoch', crash: 'Fingerzimbeln', ride: 'Guiro', shaker: 'Tamburin', conga: 'Schlitztrommel tief' } },
+  s_vcslstudio: { name: 'Studio-Set 2 (echt)', smp: 'vcslstudio', fb: 'acoustic', lbl: { kick: 'Bassdrum gedämpft', snare: 'Snare', clap: 'Klatschen', hat: 'Hi-Hat zu', ohat: 'Hi-Hat locker', tom: 'Tom tief', rim: 'Cross-Stick', cow: 'Bremstrommel', crash: 'Becken', ride: 'Becken-Glocke', shaker: 'Shaker', conga: 'Rimshot' } },
   s_vcslorch: { name: 'Orchester (echt)', smp: 'vcslorch', fb: 'acoustic', lbl: { kick: 'Große Trommel', snare: 'Marschtrommel', clap: 'Amboss', hat: 'Tamburin', ohat: 'Schellen', tom: 'Pauke tief', rim: 'Peitsche', cow: 'Röhrenglocke', crash: 'Becken', ride: 'Gong', shaker: 'Ratsche', conga: 'Pauke hoch' } },
   perc:     { name: 'Percussion', kick: { f0: 90, f1: 55, sweep: .05, dec: .5, g: 1 }, snare: { hp: 2000, dec: .1, tone: .7, tf: 330 }, clap: { bp: 1800, dec: .2 }, hat: { hp: 5500, dec: .04 }, tom: { f0: 240, f1: 180, dec: .45 }, rim: { f: 2400, dec: .05 }, cow: { f1: 720, f2: 1080, dec: .25 }, shaker: { bp: 5000, dec: .12, att: .02 }, conga: { f0: 400, f1: 360, dec: .35, slap: .4 } }
 };
@@ -951,6 +996,143 @@ function buildMaster(dest) {
   revOut.connect(revAn); delOut.connect(delAn);
   buses = { rev, revOut, revSize: 0, del, fb, tone, delOut, revAn, delAn };
   applyBuses(true);
+  // Lautheitsmessung nur bei der Wiedergabe, nicht beim Export
+  if (!(ctx instanceof OfflineAudioContext)) {
+    const sp = ctx.createChannelSplitter(2), aL = ctx.createAnalyser(), aR = ctx.createAnalyser(); aL.fftSize = aR.fftSize = 32768;
+    kFilter(ctx, analyser).connect(sp); sp.connect(aL, 0); sp.connect(aR, 1);
+    loud = { ctx, aL, aR, L: new Float32Array(32768), R: new Float32Array(32768) };
+  }
+}
+// Audio-Worklet als Text (lädt so auch ohne Server): Sidechain-Ducker. Er hört das Auslöser-Signal ab und gibt
+// eine Pegelabsenkung aus (0 = nichts, −1 = stumm), die auf den Duck-Regler der Zielspur addiert wird.
+const WORKLET_SRC = `
+class Duck extends AudioWorkletProcessor {
+  constructor(o) { super(); this.p = { thr: -24, ratio: 4, att: 5, rel: 150 }; this.env = 0; this.n = 0; this.mx = 0; this.meter = o.processorOptions && o.processorOptions.meter; this.port.onmessage = e => Object.assign(this.p, e.data); }
+  process(inputs, outputs) {
+    const inp = inputs[0], out = outputs[0][0], p = this.p;
+    const a = Math.exp(-1 / (sampleRate * Math.max(.1, p.att) / 1000)), r = Math.exp(-1 / (sampleRate * Math.max(1, p.rel) / 1000)), k = 1 - 1 / Math.max(1, p.ratio);
+    let env = this.env, mx = this.mx;
+    for (let i = 0; i < out.length; i++) {
+      let x = 0; for (let c = 0; c < inp.length; c++) { const v = Math.abs(inp[c][i]); if (v > x) x = v; }
+      env = x > env ? a * env + (1 - a) * x : r * env + (1 - r) * x;
+      const over = 20 * Math.log10(env + 1e-9) - p.thr, gr = over > 0 ? over * k : 0;
+      if (gr > mx) mx = gr;
+      out[i] = Math.pow(10, -gr / 20) - 1;
+    }
+    this.env = env;
+    if (this.meter && ++this.n % 12 === 0) { this.port.postMessage(mx); mx = 0; }
+    this.mx = mx;
+    return true;
+  }
+}
+registerProcessor('sg-duck', Duck);`;
+const wkLoad = new WeakMap();
+function loadWorklet(c = ctx) {
+  if (!c?.audioWorklet) return Promise.reject(new Error('Kein AudioWorklet'));
+  let p = wkLoad.get(c);
+  if (!p) { p = c.audioWorklet.addModule(URL.createObjectURL(new Blob([WORKLET_SRC], { type: 'text/javascript' }))).then(() => { c.sgReady = true; }); p.catch(() => { }); wkLoad.set(c, p); }
+  return p;
+}
+
+// Gruppen-Busse: Spuren können statt direkt auf den Master auf eine Gruppe gehen (etwa alle Drums oder alle Stimmen).
+// Eine Gruppe hat Fader, Panorama, Mute/Solo und auf Wunsch einen Bus-Kompressor („Glue“), der die Spuren zusammenklebt.
+const gchans = new Map();
+const groupsOf = () => (P.groups ||= []);
+const findGroup = id => P.groups?.find(g => g.id === id);
+const GROUP_COLORS = ['#7fc8c0', '#c8a87f', '#a7a0e8', '#e89aa8', '#9fd27f'];
+function newGroup(name) {
+  const g = { id: uid(), name: name || 'Gruppe ' + (groupsOf().length + 1), color: GROUP_COLORS[groupsOf().length % GROUP_COLORS.length], vol: VOL0, pan: 0, mute: false, solo: false, glue: false };
+  P.groups.push(g); return g;
+}
+function gchan(g) {
+  let c = gchans.get(g.id);
+  if (!c) {
+    const input = ctx.createGain(), glue = ctx.createDynamicsCompressor(), vol = ctx.createGain(), mute = ctx.createGain(), pan = ctx.createStereoPanner(), an = ctx.createAnalyser();
+    an.fftSize = 2048;
+    input.connect(glue).connect(vol).connect(mute).connect(pan).connect(master); mute.connect(an);
+    c = { input, glue, vol, mute, pan, an }; gchans.set(g.id, c);
+  }
+  return c;
+}
+function applyGroups(now) {
+  const t = ctx.currentTime, set = (prm, v) => now ? (prm.value = v) : prm.setTargetAtTime(v, t, .015);
+  for (const g of groupsOf()) {
+    const c = gchan(g);
+    set(c.vol.gain, g.vol * g.vol * 1.2 * (g.glue ? 1.3 : 1)); set(c.pan.pan, g.pan); set(c.mute.gain, g.mute ? 0 : 1);
+    set(c.glue.threshold, g.glue ? -18 : 0); set(c.glue.ratio, g.glue ? 2.5 : 1); set(c.glue.knee, g.glue ? 8 : 0); set(c.glue.attack, .02); set(c.glue.release, .25);
+  }
+  for (const [id, c] of gchans) if (!findGroup(id)) { c.pan.disconnect(); c.input.disconnect(); gchans.delete(id); }
+}
+// Ausgang einer Spur: Master oder eine Gruppe
+function routeOut(tr, c) {
+  const g = tr.out && findGroup(tr.out), dest = g ? gchan(g).input : master;
+  if (c.dest === dest) return;
+  if (c.dest) try { c.pan.disconnect(c.dest); } catch (e) { }
+  c.pan.connect(dest); c.dest = dest;
+}
+// Sidechain-Auslöser einer Spur, sofern gültig. Ketten, die zur Spur zurückführen, würden eine Rückkopplung bauen und werden ignoriert.
+function scSource(tr) {
+  const k = fxOf(tr).comp; if (!k.on || !k.sc) return null;
+  const src = findTrack(k.sc); if (!src || src === tr) return null;
+  for (let x = src, i = 0; x && i < 64; i++) { const n = x.fx?.comp?.on && x.fx.comp.sc; if (!n) break; if (n === tr.id) return null; x = findTrack(n); }
+  return src;
+}
+function wireSidechain(tr, c, src) {
+  const k = fxOf(tr).comp, want = src ? src.id + (k.scLow !== false ? '|lo' : '') : '';
+  if (c.scKey !== want || (want && !c.duckNode)) {
+    if (c.duckNode) { try { c.scFrom.disconnect(c.scIn); } catch (e) { } c.scIn.disconnect(); c.duckNode.disconnect(); c.duckNode = null; }
+    c.scKey = want; c.gr = 0;
+    if (!want || !c.ctx.sgReady) return; // Worklet lädt noch: applyMix verbindet danach
+    const s = chan(src);
+    // Auslöser-Filter: nur die Bässe (etwa die Kick) lösen aus
+    c.scIn = k.scLow !== false ? biq('lowpass', 150, .7) : ctx.createGain();
+    c.duckNode = new AudioWorkletNode(ctx, 'sg-duck', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1], processorOptions: { meter: !(ctx instanceof OfflineAudioContext) } });
+    s.insOut.connect(c.scIn).connect(c.duckNode).connect(c.duck.gain); c.scFrom = s.insOut;
+    c.duckNode.port.onmessage = e => { c.gr = e.data; };
+  }
+  c.duckNode?.port.postMessage({ thr: k.thr, ratio: k.ratio, att: k.att, rel: k.rel });
+}
+
+// Lautheit nach EBU R128 (ITU-R BS.1770): K-Filter am Master, dann Momentan (400 ms), Kurzzeit (3 s) und Integriert mit Gating.
+// Die integrierte Messung beginnt bei jedem Start der Wiedergabe neu.
+let loud = null;
+const LU = { blocks: [], st: [], m: -Infinity, s: -Infinity, i: -Infinity, n: 0 };
+const lufsOf = ms => ms > 1e-12 ? -.691 + 10 * Math.log10(ms) : -Infinity;
+function gatedLufs(blocks) {
+  const a = blocks.filter(e => lufsOf(e) > -70); if (!a.length) return -Infinity;
+  const rel = lufsOf(a.reduce((x, y) => x + y, 0) / a.length) - 10, g = a.filter(e => lufsOf(e) > rel);
+  return lufsOf(g.reduce((x, y) => x + y, 0) / g.length);
+}
+function kFilter(c, from) {
+  const s = c.createBiquadFilter(), h = c.createBiquadFilter();
+  s.type = 'highshelf'; s.frequency.value = 1682; s.gain.value = 4; h.type = 'highpass'; h.frequency.value = 38; h.Q.value = .5;
+  from.connect(s).connect(h); return h;
+}
+function loudTick() {
+  if (!loud || loud.ctx !== ctx || ctx.state !== 'running') return;
+  const n = Math.min(loud.L.length, Math.round(ctx.sampleRate * .4)), N = loud.L.length;
+  loud.aL.getFloatTimeDomainData(loud.L); loud.aR.getFloatTimeDomainData(loud.R);
+  let e = 0; for (let i = N - n; i < N; i++) e += loud.L[i] * loud.L[i] + loud.R[i] * loud.R[i];
+  e /= n;
+  LU.m = lufsOf(e); LU.st.push(e); if (LU.st.length > 30) LU.st.shift();
+  LU.s = lufsOf(LU.st.reduce((x, y) => x + y, 0) / LU.st.length);
+  if (playing) { LU.blocks.push(e); if (LU.blocks.length > 36000) LU.blocks.shift(); if (++LU.n % 5 === 0) LU.i = gatedLufs(LU.blocks); }
+}
+setInterval(loudTick, 100);
+function loudReset() { LU.blocks = []; LU.i = -Infinity; LU.n = 0; paintLoud(); }
+const fmtLu = v => v === -Infinity || v < -99 ? '–' : v.toFixed(1).replace('.', ',').replace('-', '−');
+function paintLoud() {
+  const el = $('#lcdLufs'); if (el) { el.textContent = fmtLu(LU.s); el.parentElement.classList.toggle('hot', LU.s > -9); }
+  if (mixView) mixView.box.querySelectorAll('[data-lu]').forEach(b => { b.textContent = fmtLu(LU[b.dataset.lu]); });
+}
+// Lautheit eines fertigen Exports (gleiche Messung, offline)
+async function measureLufs(buf) {
+  const off = new OfflineAudioContext(2, buf.length, buf.sampleRate), src = off.createBufferSource(); src.buffer = buf;
+  kFilter(off, src).connect(off.destination); src.start();
+  const r = await off.startRendering(), L = r.getChannelData(0), R = r.getChannelData(1), step = Math.round(r.sampleRate * .1), sub = [];
+  for (let i = 0; i + step <= L.length; i += step) { let e = 0; for (let j = i; j < i + step; j++) e += L[j] * L[j] + R[j] * R[j]; sub.push(e / step); }
+  const blocks = []; for (let i = 0; i + 4 <= sub.length; i++) blocks.push((sub[i] + sub[i + 1] + sub[i + 2] + sub[i + 3]) / 4);
+  return gatedLufs(blocks);
 }
 const fxDefaults = () => ({ rev: { size: 2.2, level: .8 }, del: { div: .75, fb: .35, tone: 4500, level: .7 } });
 const busFx = () => (P.fx ||= fxDefaults());
@@ -976,6 +1158,7 @@ function ensureCtx() {
   ctx.resume();
   buildMaster(ctx.destination);
   applyMix(true);
+  loadWorklet(ctx).then(() => applyMix(), () => { });
   return ctx;
 }
 // iPhone: Web Audio ist sonst stumm, solange der Lautlos-Schalter an ist.
@@ -1009,7 +1192,7 @@ function defaultEq() {
 const eqOf = tr => (tr.eq ||= defaultEq());
 const trackFxDefaults = () => ({ comp: { on: false, thr: -18, ratio: 4, att: 10, rel: 200, gain: 0 }, rev: 0, del: 0 });
 const fxOf = tr => (tr.fx ||= trackFxDefaults());
-// Kanalzug: Eingang -> EQ -> Filter (für Automation) -> Kompressor -> Plugins -> Lautstärke -> Mute -> Panorama -> Master
+// Kanalzug: Eingang -> EQ -> Filter (für Automation) -> Kompressor -> Sidechain-Ducker -> Plugins -> Lautstärke -> Mute -> Panorama -> Master oder Gruppe
 function chan(tr) {
   let c = chans.get(tr.id);
   if (!c) {
@@ -1017,13 +1200,13 @@ function chan(tr) {
     an.fftSize = 2048; an.smoothingTimeConstant = .8;
     const bands = eqOf(tr).bands.map(() => ctx.createBiquadFilter());
     const flt = ctx.createBiquadFilter(); flt.type = 'lowpass'; flt.frequency.value = 20000; flt.Q.value = .9;
-    const comp = ctx.createDynamicsCompressor(), makeup = ctx.createGain(), revS = ctx.createGain(), delS = ctx.createGain();
+    const comp = ctx.createDynamicsCompressor(), makeup = ctx.createGain(), duck = ctx.createGain(), revS = ctx.createGain(), delS = ctx.createGain();
     const insIn = ctx.createGain(), insOut = ctx.createGain();
     let n = input; for (const b of bands) n = n.connect(b);
-    n.connect(flt).connect(comp).connect(makeup).connect(insIn).connect(insOut).connect(vol).connect(mute).connect(pan).connect(master); mute.connect(an);
+    n.connect(flt).connect(comp).connect(makeup).connect(duck).connect(insIn).connect(insOut).connect(vol).connect(mute).connect(pan); mute.connect(an);
     pan.connect(revS).connect(buses.rev); pan.connect(delS).connect(buses.del);
-    c = { input, vol, mute, pan, bands, flt, an, comp, makeup, insIn, insOut, revS, delS, ctx, plugs: new Map(), sig: '' }; chans.set(tr.id, c);
-    applyEq(tr, true); applyFx(tr, true); syncPlugins(tr);
+    c = { input, vol, mute, pan, bands, flt, an, comp, makeup, duck, insIn, insOut, revS, delS, ctx, plugs: new Map(), sig: '', dest: null }; chans.set(tr.id, c);
+    routeOut(tr, c); applyEq(tr, true); applyFx(tr, true); syncPlugins(tr);
   }
   return c;
 }
@@ -1089,7 +1272,10 @@ function applyEq(tr, now) {
 function applyFx(tr, now) {
   if (!ctx) return;
   const c = chan(tr), fx = fxOf(tr), k = fx.comp, t = ctx.currentTime, set = (prm, v) => now ? (prm.value = v) : prm.setTargetAtTime(v, t, .01);
-  set(c.comp.threshold, k.on ? k.thr : 0); set(c.comp.ratio, k.on ? k.ratio : 1); set(c.comp.knee, k.on ? 6 : 0);
+  // Mit Sidechain übernimmt der Ducker die Regelung, der normale Kompressor bleibt neutral
+  const sc = scSource(tr), own = k.on && !sc;
+  set(c.comp.threshold, own ? k.thr : 0); set(c.comp.ratio, own ? k.ratio : 1); set(c.comp.knee, own ? 6 : 0);
+  wireSidechain(tr, c, sc);
   set(c.comp.attack, k.att / 1000); set(c.comp.release, k.rel / 1000);
   set(c.makeup.gain, k.on ? Math.pow(10, k.gain / 20) : 1);
   if (!autoOn(tr, 'rev')) set(c.revS.gain, fx.rev);
@@ -1098,9 +1284,11 @@ function applyFx(tr, now) {
 }
 function applyMix(now) {
   if (!ctx) return;
-  const anySolo = P.tracks.some(t => t.solo);
+  const anySolo = P.tracks.some(t => t.solo) || !!P.groups?.some(g => g.solo);
+  applyGroups(now);
   for (const t of P.tracks) {
-    const c = chan(t), m = (t.mute || (anySolo && !t.solo)) ? 0 : 1, set = (prm, v) => now ? (prm.value = v) : prm.setTargetAtTime(v, ctx.currentTime, .015);
+    const c = chan(t), g = t.out && findGroup(t.out), m = (t.mute || (anySolo && !t.solo && !g?.solo)) ? 0 : 1, set = (prm, v) => now ? (prm.value = v) : prm.setTargetAtTime(v, ctx.currentTime, .015);
+    routeOut(t, c);
     set(c.mute.gain, m);
     if (!autoOn(t, 'vol')) set(c.vol.gain, t.vol * t.vol * 1.2);
     if (!autoOn(t, 'pan')) set(c.pan.pan, t.pan);
@@ -1108,7 +1296,7 @@ function applyMix(now) {
   }
   applyBuses(now);
   applyAutoStatic(now);
-  for (const [id, c] of chans) if (!P.tracks.find(t => t.id === id)) { c.pan.disconnect(); dropPlugins(c); chans.delete(id); }
+  for (const [id, c] of chans) if (!P.tracks.find(t => t.id === id)) { c.pan.disconnect(); c.duckNode?.disconnect(); dropPlugins(c); chans.delete(id); }
 }
 const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
 
@@ -1148,7 +1336,11 @@ const SAMPLED = {
   'fm-piano': ['FM-E-Piano (TX81Z)', { r: .5, prev: 64 }], clavisynth: ['Clavi-Synth (TX81Z)', { r: .2, prev: 60 }], 'upright-piano': ['Klavier (Upright)', { r: .45, level: .52 }],
   'pipe-organ': ['Kirchenorgel (Plenum)', { hold: 1, a: .04, r: .6 }], glockenspiel: ['Glockenspiel', { r: 1.2, prev: 84 }], 'tubular-bells': ['Röhrenglocken', { r: 2, prev: 67 }],
   'hand-chimes': ['Handglocken', { r: 1.5, prev: 72 }], 'dan-tranh': ['Đàn Tranh (Zither)', { r: .6, prev: 66 }], recorder: ['Blockflöte (Alt)', { hold: 1, a: .03, r: .15, prev: 76 }],
-  mbira: ['Mbira', { r: .6, prev: 64 }]
+  mbira: ['Mbira', { r: .6, prev: 64 }],
+  // Neu in v1.0: aus dem VCSL (CC0)
+  'grand-kawai': ['Flügel (Kawai)', { r: .5, level: .5 }], strumstick: ['Strumstick (Folk-Zupfer)', { r: .5, prev: 62 }],
+  psaltery: ['Psalter (gestrichen)', { hold: 1, a: .08, r: .5, prev: 74 }], 'psaltery-pluck': ['Psalter (gezupft)', { r: .8, prev: 74 }],
+  saxello: ['Saxello (Sopransax)', { hold: 1, a: .03, r: .2, prev: 70 }], 'kalimba-tz': ['Kalimba (Tansania)', { r: .6, prev: 65 }]
 };
 for (const [id, [name, o]] of Object.entries(SAMPLED))
   PRESETS['s_' + id] = { cat: 'Echte Instrumente', name, smp: id, hold: !!o.hold, prev: o.prev, env: { a: o.a || .002, d: 1, s: 1, r: o.r }, cut: 20000, level: o.level || (o.hold ? .38 : .48) };
@@ -1421,12 +1613,117 @@ let P = null;
 let selTrack = null, selRegion = null, focusArea = 'arr';
 let ppb = 30;
 const audioBuffers = new Map(); // nur im Speicher, wird nicht gespeichert
-const undoStack = [];
-function pushUndo() { undoStack.push(JSON.stringify(P)); if (undoStack.length > 80) undoStack.shift(); }
-function undo() {
-  const s = undoStack.pop(); if (!s) { toast('Nichts mehr rückgängig zu machen.'); return; }
-  P = normProject(JSON.parse(s)); selNotes.clear(); applyMix(); save(); render();
+const undoStack = [], redoStack = [];
+// Jeder Schritt merkt sich den Zustand davor und die Uhrzeit. Was sich geändert hat, wird erst beim Anzeigen im Verlauf ermittelt.
+function pushUndo() {
+  const s = JSON.stringify(P);
+  if (undoStack.at(-1)?.s === s) return false;
+  undoStack.push({ s, t: Date.now() }); if (undoStack.length > 100) undoStack.shift();
+  redoStack.length = 0; histPaint();
+  return true;
 }
+function restoreState(s) {
+  P = normProject(JSON.parse(s)); selNotes.clear();
+  if (!findTrack(selTrack)) selTrack = P.tracks[0]?.id || null;
+  if (!findRegion(selRegion)[1]) selRegion = null;
+  applyMix(); save(); render();
+}
+function undo() {
+  const e = undoStack.pop(); if (!e) { toast('Nichts mehr rückgängig zu machen.'); return; }
+  const now = JSON.stringify(P);
+  redoStack.push({ s: now, t: e.t, label: e.label || changeLabel(JSON.parse(e.s), P) });
+  restoreState(e.s); histPaint();
+}
+function redo() {
+  const e = redoStack.pop(); if (!e) { toast('Nichts zum Wiederherstellen.'); return; }
+  undoStack.push({ s: JSON.stringify(P), t: e.t, label: e.label });
+  restoreState(e.s); histPaint();
+}
+// Beschreibt in Worten, was zwischen zwei Projektständen passiert ist (für den Verlauf)
+function changeLabel(a, b) {
+  const J = JSON.stringify, nm = t => `„${t.name}“`;
+  if (!a || !b) return 'Bearbeitung';
+  if (a.tracks.length !== b.tracks.length && !b.tracks.every(t => a.tracks.some(x => x.id === t.id)) && !a.tracks.every(t => b.tracks.some(x => x.id === t.id))) return 'Projekt gewechselt';
+  if (b.tracks.length > a.tracks.length) { const t = b.tracks.find(t => !a.tracks.some(x => x.id === t.id)); return t ? `Spur ${nm(t)} hinzugefügt` : 'Spur hinzugefügt'; }
+  if (b.tracks.length < a.tracks.length) { const t = a.tracks.find(t => !b.tracks.some(x => x.id === t.id)); return t ? `Spur ${nm(t)} gelöscht` : 'Spur gelöscht'; }
+  if (a.bpm !== b.bpm) return `Tempo ${b.bpm} BPM`;
+  if (J(a.groups || []) !== J(b.groups || [])) return (b.groups || []).length > (a.groups || []).length ? 'Gruppe angelegt' : (b.groups || []).length < (a.groups || []).length ? 'Gruppe gelöscht' : 'Gruppe im Mixer';
+  if (J(a.markers) !== J(b.markers)) return 'Marker';
+  if (J(a.fx) !== J(b.fx)) return 'Hall oder Delay';
+  if (a.master !== b.master) return 'Master-Lautstärke';
+  if (J(a.loop) !== J(b.loop)) return 'Cycle-Bereich';
+  if (a.tracks.some((t, i) => t.id !== b.tracks[i]?.id)) return 'Spuren umsortiert';
+  for (const t of b.tracks) {
+    const o = a.tracks.find(x => x.id === t.id); if (!o || J(o) === J(t)) continue;
+    const ch = k => J(o[k]) !== J(t[k]);
+    if (o.regions.length < t.regions.length) return `Region in ${nm(t)} hinzugefügt`;
+    if (o.regions.length > t.regions.length) return `Region in ${nm(t)} gelöscht`;
+    if (ch('regions')) {
+      const r = t.regions.find((r, i) => J(r) !== J(o.regions[i])), q = o.regions.find(x => x.id === r?.id);
+      if (r && q) {
+        if (J(r.notes) !== J(q.notes)) return `Noten in ${nm(t)}`;
+        if (J(r.steps) !== J(q.steps) || J(r.pitch) !== J(q.pitch) || J(r.trip) !== J(q.trip)) return `Pattern in ${nm(t)}`;
+        if (r.swing !== q.swing || r.human !== q.human) return `Groove in ${nm(t)}`;
+        if (r.st !== q.st || r.tempo !== q.tempo) return `Tempo der Region ${nm(r)}`;
+        if (r.start !== q.start && r.len === q.len) return `Region ${nm(r)} verschoben`;
+        if (r.len !== q.len || r.offset !== q.offset) return `Region ${nm(r)} gekürzt oder verlängert`;
+        if (r.fi !== q.fi || r.fo !== q.fo || r.gain !== q.gain) return `Pegel oder Blende ${nm(r)}`;
+        if (r.name !== q.name) return `Region umbenannt`;
+      }
+      return `Regionen in ${nm(t)}`;
+    }
+    if (ch('name')) return `Spur umbenannt in ${nm(t)}`;
+    if (ch('preset') || ch('kit') || ch('pieces') || ch('wam') || ch('usmp')) return `Klang von ${nm(t)}`;
+    if (ch('eq')) return `EQ von ${nm(t)}`;
+    if (ch('auto')) return `Automation in ${nm(t)}`;
+    if (ch('ins')) return `Plugins von ${nm(t)}`;
+    if (ch('fx')) return J(o.fx?.comp) !== J(t.fx?.comp) ? `Kompressor von ${nm(t)}` : `Effekt-Sends von ${nm(t)}`;
+    if (ch('out')) return `${nm(t)} geroutet`;
+    if (ch('vol') || ch('pan')) return `Lautstärke/Pan von ${nm(t)}`;
+    if (ch('mute') || ch('solo')) return `Mute/Solo ${nm(t)}`;
+    if (ch('chops') || ch('pads') || ch('srcs')) return `Pads & Chops in ${nm(t)}`;
+    if (ch('tweak')) return `Klangregler von ${nm(t)}`;
+    return `${nm(t)} bearbeitet`;
+  }
+  return 'Bearbeitung';
+}
+// ================= Verlauf =================
+// Alle Bearbeitungsschritte mit Uhrzeit (neueste oben), Klick springt zu diesem Stand. Darunter die automatischen Sicherungen.
+const histMenu = $('#histMenu');
+function histPaint() { if (histMenu && !histMenu.hidden) renderHist(); }
+function histJump(steps) {
+  if (!steps) return;
+  let cur = JSON.stringify(P);
+  while (steps < 0 && undoStack.length) { const e = undoStack.pop(); redoStack.push({ s: cur, t: e.t, label: e.label || changeLabel(JSON.parse(e.s), JSON.parse(cur)) }); cur = e.s; steps++; }
+  while (steps > 0 && redoStack.length) { const e = redoStack.pop(); undoStack.push({ s: cur, t: e.t, label: e.label }); cur = e.s; steps--; }
+  restoreState(cur); histPaint();
+}
+let histSeq = 0;
+async function renderHist() {
+  const seq = ++histSeq, n = undoStack.length, U = undoStack;
+  const lab = i => i === n - 1 ? changeLabel(JSON.parse(U[i].s), P) : (U[i].label ||= changeLabel(JSON.parse(U[i].s), JSON.parse(U[i + 1].s)));
+  const row = (attr, cls, label, when) => `<button class="hrow ${cls}" ${attr}><span>${esc(label)}</span><small>${when}</small></button>`;
+  const rows = redoStack.map((e, j) => row(`data-h="${redoStack.length - j}"`, 'fut', e.label || 'Bearbeitung', fmtAgo(e.t)));
+  rows.push(`<div class="hrow now"><span>${esc(n ? lab(n - 1) : 'Ausgangszustand')}</span><small>jetzt</small></div>`);
+  const from = Math.max(0, n - 40);
+  for (let i = n - 1; i >= from; i--) rows.push(row(`data-h="${i - n}"`, '', i ? lab(i - 1) : 'Ältester Stand', fmtAgo(U[i ? i - 1 : 0].t)));
+  const snaps = await listSnaps(); if (seq !== histSeq) return;
+  histMenu.innerHTML = `<h4>Bearbeitungsschritte</h4><div class="hlist">${rows.join('')}</div>${from ? `<p class="devnote">… und ${from} ältere Schritte</p>` : ''}
+    <div class="hbtns"><button class="sbtn" data-hact="undo" ${n ? '' : 'disabled'}>Rückgängig</button><button class="sbtn" data-hact="redo" ${redoStack.length ? '' : 'disabled'}>Wiederholen</button></div>
+    <h4>Automatische Sicherungen</h4><div class="hlist">${snaps.length ? snaps.map(x => row(`data-snap="${x.t}"`, '', `${x.name} · ${x.tracks} Spuren${x.why ? ' · ' + x.why : ''}`, fmtClock(x.t))).join('') : '<p class="devnote">Noch keine Sicherung.</p>'}</div>
+    <button class="sbtn" data-hact="snap">Jetzt sichern</button>
+    <p class="devnote">Jede Änderung wird sofort gespeichert. Alle zwei Minuten entsteht zusätzlich eine Sicherung, die auch einen Absturz übersteht. Ein Klick stellt sie wieder her, Strg+Z geht zurück.</p>`;
+}
+histMenu.onclick = e => {
+  e.stopPropagation();
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.h) histJump(+b.dataset.h);
+  else if (b.dataset.snap) { histMenu.hidden = true; restoreSnap(+b.dataset.snap); }
+  else if (b.dataset.hact === 'undo') undo();
+  else if (b.dataset.hact === 'redo') redo();
+  else if (b.dataset.hact === 'snap') snapshot('von Hand').then(() => toast('Sicherung angelegt.'));
+};
+function openHist() { histMenu.hidden = false; histPaint(); }
 const findTrack = id => P.tracks.find(t => t.id === id);
 function findRegion(id) { for (const t of P.tracks) { const r = t.regions.find(r => r.id === id); if (r) return [t, r]; } return [null, null]; }
 function newTrack(type, extra = {}) {
@@ -1471,9 +1768,15 @@ function emptyProject() {
 }
 let saveT = 0;
 function save() {
-  dirty = true; updateTitle();
+  dirty = true; snapDirty = true; updateTitle();
   clearTimeout(saveT);
-  saveT = setTimeout(() => { try { localStorage.setItem('klangwerk.project', JSON.stringify(P)); } catch (e) { } }, 300);
+  saveT = setTimeout(persist, 300);
+  histPaint();
+}
+// Laufendes Speichern im Browser: das Projekt und ob es seit dem letzten Speichern als Datei verändert wurde
+function persist() {
+  clearTimeout(saveT);
+  try { localStorage.setItem('klangwerk.project', JSON.stringify(P)); localStorage.setItem('klangwerk.state', JSON.stringify({ dirty, t: Date.now() })); } catch (e) { }
 }
 function updateTitle() {
   const n = P.name || 'Mein Song', el = $('#pname');
@@ -1490,15 +1793,16 @@ function load() {
 const idb = (() => {
   let dbp = null;
   const open = () => dbp ||= new Promise((res, rej) => {
-    const r = indexedDB.open('klangwerk', 1);
-    r.onupgradeneeded = () => r.result.createObjectStore('audio');
+    const r = indexedDB.open('klangwerk', 2);
+    r.onupgradeneeded = () => { for (const n of ['audio', 'snaps']) if (!r.result.objectStoreNames.contains(n)) r.result.createObjectStore(n); };
     r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
   });
-  const run = async (mode, fn) => {
+  const run = async (st, mode, fn) => {
     const db = await open();
-    return new Promise((res, rej) => { const t = db.transaction('audio', mode), rq = fn(t.objectStore('audio')); t.oncomplete = () => res(rq.result); t.onerror = () => rej(t.error); });
+    return new Promise((res, rej) => { const t = db.transaction(st, mode), rq = fn(t.objectStore(st)); t.oncomplete = () => res(rq.result); t.onerror = () => rej(t.error); });
   };
-  return { put: (k, v) => run('readwrite', s => s.put(v, k)), get: k => run('readonly', s => s.get(k)), del: k => run('readwrite', s => s.delete(k)), keys: () => run('readonly', s => s.getAllKeys()) };
+  const api = st => ({ put: (k, v) => run(st, 'readwrite', s => s.put(v, k)), get: k => run(st, 'readonly', s => s.get(k)), del: k => run(st, 'readwrite', s => s.delete(k)), keys: () => run(st, 'readonly', s => s.getAllKeys()), all: () => run(st, 'readonly', s => s.getAll()) });
+  return { ...api('audio'), snaps: api('snaps') };
 })();
 function addBuffer(buf, id = uid()) {
   audioBuffers.set(id, buf);
@@ -1511,15 +1815,67 @@ function makeBuffer(sr, ch) {
   const b = new AudioBuffer({ length: ch[0].length, sampleRate: sr, numberOfChannels: ch.length });
   ch.forEach((d, i) => b.copyToChannel(d, i)); return b;
 }
+async function loadBuffers(ids) {
+  for (const id of ids) {
+    if (audioBuffers.has(id)) continue;
+    const v = await idb.get(id); if (v) audioBuffers.set(id, makeBuffer(v.sr, v.ch));
+  }
+}
 async function restoreBuffers() {
   try {
-    for (const id of bufferIds()) {
-      if (audioBuffers.has(id)) continue;
-      const v = await idb.get(id); if (v) audioBuffers.set(id, makeBuffer(v.sr, v.ch));
-    }
-    const used = new Set(bufferIds());
+    await loadBuffers(bufferIds());
+    // Aufnahmen, die nur noch in automatischen Sicherungen vorkommen, bleiben erhalten
+    const used = new Set([...bufferIds(), ...(await listSnaps()).flatMap(x => x.bufs || [])]);
     for (const k of await idb.keys()) if (!used.has(k)) idb.del(k);
   } catch (e) { }
+}
+
+// ================= Automatische Sicherungen und Absturz-Schutz =================
+// Jede Änderung landet sofort im Browser-Speicher. Zusätzlich entsteht alle zwei Minuten (wenn sich etwas geändert hat)
+// und vor Neu/Öffnen/Demo eine Sicherung in IndexedDB. Die letzten 20 bleiben, auch über einen Absturz hinweg.
+const SNAP_MAX = 20;
+let snapDirty = false, snapList = null;
+function snapshot(why = '') {
+  if (!P?.tracks.length) return Promise.resolve();
+  snapDirty = false; snapList = null;
+  const t = Date.now(), rec = { t, name: P.name || 'Mein Song', tracks: P.tracks.length, why, bufs: bufferIds(), json: JSON.stringify(P) };
+  return (async () => {
+    try {
+      await idb.snaps.put(t, rec);
+      const keys = (await idb.snaps.keys()).sort((a, b) => a - b);
+      for (const k of keys.slice(0, Math.max(0, keys.length - SNAP_MAX))) await idb.snaps.del(k);
+    } catch (e) { }
+    snapList = null; histPaint();
+  })();
+}
+setInterval(() => { if (snapDirty) snapshot(); }, 120000);
+document.addEventListener('visibilitychange', () => { if (document.hidden) { persist(); if (snapDirty) snapshot(); } });
+async function listSnaps() {
+  try { snapList ||= (await idb.snaps.all()).sort((a, b) => b.t - a.t); } catch (e) { snapList = []; }
+  return snapList;
+}
+async function restoreSnap(t) {
+  const s = (await listSnaps()).find(x => x.t === t); if (!s) return;
+  if (playing) stop();
+  try { await loadBuffers(s.bufs || []); } catch (e) { }
+  if (snapDirty) await snapshot('vor dem Wiederherstellen');
+  pushUndo();
+  P = normProject(JSON.parse(s.json)); fileHandle = null;
+  selTrack = P.tracks[0]?.id || null; selRegion = null; applyMix(); save(); render();
+  toast(`Sicherung von ${fmtClock(s.t)} wiederhergestellt. Strg+Z geht zurück.`, 4000);
+}
+const fmtClock = t => { const d = new Date(t), same = d.toDateString() === new Date().toDateString(); return (same ? '' : d.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) + ', ') + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }); };
+const fmtAgo = t => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'gerade eben' : m < 60 ? `vor ${m} Min.` : fmtClock(t); };
+// Lebenszeichen alle 5 Sekunden. Fehlt beim nächsten Start das saubere Beenden und gab es ungespeicherte Änderungen, war es ein Absturz.
+const LIFE = 'klangwerk.alive';
+function crashCheck() {
+  let prev = null, st = {};
+  try { prev = JSON.parse(localStorage.getItem(LIFE) || 'null'); st = JSON.parse(localStorage.getItem('klangwerk.state') || '{}'); } catch (e) { }
+  const beat = () => { try { localStorage.setItem(LIFE, JSON.stringify({ t: Date.now() })); } catch (e) { } };
+  beat(); setInterval(beat, 5000);
+  window.addEventListener('pageshow', beat);
+  window.addEventListener('pagehide', () => { persist(); try { localStorage.removeItem(LIFE); } catch (e) { } });
+  return { crashed: !!prev && Date.now() - prev.t > 12000 && !!st.dirty, dirty: !!st.dirty, t: st.t };
 }
 // Base64 in Blöcken, damit auch lange Aufnahmen nicht den Stack sprengen
 function b64(bytes) { let s = ''; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s); }
@@ -1542,7 +1898,7 @@ async function loadProjectFile(file) {
     const ch = a.ch.map(c => { const i16 = new Int16Array(unb64(c).buffer), f = new Float32Array(i16.length); for (let i = 0; i < f.length; i++) f[i] = i16[i] / 0x8000; return f; });
     addBuffer(makeBuffer(a.sr, ch), id);
   }
-  pushUndo();
+  snapshot('vor dem Öffnen'); pushUndo();
   P = normProject(data.project); P.name = file.name.replace(/(\.soundgroot|\.klangwerk)?(\.json)?$/i, '') || P.name;
   selTrack = P.tracks[0]?.id || null; selRegion = null; applyMix(); save(); dirty = false; render();
   toast(`„${P.name}“ geöffnet.`);
@@ -1610,15 +1966,18 @@ async function renderSong() {
   if (playing) stop();
   await samplesReady();
   ensureCtx();
+  await stretchReady();
   let tail = 0;
   for (const t of P.tracks) if (t.type === 'synth') tail = Math.max(tail, t.wam ? 2 : PRESETS[t.preset]?.env.r * 4 || 0);
   if (P.tracks.some(t => t.ins?.some(s => s.on))) tail = Math.max(tail, 3);
   await wamSaveStates();
   const sr = 44100, secs = end * spb() + Math.max(1, tail, busFx().rev.size) + .5;
-  const live = { ctx, master, analyser, noiseBuf, buses, chans: new Map(chans), metro: P.metro };
+  const live = { ctx, master, analyser, noiseBuf, buses, chans: new Map(chans), gchans: new Map(gchans), metro: P.metro };
   const off = new OfflineAudioContext(2, Math.ceil(secs * sr), sr);
+  // Für Sidechains muss das Worklet auch im Offline-Kontext geladen sein
+  if (P.tracks.some(t => scSource(t))) await loadWorklet(off).catch(() => { });
   try {
-    ctx = off; chans.clear(); P.metro = false;
+    ctx = off; chans.clear(); gchans.clear(); P.metro = false;
     buildMaster(off.destination); applyMix(true);
     // Plugins werden für den Export neu im OfflineAudioContext angelegt, mit dem aktuellen Zustand
     await pluginsReady();
@@ -1635,6 +1994,7 @@ async function renderSong() {
     chans.forEach(dropPlugins);
     ctx = live.ctx; master = live.master; analyser = live.analyser; noiseBuf = live.noiseBuf; buses = live.buses; P.metro = live.metro; session = null;
     chans.clear(); live.chans.forEach((v, k) => chans.set(k, v));
+    gchans.clear(); live.gchans.forEach((v, k) => gchans.set(k, v));
   }
 }
 function encodeWav(buf) {
@@ -1662,8 +2022,9 @@ async function exportSong(fmt) {
   try {
     const buf = await renderSong(); if (!buf) return;
     const blob = fmt === 'mp3' ? await encodeMp3(buf) : encodeWav(buf), name = (P.name || 'Mein Song') + '.' + fmt;
+    const lu = await measureLufs(buf).catch(() => -Infinity);
     const ok = await saveFile(blob, name, fmt.toUpperCase() + '-Audio', fmt, fmt === 'mp3' ? 'audio/mpeg' : 'audio/wav');
-    if (ok) toast(`„${name}“ exportiert (${(buf.duration).toFixed(1).replace('.', ',')} s).`);
+    if (ok) toast(`„${name}“ exportiert (${(buf.duration).toFixed(1).replace('.', ',')} s${lu > -70 ? ', Lautheit ' + fmtLu(lu) + ' LUFS' : ''}).`, 4500);
   } catch (e) { console.error(e); toast('Export fehlgeschlagen: ' + (e.message || e)); }
 }
 
@@ -1682,7 +2043,7 @@ function play() {
   ensureCtx();
   if (playing) return;
   if (!rec) playPos = loopStartPos(playPos);
-  playing = true;
+  playing = true; loudReset();
   session = { gains: new Map(), sources: [] };
   const t0 = ctx.currentTime + .05;
   cur = { time: t0, beat: playPos };
@@ -1764,11 +2125,17 @@ function schedule(b0, b1, t0) {
           }
         }
       } else if (tr.type === 'drums') {
-        const slots = drumSlots(r), base = r.start - phaseOf(r), bar1 = Math.ceil((b1 - base) / 4);
-        for (let bar = Math.max(0, Math.floor((b0 - base) / 4)); bar <= bar1; bar++) for (const sl of slots) {
-          const nb = base + bar * 4 + sl.off;
+        const slots = drumSlots(r), base = r.start - phaseOf(r), bar1 = Math.ceil((b1 - base) / 4), sw = drumSwing(r), hu = (r.human || 0) / 100;
+        for (let bar = Math.max(0, Math.floor((b0 - base) / 4)) - 1; bar <= bar1; bar++) for (const sl of slots) {
+          const nb = base + bar * 4 + sl.off + (sl.n === 4 && sl.k % 2 ? sw : 0);
           if (nb < r.start - 1e-9 || nb >= r.start + r.len - 1e-9 || nb < b0 || nb >= b1) continue;
-          for (const d of DRUMS) { const v = r.steps[d.id]?.[sl.k]; if (v) playDrum(d.id, sessionOut(tr), at(nb), v, pieceKit(tr, d.id), r.pitch?.[d.id]?.[sl.k] || 0); }
+          for (const d of DRUMS) {
+            let v = r.steps[d.id]?.[sl.k]; if (!v) continue;
+            let t = at(nb);
+            // Humanize: bis 12 ms früher oder später und bis 25 % leiser oder lauter, für jeden Schlag immer gleich
+            if (hu) { t = Math.max(at(b0), t + hrand(r.id, bar, sl.k, d.id) * hu * .012); v = clamp(v * (1 + hrand(d.id, sl.k, bar, r.id, 'v') * hu * .25), .05, 1); }
+            playDrum(d.id, sessionOut(tr), t, v, pieceKit(tr, d.id), r.pitch?.[d.id]?.[sl.k] || 0);
+          }
         }
       } else if (tr.type === 'audio' && r.start >= b0 && r.start < b1) startAudioRegion(tr, r, at(r.start), 0);
     }
@@ -1784,13 +2151,17 @@ function startAudioAt(beat, t) {
 // Audio-Region abspielen, mit Pegel und Ein-/Ausblenden (r.fi, r.fo in Sekunden, r.gain in dB)
 function startAudioRegion(tr, r, t, offset) {
   const buf = audioBuffers.get(r.buf); if (!buf) return;
-  const total = r.len * spb(), off = (r.offset || 0) + offset, dur = total - offset;
-  if (off >= buf.duration || dur <= 0) return;
-  const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = buf;
+  const total = r.len * spb(), dur = total - offset, st = stOf(r), sb = stretchedBuf(r);
+  if (dur <= 0) return;
+  const src = ctx.createBufferSource(), g = ctx.createGain();
+  let off, len;
+  if (sb) { src.buffer = sb; off = (r.offset || 0) * (sb === buf ? 1 : st) + offset; len = dur; }
+  else { src.buffer = buf; src.playbackRate.value = 1 / st; off = (r.offset || 0) + offset / st; len = dur / st; } // Dehnung rechnet noch: so lange mit verschobener Tonhöhe
+  if (off >= src.buffer.duration) return;
   const env = fadeEnv(r, total);
   g.gain.setValueAtTime(env(offset), t);
   for (const x of [r.fi || 0, total - (r.fo || 0), total].filter(x => x > offset).sort((a, b) => a - b)) g.gain.linearRampToValueAtTime(env(x), t + x - offset);
-  src.connect(g).connect(sessionOut(tr)); src.start(t, off, dur);
+  src.connect(g).connect(sessionOut(tr)); src.start(t, off, len);
   session.sources.push(src);
 }
 // Hüllkurve einer Audio-Region: Pegel mal Einblenden mal Ausblenden, x = Sekunden ab Regionsbeginn
@@ -1803,6 +2174,149 @@ function setBpm(v) {
   if (playing) { const b = currentBeat(), now = ctx.currentTime; P.bpm = v; segs = [{ time: now, beat: b }]; cur = { time: now, beat: b }; }
   else P.bpm = v;
   $('#bpm').value = v; applyBuses(); save();
+  // Regionen, die dem Tempo folgen: Anzeige und neue Dehnung vorbereiten
+  if (P.tracks.some(t => t.type === 'audio' && t.regions.some(r => r.tempo))) { clearTimeout(stRedraw); stRedraw = setTimeout(() => renderArrange(), 250); }
+}
+
+// ================= Time-Stretch: Tempo ändern ohne Tonhöhe =================
+// Audio-Regionen lassen sich dehnen und stauchen (r.st, 1 = original) und können dem Songtempo folgen (r.tempo = Originaltempo
+// der Aufnahme). Gerechnet wird mit WSOLA: kurze, überlappende Stücke werden so aneinandergesetzt, dass ihre Wellen zusammenpassen.
+// Die Berechnung läuft im Hintergrund (Web Worker). Bis sie fertig ist, spielt die Region kurz mit verschobener Tonhöhe.
+const stOf = r => (r.st || 1) * (r.tempo ? r.tempo / P.bpm : 1);
+const srcSecs = r => r.len * spb() / stOf(r); // so viele Sekunden der Aufnahme sind in der Region hörbar
+function wsola(chs, sr, st) {
+  const L = chs[0].length, N = 2 * Math.round(sr * .025), Hs = N / 2, Ha = Hs / st, tol = Math.round(sr * .012), D = 4;
+  const outLen = Math.round(L * st), out = chs.map(() => new Float32Array(outLen + N)), win = new Float32Array(N);
+  for (let i = 0; i < N; i++) win[i] = .5 - .5 * Math.cos(2 * Math.PI * i / N);
+  // Für die Suche: Mono-Summe, auf ein Viertel verkleinert (reicht für die Ähnlichkeit und ist viermal schneller)
+  const M = new Float32Array(Math.ceil(L / D) + 1);
+  for (let i = 0, k = 0; i < L; i += D, k++) { let v = 0; for (const c of chs) for (let j = i; j < Math.min(L, i + D); j++) v += c[j]; M[k] = v; }
+  const len = Math.floor(Hs / D), T = Math.floor(tol / D);
+  let prev = 0;
+  for (let k = 0, o = 0; o < outLen; k++, o += Hs) {
+    const nom = Math.round(k * Ha);
+    let pos = nom;
+    if (k > 0) {
+      // Stück suchen, das am besten an die natürliche Fortsetzung des vorigen Stücks anschließt
+      const a0 = Math.floor((prev + Hs) / D), c0 = Math.floor(nom / D);
+      let best = 0, bv = -Infinity;
+      if (a0 + len < M.length) for (let d = -T; d <= T; d++) {
+        const b0 = c0 + d; if (b0 < 0 || b0 + len >= M.length) continue;
+        let xy = 0, yy = 1e-9; for (let i = 0; i < len; i++) { const y = M[b0 + i]; xy += M[a0 + i] * y; yy += y * y; }
+        const v = xy / Math.sqrt(yy); if (v > bv) { bv = v; best = d; }
+      }
+      pos = Math.max(0, nom + best * D);
+    }
+    if (pos >= L) break;
+    for (let c = 0; c < chs.length; c++) { const x = chs[c], y = out[c]; for (let i = 0; i < N && pos + i < L; i++) y[o + i] += x[pos + i] * win[i]; }
+    prev = pos;
+  }
+  return out.map(y => y.subarray(0, outLen).slice());
+}
+let stWorker = null;
+const stJobs = new Map();
+let stSeq = 0;
+function runStretch(buf, st) {
+  const chs = Array.from({ length: buf.numberOfChannels }, (_, i) => buf.getChannelData(i).slice()), sr = buf.sampleRate;
+  const local = () => new Promise(res => setTimeout(() => res(wsola(chs, sr, st)), 0));
+  if (stWorker === false) return local();
+  try {
+    if (!stWorker) {
+      stWorker = new Worker(URL.createObjectURL(new Blob([wsola.toString() + '\nonmessage = e => { const o = wsola(e.data.chs, e.data.sr, e.data.st); postMessage({ id: e.data.id, o }, o.map(x => x.buffer)); };'], { type: 'text/javascript' })));
+      stWorker.onmessage = e => { const j = stJobs.get(e.data.id); stJobs.delete(e.data.id); j?.res(e.data.o); };
+      // Worker nicht erlaubt (etwa in manchen eingebetteten Ansichten): dann im Hauptprogramm rechnen
+      stWorker.onerror = () => { stWorker = false; for (const [id, j] of stJobs) { stJobs.delete(id); j.res(wsola(j.chs, j.sr, j.st)); } };
+    }
+    const id = ++stSeq;
+    return new Promise(res => { stJobs.set(id, { res, chs: chs.map(c => c.slice()), sr, st }); stWorker.postMessage({ id, chs, sr, st }, chs.map(c => c.buffer)); });
+  } catch (e) { stWorker = false; return local(); }
+}
+// Gedehnte Fassungen im Speicher, Schlüssel: Aufnahme und Faktor
+const stCache = new Map();
+let stRedraw = 0;
+const stKey = r => r.buf + '@' + stOf(r).toFixed(4);
+function stretchedBuf(r) {
+  const st = stOf(r), src = audioBuffers.get(r.buf);
+  if (!src || Math.abs(st - 1) < 5e-4) return src || null;
+  const key = stKey(r);
+  let e = stCache.get(key);
+  if (!e) {
+    e = { buf: null }; stCache.set(key, e);
+    e.p = runStretch(src, st).then(o => {
+      e.buf = makeBuffer(src.sampleRate, o);
+      // Nicht mehr gebrauchte Fassungen freigeben
+      const used = new Set(P.tracks.flatMap(t => t.type === 'audio' ? t.regions.map(stKey) : []));
+      for (const [k, v] of stCache) if (!used.has(k) && v.buf) stCache.delete(k);
+      clearTimeout(stRedraw); stRedraw = setTimeout(() => renderArrange(), 120);
+    });
+  }
+  return e.buf;
+}
+// Vor dem Export auf alle Berechnungen warten
+async function stretchReady() {
+  for (const t of P.tracks) if (t.type === 'audio') for (const r of t.regions) { stretchedBuf(r); const e = stCache.get(stKey(r)); if (e?.p) await e.p; }
+}
+// Tempo einer Aufnahme schätzen: Anschläge suchen, dann den Abstand, der sich am häufigsten wiederholt (60 bis 180 BPM).
+// Kurze Dateien sind meist Loops aus ganzen Takten: dann gewinnt das Tempo, bei dem die Länge genau aufgeht.
+// Bei Halb/Doppelt-Zweifeln gewinnt das Tempo, das näher am Songtempo liegt.
+function detectTempo(buf, off = 0, dur = buf.duration) {
+  const sr = buf.sampleRate, hop = 512, s0 = Math.floor(off * sr), n = Math.min(buf.length - s0, Math.floor(dur * sr)), F = Math.floor(n / hop);
+  if (F < 32) return 0;
+  const chs = Array.from({ length: buf.numberOfChannels }, (_, i) => buf.getChannelData(i)), en = new Float32Array(F);
+  for (let f = 0; f < F; f++) { let e = 0; for (const d of chs) for (let i = s0 + f * hop; i < s0 + (f + 1) * hop; i++) e += d[i] * d[i]; en[f] = Math.log10(e + 1e-6); }
+  const od = new Float32Array(F); for (let f = 1; f < F; f++) od[f] = Math.max(0, en[f] - en[f - 1]);
+  const fr = sr / hop;
+  // Wie gut wiederholen sich die Anschläge im Abstand eines Schlags (und eines halben)?
+  const score = bpm => {
+    let s = 0;
+    for (const m of [1, 2]) {
+      const lag = fr * 60 / bpm * m, l0 = Math.floor(lag), w = lag - l0; if (l0 + 1 >= F) continue;
+      let x = 0; for (let f = 0; f + l0 + 1 < F; f++) x += od[f] * (od[f + l0] * (1 - w) + od[f + l0 + 1] * w);
+      s += x / (F - l0) / m;
+    }
+    return s * Math.exp(-.5 * Math.pow(Math.log2(bpm / 110) / 1.1, 2));
+  };
+  let best = 0, bv = 0;
+  for (let bpm = 60; bpm <= 180; bpm += .5) { const v = score(bpm); if (v > bv) { bv = v; best = bpm; } }
+  if (!best) return 0;
+  const near = (a, b) => Math.abs(Math.log2(a / b));
+  // Loop-Kandidaten: ganze Takte über die ganze Länge
+  if (dur < 45) {
+    let cb = 0, cv = 0;
+    for (let beats = 4; beats <= 128; beats += 4) {
+      const bpm = beats * 60 / dur; if (bpm < 60 || bpm > 180) continue;
+      const v = score(bpm) * (P ? 1 - .3 * Math.min(1, near(bpm, P.bpm)) : 1);
+      if (v > cv) { cv = v; cb = bpm; }
+    }
+    if (cb && score(cb) >= .5 * bv) return Math.round(cb * 10) / 10;
+  }
+  // Halbes oder doppeltes Tempo, falls fast genauso gut und näher am Songtempo
+  for (const c of [best / 2, best * 2]) if (c >= 60 && c <= 180 && score(c) >= .75 * bv && P && near(c, P.bpm) < near(best, P.bpm)) best = c;
+  return Math.round(best * 10) / 10;
+}
+// Region dem Songtempo folgen lassen. Das hörbare Stück der Aufnahme bleibt gleich, nur die Länge im Song ändert sich.
+function setRegionTempo(r, bpm) {
+  const secs = srcSecs(r);
+  if (bpm) r.tempo = bpm; else delete r.tempo;
+  r.len = Math.max(.25, secs * stOf(r) / spb());
+}
+// Loops aus der Bibliothek als Audio-Region: sie folgen sofort dem Songtempo
+async function loopToAudio(id, trackId) {
+  const L = LOOPS.find(x => x.id === id); if (!L) return;
+  ensureCtx();
+  const key = 'loop-' + id;
+  try { if (!smpRaw[key]) await loadScript('samples/' + key + '.js'); }
+  catch (e) { toast(`Der Loop „${L.name}“ ließ sich nicht laden.`); return; }
+  const buf = await ctx.decodeAudioData(unb64(smpRaw[key]).buffer.slice(0));
+  pushUndo();
+  let tr = findTrack(trackId);
+  if (!tr || tr.type !== 'audio') { tr = newTrack('audio', { name: L.name }); P.tracks.push(tr); applyMix(); }
+  const end = Math.max(0, ...tr.regions.map(r => r.start + r.len)), start = tr.regions.length ? Math.ceil(end / 4) * 4 : Math.floor(playPos / 4) * 4;
+  const r = { id: uid(), name: L.name, start, len: buf.duration / spb(), buf: addBuffer(buf), offset: 0 };
+  setRegionTempo(r, L.bpm);
+  tr.regions.push(r); selTrack = tr.id; selRegion = r.id; edTab = 'region'; libKey = '';
+  save(); render();
+  toast(L.bpm === P.bpm ? `„${L.name}“ eingefügt.` : `„${L.name}“ (${L.bpm} BPM) eingefügt und auf ${P.bpm} BPM gebracht, ohne die Tonhöhe zu ändern.`, 4000);
 }
 
 // ================= Aufnahme =================
@@ -1872,6 +2386,7 @@ function stopRecording() {
     // Leerer letzter Durchgang zählt nicht als Take
     if (reg?.takes?.length > 1 && !reg.notes.length) { reg.takes.pop(); useTake(reg, reg.takes.length - 1, true); }
     if (reg?.takes?.length === 1) { delete reg.takes; delete reg.take; }
+    if (reg && groove.auto) { for (const t of reg.takes || [{ notes: reg.notes }]) quantizeNotes(t.notes, prSnap, reg.len); toast('Aufnahme quantisiert. Strg+Z holt das Original zurück.'); }
     save(); render();
   }
   removeGhost(); hideCount(); updateTransport();
@@ -2025,9 +2540,10 @@ function renderArrange() {
     const regs = tr.regions.map(r => {
       const missing = tr.type === 'audio' && !audioBuffers.has(r.buf), au = tr.type === 'audio' && !missing, total = r.len * spb();
       const fades = au ? `<div class="fh fi" title="Einblenden (ziehen)" style="left:${clamp((r.fi || 0) / total, 0, 1) * 100}%"></div><div class="fh fo" title="Ausblenden (ziehen)" style="left:${(1 - clamp((r.fo || 0) / total, 0, 1)) * 100}%"></div>` : '';
-      const gain = au && r.gain ? `<span class="rgain">${r.gain > 0 ? '+' : ''}${String(Math.round(r.gain * 10) / 10).replace('.', ',')} dB</span>` : '';
+      const gain = au && r.gain && r.len * ppb > 90 ? `<span>${r.gain > 0 ? '+' : ''}${String(Math.round(r.gain * 10) / 10).replace('.', ',')} dB</span>` : '';
+      const stb = au && r.len * ppb > 150 && (r.tempo || Math.abs(stOf(r) - 1) > 5e-4) ? `<span class="${stretchedBuf(r) ? '' : 'busy'}" title="${r.tempo ? `Folgt dem Songtempo (Original ${fmtBpm(r.tempo)} BPM), Tonhöhe bleibt gleich` : 'Gedehnt, Tonhöhe bleibt gleich'}">${r.tempo ? '♩ ' + fmtBpm(r.tempo) + ' → ' + fmtBpm(P.bpm) : '⇔ ' + Math.round(stOf(r) * 100) + ' %'}</span>` : '';
       return `<div class="region ${r.id === selRegion ? 'sel' : ''} ${missing ? 'missing' : ''}" data-region="${r.id}" style="left:${r.start * ppb}px;width:${Math.max(4, r.len * ppb)}px">
-        <div class="rname">${esc(r.name)}${r.takes?.length > 1 ? ` · Take ${r.take + 1}/${r.takes.length}` : ''}${missing ? ' (Audio nicht gespeichert)' : ''}</div>${gain}<canvas></canvas><div class="lh" title="Anfang kürzen"></div><div class="rh" title="Länge ändern"></div>${fades}</div>`;
+        <div class="rname">${esc(r.name)}${r.takes?.length > 1 ? ` · Take ${r.take + 1}/${r.takes.length}` : ''}${missing ? ' (Audio nicht gespeichert)' : ''}</div>${gain || stb ? `<span class="rtags">${stb}${gain}</span>` : ''}<canvas></canvas><div class="lh" title="Anfang kürzen"></div><div class="rh" title="${au ? 'Länge ändern · Alt+Ziehen dehnt das Audio (Time-Stretch)' : 'Länge ändern'}"></div>${fades}</div>`;
     }).join('');
     const av = k => autoOn(tr, k) ? 'disabled title="Wird von der Automation gesteuert"' : '';
     let row = `<div class="track-row ${sel}" data-track="${tr.id}" style="--c:${tr.color}">
@@ -2108,14 +2624,14 @@ function drawRegion(cv, tr, r) {
     used.forEach((d, i) => {
       const st = r.steps[d.id];
       for (let bar = 0; bar * 4 - ph < r.len; bar++) for (const sl of drumSlots(r)) {
-        const off = bar * 4 + sl.off - ph, v = st[sl.k];
+        const off = bar * 4 + sl.off - ph + (sl.n === 4 && sl.k % 2 ? drumSwing(r) : 0), v = st[sl.k];
         if (v && off >= 0 && off < r.len) { g.globalAlpha = .35 + v * .65; g.fillRect(off * ppb, 2 + i * rh, Math.max(1.5, ppb / sl.n - 1), Math.max(1.5, rh - 1)); }
       }
     });
     g.globalAlpha = 1;
   } else if (tr.type === 'audio') {
     const buf = audioBuffers.get(r.buf); if (!buf) return;
-    drawWave(g, buf, r.offset || 0, r.len * spb(), w, h, tr.color, Math.pow(10, (r.gain || 0) / 20));
+    drawWave(g, buf, r.offset || 0, srcSecs(r), w, h, tr.color, Math.pow(10, (r.gain || 0) / 20));
     drawFades(g, r, w, h);
   }
 }
@@ -2186,6 +2702,7 @@ let edState = { id: null }, lastLen = .5, liveCells = null;
 const noteName = m => ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'][m % 12] + (Math.floor(m / 12) - 2);
 let edTab = 'region', eqView = null, mixView = null, edKey = '';
 function renderEditor() {
+  if (!grvMenu.hidden) grvMenu.hidden = true;
   liveCells = null; eqView = null; mixView = null; smpView = null;
   const tr = findTrack(selTrack);
   if (edTab === 'mix') renderMixer(); else if (edTab === 'eq' && tr) renderEq(tr); else if (edTab === 'fx' && tr) renderFx(tr); else if (edTab === 'smp' && tr?.type === 'sampler') renderSampler(tr); else { edTab = 'region'; renderRegionEditor(); }
@@ -2217,6 +2734,8 @@ function renderRegionEditor() {
         <p>Mit „A“ im Spurkopf öffnest du die Automation: Lautstärke, Panorama, Filter, Hall und Delay als Kurve über die Zeit. Marker für Intro, Strophe, Refrain setzt du mit „+ Marker“ oder per Doppelklick in die Marker-Leiste.</p>
         <p>In der Bibliothek (I) findest du unter „Echte Instrumente“ aufgenommene Klänge wie Flügel, Gitarren, Streicher und Bläser. Mit „Eigenes Sample laden …“ machst du aus einer beliebigen Audiodatei ein spielbares Instrument.</p>
         <p>Sampler wie eine MPC: Zieh eine Audiodatei ins Arrangement (rechte Hälfte) oder lege mit „+ Spur“ einen Sampler an. Sound Groot schneidet sie in Chops und legt sie auf 16 Pads. Jeden Chop kannst du stimmen, ein- und ausblenden, umdrehen und filtern. Gespielt wird mit Maus, Tasten oder Pad-Controller; R (auf der Sampler-Spur Umschalt+R) nimmt auf.</p>
+        <p>Groove: Im Piano Roll zieht „Quantisieren“ die Noten aufs Raster, unter „Groove“ stellst du Stärke, Swing und Humanize ein. Im Drum-Pattern gibt es Swing und Humanize pro Region. Audio-Regionen folgen auf Wunsch dem Songtempo, ohne dass sich die Tonhöhe ändert. Loops dafür liegen in der Bibliothek einer Audio-Spur.</p>
+        <p>Im Mixer (M) fasst du Spuren zu Gruppen zusammen, rechts zeigt der Master die Lautheit in LUFS. Unter Klang & Effekte kann der Kompressor per Sidechain von einer anderen Spur gesteuert werden, etwa damit die Kick den Bass kurz wegdrückt.</p>
         <p>Aufnahme (R) startet mit einem Takt Vorzähler. Ist der Cycle an, entsteht pro Durchgang ein eigener Take, den besten wählst du im Editor. Vorzähler und Latenzausgleich stellst du unter Geräte ein.</p>
         <p class="hint">Instrument-Samples: <a href="https://github.com/nbrosowsky/tonejs-instruments" target="_blank" rel="noopener">tonejs-instruments</a> von Nicholas Brosowsky, Lizenz CC-BY 3.0. Weitere Instrumente, Percussion und Loops: <a href="https://github.com/sgossner/VCSL" target="_blank" rel="noopener">Versilian Community Sample Library</a> (CC0).</p></div>
       <div><h3>Tastatur</h3><dl>
@@ -2235,7 +2754,10 @@ function renderRegionEditor() {
         <dt>Alt+Klick</dt><dd>Region an dieser Stelle teilen</dd>
         <dt>, / .</dt><dd>Zum vorigen / nächsten Marker springen</dd>
         <dt>Entf</dt><dd>Region, Note oder Marker löschen</dd>
-        <dt>Strg+Z</dt><dd>Rückgängig</dd>
+        <dt>Strg+Z</dt><dd>Rückgängig (der Verlauf mit allen Schritten liegt oben neben den Pfeilen)</dd>
+        <dt>Strg+Umschalt+Z</dt><dd>Wiederholen</dd>
+        <dt>Q</dt><dd>Noten quantisieren (im Piano Roll, mit Swing und Stärke aus „Groove“)</dd>
+        <dt>Alt+Ziehen</dt><dd>am rechten Rand einer Audio-Region: dehnen ohne Tonhöhe zu ändern</dd>
         <dt>Strg+S</dt><dd>Projekt speichern</dd></dl></div>
     </div>`;
     return;
@@ -2263,9 +2785,14 @@ function renderAudioEditor(tr, r) {
   const buf = audioBuffers.get(r.buf), total = r.len * spb(), f1 = v => v.toFixed(1).replace('.', ',');
   const fmax = Math.max(.1, Math.round(total * 10) / 10);
   const sl = (id, label, min, max, step, v, out) => `<label class="note velctl afx">${label} <input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${v}"><output>${out}</output></label>`;
-  eHead.innerHTML = `<input class="rn" id="rname" value="${esc(r.name)}" aria-label="Regionsname"><span class="note">${buf ? f1(total) + ' s von ' + f1(buf.duration) + ' s' : 'Audiodaten nicht im Speicher. Bitte neu importieren.'}</span>
+  eHead.innerHTML = `<input class="rn" id="rname" value="${esc(r.name)}" aria-label="Regionsname"><span class="note">${buf ? f1(total) + ' s' + (Math.abs(stOf(r) - 1) > 5e-4 ? ` · gedehnt auf ${Math.round(stOf(r) * 100)} %` : ` von ${f1(buf.duration)} s`) : 'Audiodaten nicht im Speicher. Bitte neu importieren.'}</span>
     ${buf ? `${sl('afi', 'Einblenden', 0, fmax, .01, r.fi || 0, f1(r.fi || 0) + ' s')}${sl('afo', 'Ausblenden', 0, fmax, .01, r.fo || 0, f1(r.fo || 0) + ' s')}
     ${sl('again', 'Pegel', -24, 24, .5, r.gain || 0, fmtG(r.gain || 0))}
+    <label class="note chk" title="Die Region folgt dem Songtempo, die Tonhöhe bleibt gleich (Time-Stretch)"><input type="checkbox" id="aflex" ${r.tempo ? 'checked' : ''}> Folgt dem Songtempo</label>
+    <label class="note" title="Tempo, in dem die Aufnahme gespielt wurde">Original <input class="bpmin" type="number" id="abpm" min="40" max="240" step="0.1" value="${r.tempo || ''}" placeholder="?"> BPM</label>
+    <button class="sbtn" id="adetect" title="Tempo der Aufnahme schätzen">Tempo erkennen</button>
+    ${r.tempo && Math.abs(r.tempo - P.bpm) > .05 ? `<button class="sbtn" id="asongbpm" title="Das Songtempo auf ${fmtBpm(r.tempo)} BPM setzen">Als Songtempo</button>` : ''}
+    ${sl('ast', 'Dehnen', 50, 200, 1, Math.round((r.st || 1) * 100), Math.round((r.st || 1) * 100) + ' %')}
     <button class="sbtn" id="anorm" title="Lautesten Punkt auf 0 dB anheben">Normalisieren</button><button class="sbtn" id="arev" title="Audio rückwärts abspielen">Umkehren</button><button class="sbtn" id="asplit" title="An der Abspielposition teilen (B)">Teilen</button><button class="sbtn" id="asmp" title="Diesen Ausschnitt in einen neuen Sampler laden, in Chops schneiden und auf Pads spielen">Im Sampler öffnen</button>` : ''}`;
   eBody.innerHTML = `<div class="wave"><canvas id="wavecv"></canvas><div class="ed-play" id="edplay"></div></div>`;
   const cv = $('#wavecv');
@@ -2273,7 +2800,7 @@ function renderAudioEditor(tr, r) {
     if (!buf) return;
     const w = cv.clientWidth, h = cv.clientHeight, dpr = devicePixelRatio || 1; cv.width = w * dpr; cv.height = h * dpr;
     const g = cv.getContext('2d'); g.scale(dpr, dpr);
-    drawWave(g, buf, r.offset || 0, total, w, h, tr.color, Math.pow(10, (r.gain || 0) / 20)); drawFades(g, r, w, h);
+    drawWave(g, buf, r.offset || 0, srcSecs(r), w, h, tr.color, Math.pow(10, (r.gain || 0) / 20)); drawFades(g, r, w, h);
     edState.pxb = w / r.len; edState.bar1 = false;
   };
   draw();
@@ -2281,16 +2808,39 @@ function renderAudioEditor(tr, r) {
   let undone = false;
   const redraw = () => { draw(); const el = rowsEl.querySelector(`.region[data-region="${r.id}"]`); if (el) { const [t2] = findRegion(r.id); drawRegion(el.querySelector('canvas'), t2, r); } };
   eHead.oninput = e => {
-    const id = e.target.id; if (!['afi', 'afo', 'again'].includes(id)) return;
+    const id = e.target.id; if (!['afi', 'afo', 'again', 'ast'].includes(id)) return;
     if (!undone) { pushUndo(); undone = true; }
     const v = +e.target.value;
+    if (id === 'ast') {
+      // Dehnen: der hörbare Ausschnitt bleibt, die Region wird länger oder kürzer
+      const secs = srcSecs(r); r.st = v / 100; if (r.st === 1) delete r.st;
+      r.len = Math.max(.25, secs * stOf(r) / spb()); e.target.nextElementSibling.textContent = v + ' %';
+      const el = rowsEl.querySelector(`.region[data-region="${r.id}"]`); if (el) el.style.width = r.len * ppb + 'px';
+      redraw(); return;
+    }
     if (id === 'afi') r.fi = v; else if (id === 'afo') r.fo = v; else r.gain = v;
     e.target.nextElementSibling.textContent = id === 'again' ? fmtG(v) : f1(v) + ' s';
     redraw();
   };
-  eHead.onchange = e => { if (['afi', 'afo', 'again'].includes(e.target.id)) { undone = false; save(); renderArrange(); } };
+  const tempoDone = msg => { save(); render(); if (msg) toast(msg, 3500); };
+  eHead.onchange = e => {
+    const id = e.target.id;
+    if (['afi', 'afo', 'again', 'ast'].includes(id)) { undone = false; save(); id === 'ast' ? render() : renderArrange(); return; }
+    if (id === 'aflex') {
+      pushUndo();
+      if (e.target.checked) { const bpm = +$('#abpm').value || detectTempo(buf, r.offset || 0, srcSecs(r)) || P.bpm; setRegionTempo(r, bpm); tempoDone(`Region folgt jetzt dem Songtempo (Original ${fmtBpm(bpm)} BPM).`); }
+      else { setRegionTempo(r, 0); tempoDone('Region folgt dem Songtempo nicht mehr.'); }
+    }
+    if (id === 'abpm') { const v = clamp(+e.target.value, 40, 240); if (!+e.target.value) return; pushUndo(); setRegionTempo(r, Math.round(v * 10) / 10); tempoDone(); }
+  };
+  $('#adetect').onclick = () => {
+    const bpm = detectTempo(buf, r.offset || 0, srcSecs(r));
+    if (!bpm) { toast('Kein klares Tempo gefunden. Gib es von Hand ein.'); return; }
+    pushUndo(); setRegionTempo(r, bpm); tempoDone(`Geschätzt: ${fmtBpm(bpm)} BPM. Die Region folgt jetzt dem Songtempo.`);
+  };
+  const sb = $('#asongbpm'); if (sb) sb.onclick = () => { pushUndo(); setBpm(r.tempo); render(); toast(`Songtempo ist jetzt ${fmtBpm(P.bpm)} BPM.`); };
   $('#anorm').onclick = () => {
-    const s0 = Math.floor((r.offset || 0) * buf.sampleRate), s1 = Math.min(buf.length, s0 + Math.floor(total * buf.sampleRate));
+    const s0 = Math.floor((r.offset || 0) * buf.sampleRate), s1 = Math.min(buf.length, s0 + Math.floor(srcSecs(r) * buf.sampleRate));
     let pk = 0; for (let c = 0; c < buf.numberOfChannels; c++) { const d = buf.getChannelData(c); for (let i = s0; i < s1; i++) { const a = Math.abs(d[i]); if (a > pk) pk = a; } }
     if (pk < 1e-5) { toast('Die Region ist still.'); return; }
     pushUndo(); r.gain = clamp(Math.round(-20 * Math.log10(pk) * 10) / 10 - .3, -24, 24); save(); render(); toast('Normalisiert: ' + fmtG(r.gain));
@@ -2299,7 +2849,7 @@ function renderAudioEditor(tr, r) {
     pushUndo();
     const n = new AudioBuffer({ length: buf.length, sampleRate: buf.sampleRate, numberOfChannels: buf.numberOfChannels });
     for (let c = 0; c < buf.numberOfChannels; c++) n.copyToChannel(buf.getChannelData(c).slice().reverse(), c);
-    r.buf = addBuffer(n); r.offset = Math.max(0, buf.duration - (r.offset || 0) - total);
+    r.offset = Math.max(0, buf.duration - (r.offset || 0) - srcSecs(r)); r.buf = addBuffer(n);
     [r.fi, r.fo] = [r.fo || 0, r.fi || 0]; r.reversed = !r.reversed;
     save(); render(); toast(r.reversed ? 'Region wird rückwärts abgespielt.' : 'Region wieder vorwärts.');
   };
@@ -2433,6 +2983,8 @@ function autoChop(tr, how) {
   let cuts;
   if (how.startsWith('n')) { const n = +how.slice(1); cuts = Array.from({ length: n }, (_, i) => t0 + (dur - t0) * i / n); }
   else if (how === 'beats' && src.bpm) { const b = 60 / src.bpm / 2; cuts = []; for (let x = 0; x < dur - .05 && cuts.length < 32; x += b) cuts.push(x); }
+  // Anschläge suchen und auf die 16tel des Loop-Tempos quantisieren
+  else if (how === 'hitsq' && src.bpm) { const g = 60 / src.bpm / 4; cuts = [...new Set(onsets(buf, 2).map(t => +(t0 + Math.max(0, Math.round((t - t0) / g)) * g).toFixed(5)))].filter(t => t < dur - .03); }
   else if (how === 'one') cuts = [t0];
   else cuts = onsets(buf, +how.slice(4) || 2);
   const short = src.name.replace(/\s*\(.*\)$/, '').slice(0, 14);
@@ -2478,7 +3030,16 @@ const LOOPS = [
   { id: 'marimba-line', name: 'Marimba-Linie', bpm: 96, cat: 'Melodie' },
   { id: 'harp-arp', name: 'Harfen-Arpeggio', bpm: 80, cat: 'Melodie' },
   { id: 'organ-stabs', name: 'Orgel-Akkorde', bpm: 90, cat: 'Melodie' },
-  { id: 'sax-licks', name: 'Saxophon-Licks', bpm: 92, cat: 'Melodie' }
+  { id: 'sax-licks', name: 'Saxophon-Licks', bpm: 92, cat: 'Melodie' },
+  // Neu in v1.0
+  { id: 'house-groove', name: 'House-Groove', bpm: 124, cat: 'Drums' },
+  { id: 'halftime-break', name: 'Halftime-Break', bpm: 140, cat: 'Drums' },
+  { id: 'reggae-onedrop', name: 'Reggae One-Drop', bpm: 76, cat: 'Drums' },
+  { id: 'bossa-groove', name: 'Bossa-Groove', bpm: 120, cat: 'Percussion' },
+  { id: 'house-piano', name: 'House-Piano', bpm: 122, cat: 'Melodie' },
+  { id: 'strum-folk', name: 'Folk-Strumming', bpm: 100, cat: 'Melodie' },
+  { id: 'saxello-line', name: 'Saxello-Melodie', bpm: 96, cat: 'Melodie' },
+  { id: 'psaltery-pad', name: 'Psalter-Fläche', bpm: 80, cat: 'Melodie' }
 ];
 async function loadLoop(id, trackId) {
   const L = LOOPS.find(x => x.id === id); if (!L) return;
@@ -2491,8 +3052,10 @@ async function loadLoop(id, trackId) {
 }
 // Aus einer Audio-Region einen Sampler machen (der hörbare Ausschnitt wird übernommen)
 function regionToSampler(tr, r) {
-  const buf = audioBuffers.get(r.buf); if (!buf) return;
-  const sr = buf.sampleRate, s0 = Math.floor((r.offset || 0) * sr), n = Math.min(buf.length - s0, Math.floor(r.len * spb() * sr));
+  const raw = audioBuffers.get(r.buf); if (!raw) return;
+  // Gedehnte Regionen kommen so in den Sampler, wie man sie hört
+  const sb = stretchedBuf(r), buf = sb || raw, k = sb && sb !== raw ? stOf(r) : 1;
+  const sr = buf.sampleRate, s0 = Math.floor((r.offset || 0) * k * sr), n = Math.min(buf.length - s0, Math.floor((k === 1 && !sb ? srcSecs(r) : r.len * spb()) * sr));
   if (n < sr * .05) { toast('Die Region ist zu kurz.'); return; }
   addSamplerSource(makeBuffer(sr, Array.from({ length: buf.numberOfChannels }, (_, i) => buf.getChannelData(i).slice(s0, s0 + n))), r.name.slice(0, 40), null);
 }
@@ -2532,7 +3095,7 @@ function renderSampler(tr) {
   const tempo = src?.bpm && src.bpm !== P.bpm ? `<button class="sbtn" id="smpBpm" title="Projekttempo auf das Tempo des Loops stellen">Tempo ${src.bpm} BPM übernehmen</button>` : '';
   eHead.innerHTML = `<span class="note" style="color:${tr.color};font-weight:600">${esc(tr.name)}</span>${srcSel}
     <button class="sbtn" id="smpLoad" title="Audiodatei laden (oder einfach hierher ziehen)">Sample laden …</button>
-    ${src ? `<select id="smpAuto" title="Sample neu in Chops schneiden"><option value="">Auto-Chop …</option><option value="hits1">Nach Anschlägen (grob)</option><option value="hits2">Nach Anschlägen</option><option value="hits3">Nach Anschlägen (fein)</option>${src.bpm ? '<option value="beats">Im Takt (Achtel)</option>' : ''}<option value="n4">4 gleiche Teile</option><option value="n8">8 gleiche Teile</option><option value="n16">16 gleiche Teile</option><option value="n32">32 gleiche Teile</option><option value="one">Ganzes Sample als ein Chop</option></select>
+    ${src ? `<select id="smpAuto" title="Sample neu in Chops schneiden"><option value="">Auto-Chop …</option><option value="hits1">Nach Anschlägen (grob)</option><option value="hits2">Nach Anschlägen</option><option value="hits3">Nach Anschlägen (fein)</option>${src.bpm ? '<option value="beats">Im Takt (Achtel)</option><option value="hitsq">Nach Anschlägen, aufs 16tel-Raster</option>' : ''}<option value="n4">4 gleiche Teile</option><option value="n8">8 gleiche Teile</option><option value="n16">16 gleiche Teile</option><option value="n32">32 gleiche Teile</option><option value="one">Ganzes Sample als ein Chop</option></select>
     ${toolButtons([['sel', 'Auswählen'], ['cut', 'Schere']], smpUI.tool)}
     <span class="zoomctl"><button class="sbtn" data-sz="0.6" title="Herauszoomen (Strg + Mausrad)">−</button><button class="sbtn" data-sz="1.6" title="Hineinzoomen (Strg + Mausrad)">+</button></span>
     <button class="sbtn" id="smpSpread" title="Chops in der Reihenfolge der Liste auf Pad 1 bis 16 legen">Auf Pads verteilen</button>
@@ -2860,7 +3423,7 @@ function splitRegion(tr, r, b) {
   if (d <= .01 || d >= r.len - .01) return null;
   const right = JSON.parse(JSON.stringify(r));
   right.id = uid(); right.start = b; right.len = r.len - d; r.len = d;
-  if (tr.type === 'audio') { right.offset = (r.offset || 0) + d * spb(); right.fi = 0; r.fo = 0; }
+  if (tr.type === 'audio') { right.offset = (r.offset || 0) + d * spb() / stOf(r); right.fi = 0; r.fo = 0; }
   else if (r.notes) { right.notes = r.notes.filter(n => n.s >= d).map(n => ({ ...n, s: n.s - d })); r.notes = r.notes.filter(n => n.s < d); for (const x of [r, right]) { delete x.takes; delete x.take; } }
   else right.phase = (r.phase || 0) + d;
   tr.regions.push(right);
@@ -2984,6 +3547,7 @@ const EQ_PRESETS = {
 const isCut = b => b.type === 'highpass' || b.type === 'lowpass';
 const eqActive = tr => !!tr.eq && tr.eq.on && tr.eq.bands.some(b => b.on && (isCut(b) || Math.abs(b.g || 0) > .1));
 const fmtF = f => f >= 1000 ? (f / 1000).toFixed(f >= 10000 ? 0 : 1).replace('.', ',') + ' kHz' : Math.round(f) + ' Hz';
+const fmtBpm = v => String(Math.round(v * 10) / 10).replace('.', ',');
 const fmtG = g => (g > 0 ? '+' : '') + g.toFixed(1).replace('.', ',') + ' dB';
 function renderEq(tr) {
   ensureCtx();
@@ -3079,8 +3643,11 @@ const COMP_PRESETS = {
   'Gesang': { thr: -24, ratio: 4, att: 8, rel: 150, gain: 5 },
   'Drums mit Punch': { thr: -18, ratio: 5, att: 30, rel: 120, gain: 4 },
   'Bass gleichmäßig': { thr: -26, ratio: 6, att: 5, rel: 200, gain: 6 },
-  'Hart (Limiter)': { thr: -10, ratio: 20, att: 1, rel: 80, gain: 3 }
+  'Hart (Limiter)': { thr: -10, ratio: 20, att: 1, rel: 80, gain: 3 },
+  'Pumpen (Sidechain)': { thr: -32, ratio: 10, att: 2, rel: 180, gain: 0 }
 };
+// Würde die Spur t als Auslöser für tr eine Schleife bilden (t hängt selbst an tr)?
+const scLoops = (tr, t) => { for (let x = t, i = 0; x && i < 64; i++) { const n = x.fx?.comp?.on && x.fx.comp.sc; if (!n) return false; if (n === tr.id) return true; x = findTrack(n); } return false; };
 const fxActive = tr => (!!tr.fx && (tr.fx.comp.on || tr.fx.rev > .01 || tr.fx.del > .01)) || !!tr.ins?.some(s => s.on);
 const DIVS = [[.25, '1/16'], [.5, '1/8'], [.75, '1/8 punktiert'], [1, '1/4'], [1.5, '1/4 punktiert'], [2, '1/2']];
 function renderFx(tr) {
@@ -3114,6 +3681,8 @@ function renderFx(tr) {
       ${sl('fx.comp.thr', 'Schwelle', -60, 0, 1, FMT['fx.comp.thr'])}${sl('fx.comp.ratio', 'Verhältnis', 1, 20, .5, FMT['fx.comp.ratio'])}
       ${sl('fx.comp.att', 'Attack', 1, 200, 1, FMT['fx.comp.att'])}${sl('fx.comp.rel', 'Release', 20, 1000, 10, FMT['fx.comp.rel'])}
       ${sl('fx.comp.gain', 'Aufholen', 0, 24, .5, FMT['fx.comp.gain'])}
+      <label class="knob" title="Sidechain: eine andere Spur steuert diesen Kompressor. Typisch: die Kick drückt Bass oder Fläche kurz weg, das klassische Pumpen."><span>Sidechain</span><select id="compSc"><option value="">Aus (eigenes Signal)</option>${P.tracks.filter(t => t !== tr).map(t => `<option value="${t.id}" ${fx.comp.sc === t.id ? 'selected' : ''} ${scLoops(tr, t) ? 'disabled' : ''}>${esc(t.name)}</option>`).join('')}</select></label>
+      ${fx.comp.sc ? `<label class="knob chk"><input type="checkbox" id="compScLow" ${fx.comp.scLow !== false ? 'checked' : ''}><span>Nur Bässe lösen aus (z. B. die Kick)</span></label>` : ''}
       <div class="gr"><span>Pegelreduktion</span><i><b id="grBar"></b></i></div></section>
     ${pluginCards(tr)}
     <section class="card"><h3>Sends dieser Spur</h3>
@@ -3147,13 +3716,19 @@ function renderFx(tr) {
     const path = e.target.dataset.path;
     if (path) { apply(path); save(); markHeader(); return; }
     if (e.target.id === 'compOn') { pushUndo(); fx.comp.on = e.target.checked; applyFx(tr); save(); markHeader(); }
+    if (e.target.id === 'compSc') {
+      pushUndo(); if (e.target.value) { fx.comp.sc = e.target.value; if (!fx.comp.on) Object.assign(fx.comp, COMP_PRESETS['Pumpen (Sidechain)'], { on: true }); } else delete fx.comp.sc;
+      applyFx(tr); save(); renderEditor(); markHeader();
+      if (fx.comp.sc && !ctx.sgReady) loadWorklet().then(() => applyMix(), () => toast('Sidechain braucht AudioWorklet, das dieser Browser nicht hat.'));
+    }
+    if (e.target.id === 'compScLow') { pushUndo(); fx.comp.scLow = e.target.checked; applyFx(tr); save(); }
     if (e.target.id === 'compPre' && COMP_PRESETS[e.target.value]) { pushUndo(); Object.assign(fx.comp, COMP_PRESETS[e.target.value], { on: true }); applyFx(tr); save(); renderEditor(); markHeader(); }
     if (e.target.id === 'delDiv') { pushUndo(); bus.del.div = +e.target.value; applyBuses(); save(); }
     if (e.target.id === 'usRoot') { pushUndo(); tr.usmp.root = +e.target.value; save(); previewNote(tr, 60); }
     if (e.target.id === 'usLoop') { pushUndo(); tr.usmp.loop = e.target.checked; save(); previewNote(tr, tr.usmp.root); }
   };
   box.onclick = e => { if (e.target.dataset.us === 'load') { smpTarget = tr.id; $('#smpIn').click(); } if (e.target.dataset.reset === 'tw') { pushUndo(); tr.tweak = null; tweakOf(tr); save(); renderEditor(); } };
-  eqView = { tr, draw: () => { const b = $('#grBar'); if (b) b.style.width = Math.min(100, -c.comp.reduction / 20 * 100) + '%'; } };
+  eqView = { tr, draw: () => { const b = $('#grBar'); if (b) b.style.width = Math.min(100, (c.duckNode ? c.gr : -c.comp.reduction) / 20 * 100) + '%'; } };
 }
 
 // ================= Plugins (Web Audio Modules 2.0) =================
@@ -3394,6 +3969,60 @@ function pluginEvents(tr, box) {
   });
 }
 
+// ================= Groove: Quantisieren, Swing, Humanize =================
+// Gilt für Piano Roll und Pad-Aufnahmen im Sampler. Einstellungen werden pro Gerät gemerkt.
+// Swing wie bei der MPC: 50 % = gerade, 66 % = Triolen-Gefühl, 75 % = stark geshuffelt (jeder zweite Rasterpunkt rückt nach hinten).
+const groove = (() => { const d = { str: 100, swing: 50, len: true, ht: 15, hv: 12, auto: false }; try { return { ...d, ...JSON.parse(localStorage.getItem('klangwerk.groove') || '{}') }; } catch (e) { return d; } })();
+const saveGroove = () => { try { localStorage.setItem('klangwerk.groove', JSON.stringify(groove)); } catch (e) { } };
+const tripGrid = g => [2 / 3, 1 / 3, 1 / 6].some(x => Math.abs(x - g) < 1e-6);
+// Nächster Rasterpunkt, bei Swing ist jeder zweite verschoben
+function gridPos(s, g, swing) {
+  const sh = tripGrid(g) ? 0 : (swing - 50) / 50 * g, i0 = Math.floor(s / g);
+  let best = 0, bd = Infinity;
+  for (let i = i0 - 1; i <= i0 + 2; i++) { if (i < 0) continue; const p = i * g + (i % 2 ? sh : 0), d = Math.abs(p - s); if (d < bd) { bd = d; best = p; } }
+  return best;
+}
+function quantizeNotes(notes, g, maxLen, o = groove) {
+  const k = o.str / 100;
+  for (const n of notes) {
+    n.s = Math.max(0, n.s + (gridPos(n.s, g, o.swing) - n.s) * k);
+    if (o.len) n.l = Math.max(.02, n.l + (Math.max(g, Math.round(n.l / g) * g) - n.l) * k);
+    if (maxLen) n.l = Math.min(n.l, Math.max(.02, maxLen - n.s));
+  }
+}
+// Kleine zufällige Abweichungen in Zeit und Anschlag, damit es nicht nach Maschine klingt
+function humanizeNotes(notes, maxLen) {
+  const dt = groove.ht / 1000 / spb(), dv = groove.hv / 100, rnd = () => (Math.random() + Math.random()) - 1;
+  for (const n of notes) {
+    n.s = clamp(n.s + rnd() * dt, 0, Math.max(0, maxLen - .01));
+    n.v = clamp(n.v * (1 + rnd() * dv), .05, 1);
+  }
+}
+// Gleichbleibende Zufallszahl −1 … 1 (für Humanize im Drum-Pattern: jeder Durchlauf klingt gleich, auch im Export)
+function hrand(...a) { let h = 2166136261; for (const c of a.join('|')) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } h ^= h >>> 13; h = Math.imul(h, 0x5bd1e995); return ((h >>> 0) / 4294967296) * 2 - 1; }
+const drumSwing = r => ((r.swing || 50) - 50) / 50 * .25; // Verschiebung jeder zweiten 16tel in Beats
+// Groove-Menü an der Piano Roll (liegt über allem, damit die scrollende Kopfzeile es nicht abschneidet)
+const grvMenu = $('#grvMenu');
+function openGroove(btn, apply) {
+  if (!grvMenu.hidden) { grvMenu.hidden = true; return; }
+  const sl = (k, label, min, max, step, fmt) => `<label class="devrow"><span>${label}</span><input type="range" data-g="${k}" min="${min}" max="${max}" step="${step}" value="${groove[k]}"><output>${fmt(groove[k])}</output></label>`;
+  const F = { str: v => v + ' %', swing: v => v + ' %', ht: v => v + ' ms', hv: v => v + ' %' };
+  grvMenu.innerHTML = `<h4>Quantisieren</h4>${sl('str', 'Stärke', 10, 100, 5, F.str)}${sl('swing', 'Swing', 50, 75, 1, F.swing)}
+    <label class="devrow chk"><input type="checkbox" data-g="len" ${groove.len ? 'checked' : ''}><span>Notenlängen mitziehen</span></label>
+    <label class="devrow chk"><input type="checkbox" data-g="auto" ${groove.auto ? 'checked' : ''}><span>Aufnahmen gleich quantisieren</span></label>
+    <button class="sbtn" data-ga="q">Quantisieren</button>
+    <h4>Humanize</h4>${sl('ht', 'Timing', 0, 40, 1, F.ht)}${sl('hv', 'Anschlag', 0, 40, 1, F.hv)}
+    <button class="sbtn" data-ga="h">Humanisieren</button>
+    <p class="devnote">Wirkt auf die ausgewählten Noten, sonst auf alle in der Region. Raster ist das oben eingestellte. Swing 50 % ist gerade, 58 % leicht, 66 % wie Triolen.</p>`;
+  grvMenu.oninput = e => { const k = e.target.dataset.g; if (!k) return; if (e.target.type === 'checkbox') groove[k] = e.target.checked; else { groove[k] = +e.target.value; e.target.nextElementSibling.textContent = F[k](groove[k]); } saveGroove(); };
+  grvMenu.onclick = e => { e.stopPropagation(); const a = e.target.closest('[data-ga]')?.dataset.ga; if (a) apply(a); };
+  const r = btn.getBoundingClientRect();
+  grvMenu.hidden = false;
+  grvMenu.style.left = clamp(r.left, 8, window.innerWidth - grvMenu.offsetWidth - 8) + 'px';
+  grvMenu.style.top = Math.min(r.bottom + 6, window.innerHeight - grvMenu.offsetHeight - 8) + 'px';
+}
+document.addEventListener('click', e => { if (!grvMenu.hidden && !e.target.closest('#grvMenu, #grvBtn')) grvMenu.hidden = true; });
+
 // ================= Piano Roll =================
 const PR = { lo: 24, hi: 108, rh: 14, bw: 88 };
 const PADROLL = { lo: 0, hi: 15, rh: 24, get bw() { return PR.bw; } };
@@ -3442,7 +4071,7 @@ function renderPianoRoll(tr, r, bars) {
     <label class="note">Länge <select id="prLen"><option value="">–</option>${LENS.map(([v, n]) => `<option value="${v}">${n}</option>`).join('')}</select></label>
     <label class="note velctl">Anschlag <input type="range" id="prVel" min="1" max="127"><output id="prVelOut">–</output></label>
     <button class="sbtn" id="prTrip" title="Ausgewählte Noten in drei gleich lange Triolen-Noten teilen">In Triole teilen</button>
-    <button class="sbtn" id="quant" title="Ausgewählte (oder alle) Noten aufs Raster ziehen">Quantisieren</button>
+    <span class="split"><button class="sbtn" id="quant" title="Ausgewählte (oder alle) Noten aufs Raster ziehen, mit Stärke und Swing aus dem Groove-Menü (Q)">Quantisieren</button><button class="sbtn" id="grvBtn" title="Groove: Stärke, Swing, Humanize">Groove ▾</button></span>
     ${pads ? '' : '<button class="sbtn" id="trDown">−12</button><button class="sbtn" id="trUp">+12</button>'}
     <button class="sbtn" id="prDel" title="Ausgewählte Noten löschen (Entf)">Löschen</button>${zoomCtl}`;
   const rows = Z.hi - Z.lo + 1, W = Math.ceil(r.len * Z.bw), H = rows * Z.rh;
@@ -3613,7 +4242,15 @@ function renderPianoRoll(tr, r, bars) {
   };
   $('#prDel').onclick = () => { if (!selNotes.size) return; pushUndo(); r.notes = r.notes.filter(n => !selNotes.has(n)); selNotes.clear(); renderEditor(); commit(); };
   const target = () => selNotes.size ? [...selNotes] : r.notes;
-  $('#quant').onclick = () => { pushUndo(); target().forEach(n => { n.s = Math.round(n.s / prSnap) * prSnap; n.l = Math.max(prSnap, Math.round(n.l / prSnap) * prSnap); }); refresh(); commit(); };
+  const doGroove = a => {
+    if (!r.notes.length) return;
+    pushUndo();
+    if (a === 'h') humanizeNotes(target(), r.len); else quantizeNotes(target(), prSnap, r.len);
+    refresh(); commit();
+    toast(a === 'h' ? 'Humanisiert: Timing und Anschlag leicht verändert.' : `Quantisiert auf ${SNAPS.find(([v]) => near(v, prSnap))?.[1] || 'Raster'}${groove.str < 100 ? ', Stärke ' + groove.str + ' %' : ''}${groove.swing > 50 && !tripGrid(prSnap) ? ', Swing ' + groove.swing + ' %' : ''}.`);
+  };
+  $('#quant').onclick = () => doGroove('q');
+  $('#grvBtn').onclick = e => { e.stopPropagation(); openGroove(e.currentTarget, doGroove); };
   if (pads) return;
   $('#trUp').onclick = () => { pushUndo(); target().forEach(n => n.p = clamp(n.p + 12, 0, 127)); refresh(); commit(); };
   $('#trDown').onclick = () => { pushUndo(); target().forEach(n => n.p = clamp(n.p - 12, 0, 127)); refresh(); commit(); };
@@ -3646,7 +4283,17 @@ function drumStepAt(r, rel) { const pos = ((rel % 4) + 4) % 4, b = Math.floor(po
 function renderSteps(tr, r, bars) {
   eHead.innerHTML = `<input class="rn" id="rname" value="${esc(r.name)}" aria-label="Regionsname"><span class="note">${bars} Takte, 1-Takt-Pattern wiederholt</span>
     <label class="note">Pattern <select id="patsel"><option value="">Wählen …</option>${Object.keys(PATTERNS).map(k => `<option>${k}</option>`).join('')}</select></label>
+    <label class="note velctl afx" title="Jede zweite 16tel nach hinten schieben. 50 % = gerade, 66 % = Triolen-Gefühl">Swing <input type="range" id="dSwing" min="50" max="75" step="1" value="${r.swing || 50}"><output>${r.swing || 50} %</output></label>
+    <label class="note velctl afx" title="Kleine Abweichungen in Zeit und Anschlag, damit es wie gespielt klingt">Humanize <input type="range" id="dHum" min="0" max="100" step="5" value="${r.human || 0}"><output>${r.human || 0} %</output></label>
     <span class="note hint">Klick = Schlag, Shift+Klick = Akzent</span>`;
+  let gUndo = false;
+  eHead.oninput = e => {
+    const k = e.target.id === 'dSwing' ? 'swing' : e.target.id === 'dHum' ? 'human' : null; if (!k) return;
+    if (!gUndo) { pushUndo(); gUndo = true; }
+    r[k] = +e.target.value; if ((k === 'swing' && r[k] === 50) || (k === 'human' && !r[k])) delete r[k];
+    e.target.nextElementSibling.textContent = e.target.value + ' %';
+  };
+  eHead.onchange = e => { if (e.target.id === 'dSwing' || e.target.id === 'dHum') { gUndo = false; save(); renderArrange(); } };
   const head = [0, 1, 2, 3].map(b => `<button class="beat-h ${r.trip[b] ? 'on' : ''}" data-trip="${b}" title="Schlag ${b + 1}: zwischen 16teln und Triolen umschalten">${b + 1}${r.trip[b] ? ' · Triole' : ''}</button>`).join('');
   const rows = DRUMS.map(d => `<div class="seq-row"><button class="seq-name" data-piece="${d.id}" title="${d.name}${tr.pieces?.[d.id] ? ' aus Kit ' + KITS[tr.pieces[d.id]]?.name : ''}: Tonhöhe, Anschlag und Klang pro Schlag bearbeiten">${d.name}${tr.pieces?.[d.id] || pieceLbl(tr, d.id) ? `<small>${esc(pieceLbl(tr, d.id) || KITS[tr.pieces[d.id]]?.name || '')}</small>` : ''}<span>›</span></button><div class="beats">${[0, 1, 2, 3].map(b => {
     const n = r.trip[b] ? 3 : 4;
@@ -3848,15 +4495,16 @@ function regionDrag(e, el) {
   const changed = selRegion !== r.id || edTab !== 'region';
   selTrack = tr.id; selRegion = r.id; edTab = 'region'; markSelection(); if (changed) renderEditor();
   const laneX = el.parentElement.getBoundingClientRect().left;
-  // Alt+Klick: Schere, teilt die Region an dieser Stelle
-  if (e.altKey) {
+  // Alt+Klick: Schere, teilt die Region an dieser Stelle (Alt am rechten Rand einer Audio-Region: dehnen)
+  const stretchMode = e.altKey && tr.type === 'audio' && e.target.classList.contains('rh');
+  if (e.altKey && !stretchMode) {
     const b = Math.round((e.clientX - laneX) / ppb * 4) / 4;
-    pushUndo(); const right = splitRegion(tr, r, b);
-    if (!right) { undoStack.pop(); return; }
+    const pu = pushUndo(), right = splitRegion(tr, r, b);
+    if (!right) { if (pu) undoStack.pop(); return; }
     selRegion = right.id; save(); render(); return;
   }
-  const cl = e.target.classList, mode = cl.contains('fi') ? 'fi' : cl.contains('fo') ? 'fo' : cl.contains('rh') ? 'resize' : cl.contains('lh') ? 'trim' : 'move';
-  const x0 = e.clientX, s0 = r.start, l0 = r.len, o0 = r.offset || 0, ph0 = r.phase || 0, notes0 = r.notes?.map(n => n.s);
+  const cl = e.target.classList, mode = stretchMode ? 'stretch' : cl.contains('fi') ? 'fi' : cl.contains('fo') ? 'fo' : cl.contains('rh') ? 'resize' : cl.contains('lh') ? 'trim' : 'move';
+  const x0 = e.clientX, s0 = r.start, l0 = r.len, o0 = r.offset || 0, ph0 = r.phase || 0, notes0 = r.notes?.map(n => n.s), st0 = r.st || 1;
   const snapOf = ev => ev.shiftKey ? 1 / 16 : ppb < 18 ? 4 : ppb < 60 ? 1 : .25;
   let moved = false, target = null;
   const y0 = e.clientY, lane0 = el.parentElement, top0 = lane0.getBoundingClientRect().top;
@@ -3885,14 +4533,21 @@ function regionDrag(e, el) {
       return;
     }
     if (mode === 'resize') r.len = Math.max(snap, Math.round((l0 + db) / snap) * snap);
+    else if (mode === 'stretch') {
+      // Time-Stretch: die Länge ändert sich, der Inhalt wird gedehnt statt abgeschnitten
+      const f = clamp(Math.max(snap, Math.round((l0 + db) / snap) * snap) / l0, .25 / st0, 4 / st0);
+      r.st = Math.round(st0 * f * 1e4) / 1e4; if (Math.abs(r.st - 1) < 5e-4) delete r.st;
+      r.len = l0 * f; drawRegion(el.querySelector('canvas'), tr, r);
+      el.querySelector('.rname').textContent = `${r.name} · ${Math.round(stOf(r) * 100)} %`;
+    }
     else if (mode === 'trim') {
       // Anfang kürzen: der Inhalt bleibt im Song an seiner Stelle
       let ns = Math.round((s0 + db) / snap) * snap;
-      const minS = tr.type === 'audio' ? s0 - o0 / spb() : 0;
+      const minS = tr.type === 'audio' ? s0 - o0 * stOf(r) / spb() : 0;
       ns = clamp(ns, Math.max(0, minS), s0 + l0 - snap);
       const d = ns - s0;
       r.start = ns; r.len = l0 - d;
-      if (tr.type === 'audio') r.offset = Math.max(0, o0 + d * spb());
+      if (tr.type === 'audio') r.offset = Math.max(0, o0 + d * spb() / stOf(r));
       else if (r.notes) { r.notes.forEach((n, i) => { n.s = notes0[i] - d; }); delete r.takes; delete r.take; }
       else r.phase = ph0 + d;
     }
@@ -4003,16 +4658,19 @@ $('#bRec').onclick = toggleRecord;
 $('#bLoop').onclick = () => { P.loop.on = !P.loop.on; save(); renderArrange(); updateTransport(); };
 $('#bMetro').onclick = () => { P.metro = !P.metro; save(); updateTransport(); };
 $('#bpm').onchange = e => setBpm(+e.target.value);
+$('#lcdLu').onclick = () => { if (edTab !== 'mix') $('#bMix').click(); };
 $('#masterVol').oninput = e => { P.master = +e.target.value; if (ctx) master.gain.setTargetAtTime(P.master, ctx.currentTime, .02); save(); mixPaint(); };
 $('#bUndo').onclick = undo;
+$('#bRedo').onclick = redo;
+$('#bHist').onclick = e => { e.stopPropagation(); histMenu.hidden = !histMenu.hidden; fileMenu.hidden = addMenu.hidden = devMenu.hidden = true; histPaint(); };
 const fileMenu = $('#fileMenu');
 $('#bFile').onclick = e => { e.stopPropagation(); fileMenu.hidden = !fileMenu.hidden; addMenu.hidden = true; };
 fileMenu.onclick = e => {
   const b = e.target.closest('[data-file]'); if (!b) return;
   fileMenu.hidden = true;
   const act = b.dataset.file;
-  if (act === 'new') { if (playing) stop(); pushUndo(); P = emptyProject(); P.tracks.push(newTrack('drums'), newTrack('synth', { color: COLORS[1] })); fileHandle = null; selTrack = P.tracks[0].id; selRegion = null; applyMix(); save(); render(); toast('Neues Projekt. Strg+Z holt das alte zurück.'); }
-  if (act === 'demo') { if (playing) stop(); pushUndo(); P = demoProject(); fileHandle = null; selTrack = P.tracks[0].id; selRegion = null; applyMix(); save(); render(); toast('Demo-Song geladen. Leertaste zum Abspielen.'); }
+  if (act === 'new') { if (playing) stop(); snapshot('vor „Neues Projekt“'); pushUndo(); P = emptyProject(); P.tracks.push(newTrack('drums'), newTrack('synth', { color: COLORS[1] })); fileHandle = null; selTrack = P.tracks[0].id; selRegion = null; applyMix(); save(); render(); toast('Neues Projekt. Strg+Z holt das alte zurück.'); }
+  if (act === 'demo') { if (playing) stop(); snapshot('vor dem Demo-Song'); pushUndo(); P = demoProject(); fileHandle = null; selTrack = P.tracks[0].id; selRegion = null; applyMix(); save(); render(); toast('Demo-Song geladen. Leertaste zum Abspielen.'); }
   if (act === 'open') openProject();
   if (act === 'save') saveProject(false);
   if (act === 'saveas') saveProject(true);
@@ -4022,7 +4680,7 @@ fileMenu.onclick = e => {
 $('#projIn').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) loadProjectFile(f); };
 const addMenu = $('#addMenu');
 $('#bAdd').onclick = e => { e.stopPropagation(); addMenu.hidden = !addMenu.hidden; };
-document.addEventListener('click', () => { addMenu.hidden = true; devMenu.hidden = true; fileMenu.hidden = true; });
+document.addEventListener('click', () => { addMenu.hidden = true; devMenu.hidden = true; fileMenu.hidden = true; histMenu.hidden = true; });
 addMenu.onclick = e => {
   const b = e.target.closest('[data-add]'); if (!b) return;
   pushUndo(); const t = newTrack(b.dataset.add); P.tracks.push(t); selTrack = t.id; selRegion = null;
@@ -4069,6 +4727,10 @@ async function importFile(file, trackId, beat) {
   const start = beat ?? Math.floor(playPos);
   const r = { id: uid(), name: file.name.replace(/\.[^.]+$/, ''), start, len: buf.duration / spb(), buf: id, offset: 0 };
   tr.regions.push(r); selTrack = tr.id; selRegion = r.id; save(); render();
+  // Klingt die Datei nach einem Loop (Länge passt auf ganze Takte), das Anpassen ans Songtempo anbieten
+  const bpm = buf.duration < 45 ? detectTempo(buf) : 0, bars = bpm * buf.duration / 240;
+  if (bpm && Math.round(bars) >= 1 && Math.abs(bars - Math.round(bars)) < .04 && Math.abs(bpm - P.bpm) > .3)
+    banner(`„${r.name}“ klingt nach einem Loop mit ${fmtBpm(bpm)} BPM. Ans Songtempo (${fmtBpm(P.bpm)} BPM) anpassen, ohne die Tonhöhe zu ändern?`, [['Anpassen', () => { pushUndo(); setRegionTempo(r, bpm); save(); render(); }, true], ['Nein']]);
 }
 // Datei ins Arrangement ziehen: auf eine Audio- oder Sampler-Spur, sonst links = neue Audio-Spur, rechts = neuer Sampler
 const arrangeEl = $('#arrange');
@@ -4118,7 +4780,8 @@ document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.code === 'KeyS') { e.preventDefault(); saveProject(e.shiftKey); return; }
   if (e.target.closest('input:not([type=range]),select,textarea')) return;
   const mod = e.ctrlKey || e.metaKey;
-  if (mod && e.code === 'KeyZ') { e.preventDefault(); undo(); return; }
+  if (mod && e.code === 'KeyZ') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+  if (mod && e.code === 'KeyY') { e.preventDefault(); redo(); return; }
   if (mod && e.code === 'KeyD') { e.preventDefault(); duplicateRegion(); return; }
   if (mod && (e.code === 'KeyC' || e.code === 'KeyX')) { e.preventDefault(); copyRegion(e.code === 'KeyX'); return; }
   if (mod && e.code === 'KeyV') { e.preventDefault(); pasteRegion(); return; }
@@ -4129,6 +4792,7 @@ document.addEventListener('keydown', e => {
   if (mod) return;
   // Sampler-Spur: 4×4 Tasten wie die Pads einer MPC (Umschalt + Taste für die normalen Kürzel)
   if (!e.shiftKey && e.code in PADKEYS && findTrack(selTrack)?.type === 'sampler') { e.preventDefault(); if (!e.repeat) liveNoteOn(e.code, PADKEYS[e.code], .9); return; }
+  if (e.code === 'KeyQ' && !e.repeat && focusArea === 'pr' && $('#quant')) { $('#quant').click(); return; }
   if (e.code === 'Space') { e.preventDefault(); playing ? stop() : play(); return; }
   if (e.code === 'Enter') { $('#bStart').click(); return; }
   if (e.code === 'KeyR' && !e.repeat) { toggleRecord(); return; }
@@ -4222,8 +4886,9 @@ if (navigator.userAgent.includes('Electron')) connectMidi(true);
 function deleteSelection() {
   if (focusArea === 'smp' && edTab === 'smp' && smpView) { smpView.del(); return; }
   const [tr, r] = findRegion(selRegion); if (!r) return;
+  if (focusArea === 'pr' && r.notes && !selNotes.size) return;
   pushUndo();
-  if (focusArea === 'pr' && r.notes) { if (!selNotes.size) { undoStack.pop(); return; } r.notes = r.notes.filter(n => !selNotes.has(n)); selNotes.clear(); renderEditor(); save(); renderArrange(); return; }
+  if (focusArea === 'pr' && r.notes) { r.notes = r.notes.filter(n => !selNotes.has(n)); selNotes.clear(); renderEditor(); save(); renderArrange(); return; }
   tr.regions = tr.regions.filter(x => x !== r); selRegion = null; save(); render();
 }
 function duplicateRegion() {
@@ -4253,7 +4918,7 @@ function banner(msg, acts = []) {
 
 // Animationsschleife: Playhead, Anzeige, Pegel, aktueller Step
 const meterEl = $('#meter');
-let autoFrame = 0;
+let autoFrame = 0, loudFrame = 0;
 // Regler in Spurkopf und Mixer folgen beim Abspielen der Automation
 function followAuto(b) {
   let any = false;
@@ -4289,8 +4954,10 @@ function frame() {
   if (ctx) while (padHits.length && padHits[0].t <= ctx.currentTime + .01) { const h = padHits.shift(); flashPad(h.id, h.pad); }
   smpView?.tick();
   updateMeters();
+  if (++loudFrame % 6 === 0) paintLoud();
   requestAnimationFrame(frame);
 }
+
 
 // ================= Mixer =================
 // Kanalzüge wie in Logic: Klang, EQ-Vorschau, Sends, Panorama, Fader mit Pegelanzeige, Mute/Solo.
@@ -4303,7 +4970,13 @@ const fmtPan = v => Math.abs(v) < .02 ? 'Mitte' : (v < 0 ? 'L ' : 'R ') + Math.r
 const fmtPct = v => Math.round(v * 100) + ' %';
 const meterPos = pk => pk <= 0 ? 0 : clamp((20 * Math.log10(pk) + 60) / 66, 0, 1); // −60 … +6 dB
 function mixParam(el, k) {
-  const strip = el.closest('.strip'), id = strip.dataset.track, aux = strip.dataset.aux, fx = busFx();
+  const strip = el.closest('.strip'), id = strip.dataset.track, aux = strip.dataset.aux, fx = busFx(), gid = strip.dataset.group;
+  if (gid) {
+    const g = findGroup(gid); if (!g) return null;
+    if (k === 'vol') return { min: 0, max: 1, def: VOL0, get: () => g.vol, set: v => { g.vol = v; applyMix(); }, fmt: v => fmtDb(volDb(v)), dbF: db => Math.sqrt(Math.pow(10, db / 20) / 1.2), ticks: [0, -6, -12, -24, -40] };
+    if (k === 'pan') return { min: -1, max: 1, def: 0, bip: true, get: () => g.pan, set: v => { g.pan = v; applyMix(); }, fmt: fmtPan };
+    return null;
+  }
   if (id) {
     const tr = findTrack(id); if (!tr) return null;
     const auto = autoOn(tr, k), ag = () => autoAt(tr.auto[k], currentBeat());
@@ -4346,29 +5019,59 @@ function renderMixer() {
     return `<div class="strip ${tr.id === selTrack ? 'sel' : ''}" data-track="${tr.id}" style="--c:${tr.color}">
       ${tr.type === 'audio' ? '<div class="st-label">Audio</div>' : `<button class="st-btn" data-mx="${tr.type === 'sampler' ? 'smp' : 'lib'}" title="${tr.type === 'sampler' ? 'Pads und Chops öffnen' : 'Klang in der Bibliothek wählen'}">${esc(instName(tr))}</button>`}
       <div class="st-row"><button class="st-btn st-eq ${eqActive(tr) ? 'on' : ''}" data-mx="eq" title="Kanal-EQ öffnen"><canvas></canvas></button></div>
-      <div class="st-row"><button class="st-btn ${fxActive(tr) ? 'on' : ''}" data-mx="fx" title="Kompressor, Klang und Effekte">${fx.comp.on ? 'Kompressor' : 'Effekte'}</button></div>
+      <div class="st-row"><button class="st-btn ${fxActive(tr) ? 'on' : ''}" data-mx="fx" title="Kompressor, Klang und Effekte">${fx.comp.on ? (fx.comp.sc ? 'Sidechain' : 'Kompressor') : 'Effekte'}</button></div>
       <div class="st-knobs">${knob('rev', 'Hall')}${knob('del', 'Delay')}${knob('pan', 'Pan')}</div>
       ${fader}
       <div class="st-ms"><button class="sm m ${tr.mute ? 'on' : ''}" data-mx="mute" title="Stumm">M</button><button class="sm s ${tr.solo ? 'on' : ''}" data-mx="solo" title="Solo">S</button></div>
+      <select class="st-out ${tr.out && findGroup(tr.out) ? 'on' : ''}" data-out title="Ausgang dieser Spur: direkt auf den Master oder in eine Gruppe"><option value="">→ Master</option>${groupsOf().map(g => `<option value="${g.id}" ${tr.out === g.id ? 'selected' : ''}>→ ${esc(g.name)}</option>`).join('')}<option value="+">+ Neue Gruppe</option></select>
       <div class="st-foot" data-mx="sel" title="${esc(tr.name)}">${esc(tr.name)}</div>
+    </div>`;
+  }).join('');
+  const gstrips = groupsOf().map(g => {
+    const n = P.tracks.filter(t => t.out === g.id).length;
+    return `<div class="strip grp" data-group="${g.id}" style="--c:${g.color}">
+      <div class="st-label">Gruppe<button class="gdel" data-gx="del" title="Gruppe auflösen, die Spuren gehen wieder auf den Master">×</button></div>
+      <div class="st-label tall">${n} ${n === 1 ? 'Spur' : 'Spuren'}</div>
+      <div class="st-row"><button class="st-btn ${g.glue ? 'on' : ''}" data-gx="glue" title="Bus-Kompressor: klebt die Spuren der Gruppe zusammen">Glue</button></div>
+      <div class="st-knobs" style="justify-content:center">${knob('pan', 'Pan')}</div>
+      ${fader}
+      <div class="st-ms"><button class="sm m ${g.mute ? 'on' : ''}" data-gx="mute" title="Gruppe stumm">M</button><button class="sm s ${g.solo ? 'on' : ''}" data-gx="solo" title="Gruppe solo">S</button></div>
+      <input class="st-foot st-gname" data-gname value="${esc(g.name)}" aria-label="Name der Gruppe" title="Name der Gruppe">
     </div>`;
   }).join('');
   const aux = (id, name, k, label) => `<div class="strip aux" data-aux="${id}" style="--c:#8fa3c8">
       <div class="st-label">Effekt-Bus</div><div class="st-label tall">${name}</div><div class="st-label"></div>
       <div class="st-knobs" style="justify-content:center">${knob(k, label, true)}</div>
       ${fader}<div class="st-ms"></div><div class="st-foot">${name}</div></div>`;
-  eHead.innerHTML = `<span class="note">${P.tracks.length} Spuren · Hall und Delay sind gemeinsame Effekt-Busse</span><span class="note hint">Ziehen = einstellen, Shift = fein, Doppelklick = zurücksetzen</span>`;
-  eBody.innerHTML = `<div class="mixer">${strips || '<div class="st-label" style="padding:0 12px">Noch keine Spuren.</div>'}<div class="mix-sep"></div>
+  eHead.innerHTML = `<span class="note">${P.tracks.length} Spuren · Hall und Delay sind gemeinsame Effekt-Busse</span><button class="sbtn" data-mix="group" title="Neue Gruppe anlegen, die ausgewählte Spur geht hinein">+ Gruppe</button><span class="note hint">Ziehen = einstellen, Shift = fein, Doppelklick = zurücksetzen</span>`;
+  eBody.innerHTML = `<div class="mixer">${strips || '<div class="st-label" style="padding:0 12px">Noch keine Spuren.</div>'}${gstrips ? '<div class="mix-sep"></div>' + gstrips : ''}<div class="mix-sep"></div>
     ${aux('rev', 'Hall', 'size', 'Raum')}${aux('del', 'Delay', 'fb', 'Wdh.')}
-    <div class="strip master" data-aux="master" style="--c:#fff"><div class="st-label">Ausgang</div><div class="st-label tall">Stereo</div><div class="st-label"></div><div class="st-knobs"></div>${fader}<div class="st-ms"></div><div class="st-foot">Master</div></div></div>`;
+    <div class="strip master" data-aux="master" style="--c:#fff"><div class="st-label">Ausgang</div>
+      <div class="lufs" title="Lautheit in LUFS (EBU R128). Kurz = letzte 3 Sekunden, Gesamt = seit dem Start der Wiedergabe (integriert). Streaming-Dienste spielen um −14 LUFS ab."><span><small>Kurz</small><b data-lu="s">–</b></span><span><small>Gesamt</small><b data-lu="i">–</b></span><button data-lu-reset title="Integrierte Messung neu starten">Neu messen</button></div>
+      ${fader}<div class="st-ms"></div><div class="st-foot">Master</div></div></div>`;
   const box = eBody.querySelector('.mixer');
   box.querySelectorAll('.fader').forEach(fd => {
     const p = mixParam(fd, 'vol'); if (!p) return;
     fd.querySelector('.scale').innerHTML = p.ticks.map(db => `<i data-l="${db > 0 ? '+' + db : db}" style="top:${(1 - clamp(p.dbF(db), 0, 1)) * 100}%"></i>`).join('');
   });
   box.querySelectorAll('.strip[data-track]').forEach(st => drawEqThumb(st.querySelector('.st-eq canvas'), findTrack(st.dataset.track)));
-  mixView = { box, meters: [...box.querySelectorAll('.strip')].map(st => ({ key: st.dataset.track || st.dataset.aux, b: st.querySelector('.st-meter b'), u: st.querySelector('.st-meter u') })) };
-  mixPaint();
+  mixView = { box, meters: [...box.querySelectorAll('.strip')].map(st => ({ key: st.dataset.track || (st.dataset.group ? 'g:' + st.dataset.group : st.dataset.aux), b: st.querySelector('.st-meter b'), u: st.querySelector('.st-meter u') })) };
+  mixPaint(); paintLoud();
+  eHead.querySelector('[data-mix="group"]').onclick = () => {
+    pushUndo(); const g = newGroup(), tr = findTrack(selTrack);
+    if (tr) { tr.out = g.id; g.name = tr.name.slice(0, 18) + ' & Co.'; }
+    applyMix(); save(); renderMixer();
+    toast(tr ? `Gruppe angelegt, „${tr.name}“ geht hinein. Weitere Spuren schickst du unten im Kanalzug über „→ Master“ in die Gruppe.` : 'Gruppe angelegt. Spuren schickst du unten im Kanalzug in die Gruppe.', 4500);
+  };
+  box.onchange = e => {
+    if (e.target.matches('[data-out]')) {
+      const tr = findTrack(e.target.closest('.strip').dataset.track), v = e.target.value; if (!tr) return;
+      pushUndo();
+      if (v === '+') tr.out = newGroup().id; else if (v) tr.out = v; else delete tr.out;
+      applyMix(); save(); renderMixer(); return;
+    }
+    if (e.target.matches('[data-gname]')) { const g = findGroup(e.target.closest('.strip').dataset.group); if (g && e.target.value.trim()) { pushUndo(); g.name = e.target.value.trim().slice(0, 24); save(); renderMixer(); } }
+  };
   box.onpointerdown = e => {
     const el = e.target.closest('.kn, .fader'); if (!el || e.button > 0) return;
     const p = mixParam(el, el.dataset.k); if (!p) return;
@@ -4404,6 +5107,15 @@ function renderMixer() {
     save(); syncHeads(); mixPaint(el);
   };
   box.onclick = e => {
+    if (e.target.closest('[data-lu-reset]')) { loudReset(); toast('Lautheitsmessung startet neu.'); return; }
+    const gx = e.target.closest('[data-gx]');
+    if (gx) {
+      const g = findGroup(gx.closest('.strip').dataset.group), a = gx.dataset.gx; if (!g) return;
+      pushUndo();
+      if (a === 'del') { P.groups = P.groups.filter(x => x !== g); P.tracks.forEach(t => { if (t.out === g.id) delete t.out; }); toast(`Gruppe „${g.name}“ aufgelöst. Ihre Spuren gehen wieder auf den Master.`); }
+      else g[a] = !g[a];
+      ensureCtx(); applyMix(); save(); renderMixer(); return;
+    }
     const b = e.target.closest('[data-mx]'), st = e.target.closest('.strip[data-track]');
     if (st && st.dataset.track !== selTrack) { selTrack = st.dataset.track; markSelection(); }
     if (!b) return;
@@ -4459,7 +5171,7 @@ function updateMeters() {
   meterEl.style.width = lm.v * 100 + '%';
   if (!mixView) return;
   for (const m of mixView.meters) {
-    const L = m.key === 'rev' ? readLevel('rev', buses?.revAn) : m.key === 'del' ? readLevel('del', buses?.delAn) : levels.get(m.key) || readLevel(m.key, null);
+    const L = m.key === 'rev' ? readLevel('rev', buses?.revAn) : m.key === 'del' ? readLevel('del', buses?.delAn) : m.key.startsWith('g:') ? readLevel(m.key, gchans.get(m.key.slice(2))?.an) : levels.get(m.key) || readLevel(m.key, null);
     setM(m.b, '--m', L.v); setM(m.u, '--h', L.hold);
   }
 }
@@ -4524,7 +5236,11 @@ function libBody(tr) {
     html += Object.entries(cats).map(([c, it]) => group('Loops · ' + c, it.join(''), it.length)).join('');
     return html + `<p class="lib-note">Ein Loop wird in den Sampler geladen und nach Anschlägen in Chops geschnitten. Eigene Dateien ziehst du einfach auf die Spur. Die Loops sind aus gemeinfreien Aufnahmen (VCSL) gebaut.</p>`;
   }
-  return `<p class="lib-note">Audio-Spuren spielen Aufnahmen vom Mikrofon und importierte Dateien ab. Den Eingang wählst du oben unter Geräte.</p><div class="lib-btns"><button data-lib-act="import">Audiodatei importieren</button><button data-lib-act="rec">Aufnahme starten (R)</button></div>`;
+  const q = libQuery.trim().toLowerCase(), cats = {};
+  for (const L of LOOPS) if (!q || (L.name + ' ' + L.cat + ' loop').toLowerCase().includes(q)) (cats[L.cat] ||= []).push(item(`data-aloop="${L.id}"`, false, L.name, `<small>${L.bpm} BPM</small>`));
+  return (q ? '' : `<p class="lib-note">Audio-Spuren spielen Aufnahmen vom Mikrofon und importierte Dateien ab. Den Eingang wählst du oben unter Geräte.</p><div class="lib-btns"><button data-lib-act="import">Audiodatei importieren</button><button data-lib-act="rec">Aufnahme starten (R)</button></div>`)
+    + Object.entries(cats).map(([c, it]) => group('Loops · ' + c, it.join(''), it.length)).join('')
+    + `<p class="lib-note">Loops kommen als Audio-Region auf die Spur und folgen dem Songtempo, ohne dass sich die Tonhöhe ändert. Ändere das Tempo oben und hör, wie sie mitgehen.</p>`;
 }
 function renderLib() {
   libEl.classList.toggle('closed', !libOpen); $('#bLib').classList.toggle('on', libOpen);
@@ -4536,7 +5252,7 @@ function renderLib() {
   const top = libEl.querySelector('.lib-list')?.scrollTop || 0, same = libEl.dataset.track === (tr?.id || '');
   libEl.dataset.track = tr?.id || '';
   libEl.innerHTML = `<div class="lib-in" style="--c:${tr?.color || 'var(--accent)'}"><div class="lib-head"><div class="lib-title">Bibliothek${tr ? `<b>${esc(tr.name)}</b>` : ''}<button class="x" data-lib-close title="Schließen (I)">×</button></div>
-    ${tr && tr.type !== 'audio' ? `<input class="lib-search" type="search" placeholder="${tr.type === 'drums' ? 'Kit, Kick, Snare … suchen' : tr.type === 'sampler' ? 'Loop suchen …' : 'Sound suchen …'}" value="${esc(libQuery)}" aria-label="Sound suchen">` : ''}</div><div class="lib-list">${libBody(tr)}</div></div>`;
+    ${tr ? `<input class="lib-search" type="search" placeholder="${tr.type === 'drums' ? 'Kit, Kick, Snare … suchen' : tr.type === 'sampler' || tr.type === 'audio' ? 'Loop suchen …' : 'Sound suchen …'}" value="${esc(libQuery)}" aria-label="Sound suchen">` : ''}</div><div class="lib-list">${libBody(tr)}</div></div>`;
   const list = libEl.querySelector('.lib-list');
   if (same) list.scrollTop = top; else list.querySelector('.lib-item.on')?.scrollIntoView({ block: 'nearest' });
 }
@@ -4558,6 +5274,7 @@ libEl.addEventListener('click', e => {
   if (b.dataset.libAct === 'smpload') { smpTarget2 = tr?.id; $('#smpFileIn').click(); return; }
   if (b.dataset.libAct === 'smpopen') { edTab = 'smp'; renderEditor(); return; }
   if (b.dataset.loop) { loadLoop(b.dataset.loop, tr?.id); return; }
+  if (b.dataset.aloop) { loopToAudio(b.dataset.aloop, tr?.id); return; }
   if (b.dataset.src && tr) { tr.src = +b.dataset.src; smpUI.chop = tr.chops.find(c => c.buf === tr.srcs[tr.src].buf)?.id || null; edTab = 'smp'; save(); libKey = ''; renderLib(); renderEditor(); return; }
   if (!tr) return;
   const pick = () => { libEl.querySelectorAll('.lib-item.on').forEach(x => x !== b && !b.dataset.pat && x.classList.remove('on')); if (!b.dataset.pat) b.classList.add('on'); };
@@ -4601,7 +5318,7 @@ document.addEventListener('pointerdown', e => { if (libOpen && narrow() && !libE
 $('#bLib').onclick = () => setLib(!libOpen);
 $('#bMix').onclick = () => {
   edTab = edTab === 'mix' ? 'region' : 'mix';
-  if (edTab === 'mix' && editorEl.offsetHeight < 330 && !narrow()) editorEl.style.setProperty('--edh', '360px');
+  if (edTab === 'mix' && editorEl.offsetHeight < 390 && !narrow() && window.innerHeight > 760) editorEl.style.setProperty('--edh', '400px');
   renderEditor();
 };
 
@@ -4827,9 +5544,11 @@ P.loop ||= { on: false, start: 0, end: 16 };
 P.name ||= 'Mein Song';
 selTrack = P.tracks[0]?.id || null;
 splashStep('Öffne letztes Projekt …', 55);
-render(); dirty = false; updateTitle();
+const life = crashCheck();
+render(); dirty = life.dirty; updateTitle();
 splashStep('Lade Aufnahmen …', 80);
 Promise.race([restoreBuffers(), new Promise(r => setTimeout(r, 4000))]).then(() => { if (bufferIds().length) render(); }).finally(splashDone);
+if (life.crashed) banner(`Sound Groot wurde nicht normal beendet. Dein letzter Stand${life.t ? ' von ' + fmtClock(life.t) : ''} ist wiederhergestellt.`, [['Ältere Sicherungen', () => setTimeout(openHist, 0)], ['OK', null, true]]);
 requestAnimationFrame(frame);
 })();
 </script>

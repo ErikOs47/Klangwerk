@@ -11,7 +11,9 @@ Laut Projekt gemeinfreie Samples verschiedener Drumcomputer (TR-808, LM-2, RZ-1,
 Für Klangwerk gekürzt, in Mono und mit 96 kbit/s neu kodiert (scripts/fetch-drums.js).
 
 Instrumente (vibraphone, marimba, kalimba, balafon, tenor-sax, harmonica, ocarina, harpsichord,
-renaissance-organ, folk-harp), die Kits drums-vcsl.js und drums-vcslperc.js sowie die Loops loop-*.js
+renaissance-organ, folk-harp, fm-piano, clavisynth, upright-piano, pipe-organ, glockenspiel, tubular-bells,
+hand-chimes, dan-tranh, recorder, mbira, grand-kawai, strumstick, psaltery, psaltery-pluck, saxello, kalimba-tz),
+die Kits drums-vcsl*.js sowie die Loops loop-*.js
 aus der "Versilian Community Sample Library" (VCSL) von Versilian Studios / Sam Gossner
 https://github.com/sgossner/VCSL
 Lizenz: CC0 1.0 (gemeinfrei, https://creativecommons.org/publicdomain/zero/1.0/)
