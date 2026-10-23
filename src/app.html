@@ -1673,9 +1673,15 @@ let rec = null; // laufende Aufnahme
 const LOOKAHEAD = .12;
 const spb = () => 60 / P.bpm;
 
+// Bei aktivem Loop startet die Wiedergabe immer innerhalb des Loop-Bereichs
+function loopStartPos(b) {
+  const L = P.loop;
+  return L.on && L.end > L.start && (b < L.start || b >= L.end) ? L.start : b;
+}
 function play() {
   ensureCtx();
   if (playing) return;
+  if (!rec) playPos = loopStartPos(playPos);
   playing = true;
   session = { gains: new Map(), sources: [] };
   const t0 = ctx.currentTime + .05;
@@ -1843,7 +1849,7 @@ async function toggleRecord() {
     catch (e) { toast('Kein Mikrofonzugriff. Erlaube das Mikrofon oder importiere eine Audiodatei.'); return; }
     finally { recPending = false; }
   }
-  const start = playing ? currentBeat() : playPos, ci = playing ? 0 : (P.countIn ?? 1) * 4;
+  const start = playing ? currentBeat() : loopStartPos(playPos), ci = playing ? 0 : (P.countIn ?? 1) * 4;
   rec = { type: tr.type === 'audio' ? 'audio' : 'midi', track: tr.id, startBeat: start, countUntil: start, cap, marks: [], region: null, held: new Map(), pass: 0 };
   if (playing) rec.marks.push({ time: ctx.currentTime, beat: start });
   else { playPos = start - ci; play(); }
