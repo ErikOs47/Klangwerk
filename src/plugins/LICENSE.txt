@@ -1,0 +1,4 @@
+Mitgelieferte Plugins aus "burns-audio-wam" 0.2.54 von Tom Burns (Sequencer Party)
+https://github.com/boourns/burns-audio-wam
+Lizenz: MIT (https://opensource.org/licenses/MIT)
+Unverändert übernommen: synth101, modal, delay, distortion, simpleEQ (scripts/fetch-plugins.js).

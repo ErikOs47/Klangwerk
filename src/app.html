@@ -515,6 +515,32 @@ input[type=checkbox] { accent-color: var(--accent); }
 .st-foot { height: 22px; margin: 0 -7px; display: flex; align-items: center; justify-content: center; font-size: 10.5px; font-weight: 600; color: #0d0e11; background: var(--c); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding: 0 4px; }
 .strip.aux .st-foot, .strip.master .st-foot { background: #2c3039; color: var(--fg); }
 
+/* Plugins */
+.card.plug .hint { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.4; }
+.pl-row { display: grid; grid-template-columns: 18px 1fr 24px 24px 24px; align-items: center; gap: 4px; padding: 4px 6px; border-radius: 8px; background: var(--panel-2); box-shadow: inset 0 0 0 1px #ffffff08; }
+.pl-row.off .pl-name { opacity: .45; }
+.pl-row button { height: 24px; border-radius: 6px; border: 0; background: transparent; color: var(--muted); font-size: 13px; }
+.pl-row button:hover:not(:disabled) { background: #ffffff10; color: var(--fg); }
+.pl-row button:disabled { opacity: .25; }
+.pl-row .pl-name { text-align: left; color: var(--fg); font-size: 12.5px; padding: 0 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card.plug small { font-size: 10px; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; margin-left: 6px; }
+.card.plug small.bad { color: #ff7b72; border-color: #ff7b7255; }
+.pl-url summary { cursor: pointer; font-size: 12px; color: var(--muted); }
+.pl-url[open] summary { margin-bottom: 6px; }
+.pl-url > div { display: flex; gap: 6px; }
+.pl-url input { flex: 1; min-width: 0; height: 26px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel-2); color: var(--fg); padding: 0 8px; font-size: 12px; }
+.pl-url .hint { margin-top: 6px !important; }
+.pl-own { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.pl-own span { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; background: var(--panel-2); border-radius: 6px; padding: 2px 4px 2px 8px; }
+.pl-own button { border: 0; background: none; color: var(--muted); cursor: pointer; }
+.plugwin { position: fixed; left: 50%; top: 90px; transform: none; z-index: 60; min-width: 260px; max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); display: flex; flex-direction: column; background: #1b1e24f2; -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); border: 1px solid #ffffff14; border-radius: 12px; box-shadow: 0 24px 60px #000c, 0 0 0 1px #000; overflow: hidden; }
+.plugwin:not([hidden]) { animation: toast .2s var(--ease); }
+.pw-head { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 14px; font-size: 12.5px; cursor: move; user-select: none; touch-action: none; border-bottom: 1px solid #ffffff0d; }
+.pw-t { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pw-head .x { width: 26px; height: 26px; border-radius: 7px; border: 0; background: #ffffff0a; color: var(--fg); font-size: 16px; cursor: pointer; }
+.pw-head .x:hover { background: #ffffff1a; }
+.pw-body { overflow: auto; background: #111; }
+.pw-load { margin: 0; padding: 24px; color: var(--muted); font-size: 13px; background: var(--panel); }
 #toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: #23262dee; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border: 1px solid #ffffff14; padding: 10px 16px; border-radius: 12px; box-shadow: 0 14px 40px #000b; z-index: 100; max-width: calc(100% - 32px); font-size: 13px; }
 #toast:not([hidden]) { animation: toast .26s var(--ease); }
 @keyframes toast { from { opacity: 0; transform: translate(-50%, 10px) scale(.98); } }
@@ -701,6 +727,7 @@ button { touch-action: manipulation; }
   </section>
   <section class="kb" id="kb" hidden aria-label="Bildschirm-Keyboard"></section>
 </div>
+<div id="plugWin" class="plugwin" hidden role="dialog" aria-label="Plugin"><div class="pw-head"><span class="pw-t"></span><button class="x" title="Schließen">×</button></div><div class="pw-body"></div></div>
 <div id="toast" hidden></div>
 <div id="banner" hidden><span></span><div class="bn-acts"></div></div>
 
@@ -816,7 +843,7 @@ function presetOptions(sel) {
   for (const [k, v] of Object.entries(PRESETS)) (cats[v.cat] ||= []).push(`<option value="${k}" ${k === sel ? 'selected' : ''}>${v.name}</option>`);
   return Object.entries(cats).map(([c, o]) => `<optgroup label="${c}">${o.join('')}</optgroup>`).join('');
 }
-const presetName = tr => tr.preset === 'user' ? (tr.usmp?.name || 'Eigenes Sample') : PRESETS[tr.preset]?.name || tr.preset;
+const presetName = tr => tr.wam ? tr.wam.name : tr.preset === 'user' ? (tr.usmp?.name || 'Eigenes Sample') : PRESETS[tr.preset]?.name || tr.preset;
 const instName = tr => tr.type === 'synth' ? presetName(tr) : tr.type === 'sampler' ? (tr.srcs?.[tr.src]?.name || 'Kein Sample geladen') : tr.type === 'drums' ? 'Kit: ' + (KITS[tr.kit || 'standard']?.name || 'Standard') + (Object.keys(tr.pieces || {}).length ? ' · gemischt' : '') : 'Audio';
 // Drumkits: Abweichungen vom Standard-Kit, pro Instrument. lp/drive wirken auf das ganze Kit.
 const KITS = {
@@ -978,7 +1005,7 @@ function defaultEq() {
 const eqOf = tr => (tr.eq ||= defaultEq());
 const trackFxDefaults = () => ({ comp: { on: false, thr: -18, ratio: 4, att: 10, rel: 200, gain: 0 }, rev: 0, del: 0 });
 const fxOf = tr => (tr.fx ||= trackFxDefaults());
-// Kanalzug: Eingang -> EQ -> Filter (für Automation) -> Kompressor -> Lautstärke -> Mute -> Panorama -> Master
+// Kanalzug: Eingang -> EQ -> Filter (für Automation) -> Kompressor -> Plugins -> Lautstärke -> Mute -> Panorama -> Master
 function chan(tr) {
   let c = chans.get(tr.id);
   if (!c) {
@@ -987,11 +1014,12 @@ function chan(tr) {
     const bands = eqOf(tr).bands.map(() => ctx.createBiquadFilter());
     const flt = ctx.createBiquadFilter(); flt.type = 'lowpass'; flt.frequency.value = 20000; flt.Q.value = .9;
     const comp = ctx.createDynamicsCompressor(), makeup = ctx.createGain(), revS = ctx.createGain(), delS = ctx.createGain();
+    const insIn = ctx.createGain(), insOut = ctx.createGain();
     let n = input; for (const b of bands) n = n.connect(b);
-    n.connect(flt).connect(comp).connect(makeup).connect(vol).connect(mute).connect(pan).connect(master); mute.connect(an);
+    n.connect(flt).connect(comp).connect(makeup).connect(insIn).connect(insOut).connect(vol).connect(mute).connect(pan).connect(master); mute.connect(an);
     pan.connect(revS).connect(buses.rev); pan.connect(delS).connect(buses.del);
-    c = { input, vol, mute, pan, bands, flt, an, comp, makeup, revS, delS }; chans.set(tr.id, c);
-    applyEq(tr, true); applyFx(tr, true);
+    c = { input, vol, mute, pan, bands, flt, an, comp, makeup, insIn, insOut, revS, delS, ctx, plugs: new Map(), sig: '' }; chans.set(tr.id, c);
+    applyEq(tr, true); applyFx(tr, true); syncPlugins(tr);
   }
   return c;
 }
@@ -1072,11 +1100,11 @@ function applyMix(now) {
     set(c.mute.gain, m);
     if (!autoOn(t, 'vol')) set(c.vol.gain, t.vol * t.vol * 1.2);
     if (!autoOn(t, 'pan')) set(c.pan.pan, t.pan);
-    applyEq(t, now); applyFx(t, now);
+    applyEq(t, now); applyFx(t, now); syncPlugins(t);
   }
   applyBuses(now);
   applyAutoStatic(now);
-  for (const [id, c] of chans) if (!P.tracks.find(t => t.id === id)) { c.pan.disconnect(); chans.delete(id); }
+  for (const [id, c] of chans) if (!P.tracks.find(t => t.id === id)) { c.pan.disconnect(); dropPlugins(c); chans.delete(id); }
 }
 const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
 
@@ -1213,6 +1241,7 @@ function samplerOn(tr, P_, dest, midi, time, vel, tw) {
 function noteOn(tr, dest, midi, time, vel = .8) {
   const P_ = PRESETS[tr.preset] || PRESETS.epiano, tw = tweakOf(tr);
   midi += 12 * (tw.oct || 0);
+  if (tr.wam) return wamNote(tr, midi, time, vel);
   if (P_.smp) return samplerOn(tr, P_, dest, midi, time, vel, tw);
   const f = mtof(midi), am = Math.pow(4, tw.attack || 0), rm = Math.pow(4, tw.release || 0), cm = Math.pow(4, tw.bright || 0);
   const a = P_.env.a * am, d = P_.env.d, s = P_.env.s, r = P_.env.r * rm;
@@ -1548,6 +1577,7 @@ async function zipStore(name, blob) {
   return new Blob([lh, nb, data, ch, nb, eo], { type: 'application/zip' });
 }
 async function saveProject(as) {
+  await wamSaveStates();
   const blob = projectBlob(), name = (P.name || 'Mein Song');
   if (!as && fileHandle) {
     try { const w = await fileHandle.createWritable(); await w.write(blob); await w.close(); dirty = false; updateTitle(); toast('Gespeichert.'); return; } catch (e) { }
@@ -1577,17 +1607,28 @@ async function renderSong() {
   await samplesReady();
   ensureCtx();
   let tail = 0;
-  for (const t of P.tracks) if (t.type === 'synth') tail = Math.max(tail, PRESETS[t.preset]?.env.r * 4 || 0);
+  for (const t of P.tracks) if (t.type === 'synth') tail = Math.max(tail, t.wam ? 2 : PRESETS[t.preset]?.env.r * 4 || 0);
+  if (P.tracks.some(t => t.ins?.some(s => s.on))) tail = Math.max(tail, 3);
+  await wamSaveStates();
   const sr = 44100, secs = end * spb() + Math.max(1, tail, busFx().rev.size) + .5;
   const live = { ctx, master, analyser, noiseBuf, buses, chans: new Map(chans), metro: P.metro };
   const off = new OfflineAudioContext(2, Math.ceil(secs * sr), sr);
   try {
     ctx = off; chans.clear(); P.metro = false;
     buildMaster(off.destination); applyMix(true);
+    // Plugins werden für den Export neu im OfflineAudioContext angelegt, mit dem aktuellen Zustand
+    await pluginsReady();
     session = { gains: new Map(), sources: [] };
+    wamMarks = new Set();
     schedule(0, end, 0);
+    // Manche Plugins spielen ihre Noten im Haupt-Thread. Damit sie das auch beim schnellen Offline-Rendern rechtzeitig tun,
+    // hält das Rendern direkt nach jeder Note kurz an und gibt dem Plugin ein paar Millisekunden.
+    const ks = new Set([...wamMarks].map(t => Math.ceil(t * sr / 128) + 1));
+    for (const k of ks) if (k * 128 < off.length) off.suspend(k * 128 / sr).then(() => setTimeout(() => off.resume(), 4));
     return await off.startRendering();
   } finally {
+    wamMarks = null;
+    chans.forEach(dropPlugins);
     ctx = live.ctx; master = live.master; analyser = live.analyser; noiseBuf = live.noiseBuf; buses = live.buses; P.metro = live.metro; session = null;
     chans.clear(); live.chans.forEach((v, k) => chans.set(k, v));
   }
@@ -1653,6 +1694,7 @@ function stop() {
   const now = ctx.currentTime;
   for (const g of session.gains.values()) { g.gain.setTargetAtTime(0, now, .02); setTimeout(() => g.disconnect(), 600); }
   for (const s of session.sources) { try { s.stop(now + .08); } catch (e) { } }
+  for (const c of chans.values()) wamPanic(c);
   session = null; padHits.length = 0;
   applyAutoStatic();
   updateTransport();
@@ -3029,7 +3071,7 @@ const COMP_PRESETS = {
   'Bass gleichmäßig': { thr: -26, ratio: 6, att: 5, rel: 200, gain: 6 },
   'Hart (Limiter)': { thr: -10, ratio: 20, att: 1, rel: 80, gain: 3 }
 };
-const fxActive = tr => !!tr.fx && (tr.fx.comp.on || tr.fx.rev > .01 || tr.fx.del > .01);
+const fxActive = tr => (!!tr.fx && (tr.fx.comp.on || tr.fx.rev > .01 || tr.fx.del > .01)) || !!tr.ins?.some(s => s.on);
 const DIVS = [[.25, '1/16'], [.5, '1/8'], [.75, '1/8 punktiert'], [1, '1/4'], [1.5, '1/4 punktiert'], [2, '1/2']];
 function renderFx(tr) {
   ensureCtx();
@@ -3049,11 +3091,11 @@ function renderFx(tr) {
   };
   eHead.innerHTML = `<span class="note" style="color:${tr.color};font-weight:600">${esc(tr.name)}</span><span class="note hint">Hall und Delay sind gemeinsame Effekte. Jede Spur schickt über ihren Regler unterschiedlich viel Signal hinein.</span>`;
   eBody.innerHTML = `<div class="fx">
-    ${tr.preset === 'user' && tr.type === 'synth' ? `<section class="card"><h3>Sample · ${esc(tr.usmp.name)}</h3>
+    ${tr.preset === 'user' && tr.type === 'synth' && !tr.wam ? `<section class="card"><h3>Sample · ${esc(tr.usmp.name)}</h3>
       <label class="knob"><span>Grundton</span><select id="usRoot">${Array.from({ length: 73 }, (_, i) => i + 24).map(m => `<option value="${m}" ${m === tr.usmp.root ? 'selected' : ''}>${noteName(m)}</option>`).join('')}</select></label>
       <label class="knob chk"><input type="checkbox" id="usLoop" ${tr.usmp.loop ? 'checked' : ''}><span>Ton halten (Schleife)</span></label>
       <button class="sbtn" data-us="load">Anderes Sample …</button></section>` : ''}
-    ${tr.type === 'synth' ? `<section class="card"><h3>Klang · ${esc(presetName(tr))}${PRESETS[tr.preset].smp && tr.preset !== 'user' ? ' <small>Sample</small>' : ''}</h3>
+    ${tr.type === 'synth' && !tr.wam ? `<section class="card"><h3>Klang · ${esc(presetName(tr))}${PRESETS[tr.preset].smp && tr.preset !== 'user' ? ' <small>Sample</small>' : ''}</h3>
       ${sl('tw.bright', 'Helligkeit', -1, 1, .05, FMT['tw.bright'])}${sl('tw.attack', 'Einschwingen', -1, 1, .05, FMT['tw.attack'])}
       ${sl('tw.release', 'Ausklingen', -1, 1, .05, FMT['tw.release'])}${sl('tw.oct', 'Oktave', -2, 2, 1, FMT['tw.oct'])}
       <button class="sbtn" data-reset="tw">Zurücksetzen</button></section>` : ''}
@@ -3063,6 +3105,7 @@ function renderFx(tr) {
       ${sl('fx.comp.att', 'Attack', 1, 200, 1, FMT['fx.comp.att'])}${sl('fx.comp.rel', 'Release', 20, 1000, 10, FMT['fx.comp.rel'])}
       ${sl('fx.comp.gain', 'Aufholen', 0, 24, .5, FMT['fx.comp.gain'])}
       <div class="gr"><span>Pegelreduktion</span><i><b id="grBar"></b></i></div></section>
+    ${pluginCards(tr)}
     <section class="card"><h3>Sends dieser Spur</h3>
       ${sl('fx.rev', 'Hall', 0, 1, .01, FMT['fx.rev'])}${sl('fx.del', 'Delay', 0, 1, .01, FMT['fx.del'])}</section>
     <section class="card shared"><h3>Hall · alle Spuren</h3>
@@ -3072,6 +3115,7 @@ function renderFx(tr) {
       ${sl('bus.del.fb', 'Wiederholungen', 0, .9, .01, FMT['bus.del.fb'])}${sl('bus.del.tone', 'Klang', 800, 12000, 100, FMT['bus.del.tone'])}${sl('bus.del.level', 'Lautstärke', 0, 1.5, .01, FMT['bus.del.level'])}</section>
   </div>`;
   const box = eBody.querySelector('.fx');
+  pluginEvents(tr, box);
   let undone = false;
   const markHeader = () => rowsEl.querySelector(`.track-row[data-track="${tr.id}"] .fxb`)?.classList.toggle('on', fxActive(tr));
   const apply = path => {
@@ -3100,6 +3144,244 @@ function renderFx(tr) {
   };
   box.onclick = e => { if (e.target.dataset.us === 'load') { smpTarget = tr.id; $('#smpIn').click(); } if (e.target.dataset.reset === 'tw') { pushUndo(); tr.tweak = null; tweakOf(tr); save(); renderEditor(); } };
   eqView = { tr, draw: () => { const b = $('#grBar'); if (b) b.style.width = Math.min(100, -c.comp.reduction / 20 * 100) + '%'; } };
+}
+
+// ================= Plugins (Web Audio Modules 2.0) =================
+// Externe Effekte und Instrumente im offenen WAM-2.0-Format. Sie laufen in der Windows-App und im Browser gleich.
+// Pro Spur: tr.ins = [{ id, url, name, on, state }] als Inserts nach dem Kompressor, tr.wam = { url, name, state } ersetzt den eingebauten Klang.
+const WAM_BUILTIN = [
+  { url: 'plugins/synth101/index.js', name: 'Synth-101', vendor: 'Sequencer Party', inst: true, desc: 'Monophoner Analog-Synth nach Vorbild des SH-101' },
+  { url: 'plugins/modal/index.js', name: 'Spectrum: Modal', vendor: 'Sequencer Party', inst: true, desc: 'Physical Modelling: Glocken, Holz, Metall und Saiten' },
+  { url: 'plugins/delay/index.js', name: 'Simple Delay', vendor: 'Sequencer Party', desc: 'Stereo-Delay mit Filter' },
+  { url: 'plugins/distortion/index.js', name: 'Simple Distortion', vendor: 'Sequencer Party', desc: 'Verzerrer mit einstellbarer Kurve' },
+  { url: 'plugins/simpleEQ/index.js', name: 'Simple EQ', vendor: 'Sequencer Party', desc: 'Drei-Band-Equalizer' }
+];
+// Eigene Plugins per Link werden pro Gerät gemerkt, im Projekt steht nur der Link
+const wamOwn = (() => { try { return JSON.parse(localStorage.getItem('klangwerk.plugins') || '[]'); } catch (e) { return []; } })();
+const saveWamOwn = () => { try { localStorage.setItem('klangwerk.plugins', JSON.stringify(wamOwn)); } catch (e) { } };
+const wamList = () => [...WAM_BUILTIN, ...wamOwn];
+const wamModules = new Map(), wamHosts = new WeakMap(), wamFailed = new Set();
+const absUrl = url => new URL(url, location.href).href;
+function wamModule(url) {
+  let m = wamModules.get(url);
+  if (!m) {
+    m = import(absUrl(url)).then(x => { if (!x.default?.isWebAudioModuleConstructor) throw new Error('Kein WAM-2.0-Plugin'); return x.default; });
+    m.catch(() => wamModules.delete(url)); wamModules.set(url, m);
+  }
+  return m;
+}
+// Jeder AudioContext (live und Export) braucht einmal die WAM-Umgebung im Audio-Thread
+function wamHost(c) {
+  let h = wamHosts.get(c);
+  if (!h) { h = import(absUrl('vendor/wam-sdk.js')).then(s => s.initializeWamHost(c)).then(([id]) => id); h.catch(() => wamHosts.delete(c)); wamHosts.set(c, h); }
+  return h;
+}
+async function wamCreate(c, url, state) {
+  const [W, g] = await Promise.all([wamModule(url), wamHost(c)]);
+  const inst = await W.createInstance(g, c);
+  if (state) try { await inst.audioNode.setState(state); } catch (e) { }
+  return inst;
+}
+function wamKill(inst) {
+  if (!inst) return;
+  if (plugWin?.inst === inst) closePlugin(true);
+  try { inst.audioNode.disconnect(); inst.audioNode.destroy?.(); } catch (e) { }
+}
+function wamFail(name, url, e) {
+  console.warn('Plugin', url, e);
+  if (!wamFailed.has(url)) { wamFailed.add(url); toast(`Plugin „${name}“ konnte nicht geladen werden${/^https?:/.test(url) ? '. Ist das Gerät online und der Link richtig?' : '.'}`, 4500); }
+}
+// Inserts und Instrument einer Spur an die Liste anpassen. Läuft nacheinander pro Kanalzug, damit sich Änderungen nicht überholen.
+function syncPlugins(tr) {
+  if (!ctx) return Promise.resolve();
+  const c = chan(tr), sig = (tr.ins || []).map(s => s.id + (s.on ? '+' : '-') + s.url).join('|') + '#' + (tr.type === 'synth' && tr.wam ? tr.wam.url : '');
+  if (c.sig === sig) return c.ready;
+  c.sig = sig;
+  return c.ready = (c.ready || Promise.resolve()).then(() => wirePlugins(tr, c)).catch(e => console.warn(e));
+}
+async function wirePlugins(tr, c) {
+  if (c.dead) return;
+  const slots = tr.ins || [];
+  for (const s of slots) if (!c.plugs.has(s.id)) {
+    let inst = null;
+    try { inst = await wamCreate(c.ctx, s.url, s.state); wamFailed.delete(s.url); } catch (e) { wamFail(s.name, s.url, e); }
+    if (c.dead) { wamKill(inst); return; }
+    c.plugs.set(s.id, inst);
+  }
+  for (const [id, inst] of c.plugs) if (!slots.some(s => s.id === id)) { wamKill(inst); c.plugs.delete(id); }
+  // Kette neu stecken: insIn -> Plugin 1 -> Plugin 2 … -> insOut (ausgeschaltete werden übersprungen)
+  c.insIn.disconnect();
+  for (const inst of c.plugs.values()) try { inst?.audioNode.disconnect(); } catch (e) { }
+  let n = c.insIn;
+  for (const s of slots) { const inst = c.plugs.get(s.id); if (s.on && inst) { n.connect(inst.audioNode); n = inst.audioNode; } }
+  n.connect(c.insOut);
+  const url = tr.type === 'synth' && tr.wam ? tr.wam.url : null;
+  if (c.instUrl !== url) {
+    wamKill(c.inst); c.inst = null; c.instUrl = url;
+    if (url) {
+      try { c.inst = await wamCreate(c.ctx, url, tr.wam.state); wamFailed.delete(url); } catch (e) { wamFail(tr.wam.name, url, e); }
+      if (c.dead) { wamKill(c.inst); return; }
+      c.inst?.audioNode.connect(c.input);
+    }
+  }
+  if (c.ctx === ctx && !(ctx instanceof OfflineAudioContext) && edTab === 'fx' && selTrack === tr.id && !plugWin) renderEditor();
+}
+function dropPlugins(c) {
+  c.dead = true;
+  for (const inst of c.plugs.values()) wamKill(inst);
+  c.plugs.clear(); wamKill(c.inst); c.inst = null;
+}
+const pluginsReady = () => Promise.all([...chans.values()].map(c => c.ready));
+// Noten für ein Instrument-Plugin gehen als MIDI-Ereignisse mit genauer Zeit in den Audio-Thread.
+// Beim Export merkt sich wamMarks die Zeiten, damit das Rendern dort kurz anhält (siehe renderSong).
+let wamMarks = null;
+function wamNote(tr, midi, time, vel) {
+  const node = chan(tr).inst?.audioNode; if (!node) return { release() { } };
+  midi = clamp(Math.round(midi), 0, 127);
+  const send = (t, b) => { node.scheduleEvents({ type: 'wam-midi', time: t, data: { bytes: b } }); wamMarks?.add(t); };
+  send(time, [0x90, midi, clamp(Math.round(vel * 127), 1, 127)]);
+  return { release(t) { send(Math.max(t, time + .005), [0x80, midi, 0]); } };
+}
+// Stopp: vorausgeplante Noten verwerfen und alle Töne beenden
+function wamPanic(c) {
+  const node = c.inst?.audioNode; if (!node) return;
+  try { node.clearEvents?.(); const t = c.ctx.currentTime; for (let m = 0; m < 128; m++) node.scheduleEvents({ type: 'wam-midi', time: t, data: { bytes: [0x80, m, 0] } }); } catch (e) { }
+}
+// Einstellungen, die in der Plugin-Oberfläche gemacht wurden, ins Projekt übernehmen
+async function wamSaveStates() {
+  if (!ctx || ctx instanceof OfflineAudioContext) return;
+  const grab = async (o, inst) => {
+    try { const st = await inst.audioNode.getState(); if (st != null && JSON.stringify(st) !== JSON.stringify(o.state ?? null)) { o.state = JSON.parse(JSON.stringify(st)); return true; } } catch (e) { }
+    return false;
+  };
+  let changed = false;
+  for (const tr of P.tracks) {
+    const c = chans.get(tr.id); if (!c) continue;
+    for (const s of tr.ins || []) { const inst = c.plugs.get(s.id); if (inst && await grab(s, inst)) changed = true; }
+    if (tr.wam && c.inst && c.instUrl === tr.wam.url && await grab(tr.wam, c.inst)) changed = true;
+  }
+  if (changed) save();
+}
+setInterval(() => { if (P?.tracks.some(t => t.ins?.length || t.wam)) wamSaveStates(); }, 2000);
+
+function addInsert(tr, p) {
+  pushUndo(); (tr.ins ||= []).push({ id: uid(), url: p.url, name: p.name, on: true });
+  save(); syncPlugins(tr); renderEditor(); renderArrange();
+}
+function setInstPlugin(tr, p) {
+  if ((tr.wam?.url || '') === (p?.url || '')) return;
+  pushUndo(); if (p) tr.wam = { url: p.url, name: p.name }; else delete tr.wam;
+  save(); libKey = ''; renderLib(); renderArrange(); renderEditor();
+  ensureCtx(); const c = chan(tr);
+  syncPlugins(tr).then(() => { if (c.inst) previewNote(tr, prevPitch(tr)); });
+}
+// Plugin per Link: Ordner oder index.js eines WAM-2.0-Plugins
+async function addPluginUrl(tr, raw) {
+  let url = raw.trim(); if (!url) return;
+  if (!/^https?:\/\//i.test(url)) { toast('Bitte einen vollständigen Link angeben, der mit https:// beginnt.'); return; }
+  if (!/\.m?js(\?.*)?$/i.test(url)) url = url.replace(/\/+$/, '') + '/index.js';
+  ensureCtx(); toast('Plugin wird geladen …', 8000);
+  let d;
+  try { const inst = await wamCreate(ctx, url); d = inst.descriptor || {}; wamKill(inst); }
+  catch (e) { console.warn(e); toast('Unter diesem Link wurde kein WAM-2.0-Plugin gefunden (oder der Server erlaubt das Laden nicht).', 5000); return; }
+  const p = { url, name: d.name || url.split('/').slice(-2, -1)[0] || 'Plugin', vendor: d.vendor || '', inst: !!d.isInstrument, desc: d.description || '' };
+  const i = wamOwn.findIndex(x => x.url === url); if (i >= 0) wamOwn[i] = p; else wamOwn.push(p);
+  saveWamOwn();
+  if (p.inst && tr.type === 'synth') { setInstPlugin(tr, p); toast(`„${p.name}“ spielt jetzt auf ${tr.name}.`); }
+  else if (p.inst) { renderEditor(); toast(`„${p.name}“ ist ein Instrument. Wähle es auf einer Instrument-Spur aus.`, 4500); }
+  else { addInsert(tr, p); toast(`„${p.name}“ eingefügt.`); }
+}
+
+// Plugin-Fenster: zeigt die Oberfläche, die das Plugin selbst mitbringt
+let plugWin = null;
+const pwEl = $('#plugWin');
+async function openPlugin(tr, key) {
+  ensureCtx();
+  const c = chan(tr); await syncPlugins(tr);
+  const inst = key === 'inst' ? c.inst : c.plugs.get(key);
+  if (!inst) { toast('Das Plugin ist nicht geladen.'); return; }
+  closePlugin(true);
+  const name = key === 'inst' ? tr.wam.name : tr.ins.find(s => s.id === key)?.name;
+  pwEl.querySelector('.pw-t').innerHTML = `<b style="color:${tr.color}">${esc(tr.name)}</b> · ${esc(name)}`;
+  const body = pwEl.querySelector('.pw-body'); body.innerHTML = '<p class="pw-load">Lädt …</p>';
+  pwEl.hidden = false;
+  plugWin = { tr: tr.id, key, inst, gui: null };
+  try {
+    const gui = await inst.createGui();
+    if (plugWin?.inst !== inst) { inst.destroyGui?.(gui); return; }
+    plugWin.gui = gui; body.replaceChildren(gui);
+  } catch (e) { console.warn(e); body.innerHTML = '<p class="pw-load">Dieses Plugin hat keine eigene Oberfläche.</p>'; }
+  placePlugin();
+}
+function closePlugin(quiet) {
+  if (!plugWin) return;
+  const { inst, gui } = plugWin; plugWin = null;
+  try { if (gui) inst.destroyGui?.(gui); } catch (e) { }
+  pwEl.querySelector('.pw-body').replaceChildren(); pwEl.hidden = true;
+  if (!quiet) { wamSaveStates(); if (edTab === 'fx') renderEditor(); }
+}
+// Im sichtbaren Bereich halten
+function placePlugin() {
+  const r = pwEl.getBoundingClientRect(), x = clamp(pwEl.dataset.moved ? r.left : (innerWidth - r.width) / 2, 8, Math.max(8, innerWidth - r.width - 8)), y = clamp(r.top, 8, Math.max(8, innerHeight - r.height - 8));
+  pwEl.style.left = x + 'px'; pwEl.style.top = y + 'px';
+}
+pwEl.querySelector('.x').onclick = () => closePlugin();
+pwEl.querySelector('.pw-head').addEventListener('pointerdown', e => {
+  if (e.target.closest('button')) return;
+  const r = pwEl.getBoundingClientRect(), dx = e.clientX - r.left, dy = e.clientY - r.top;
+  pwEl.dataset.moved = 1;
+  const mv = ev => { pwEl.style.left = clamp(ev.clientX - dx, 8 - r.width + 80, innerWidth - 80) + 'px'; pwEl.style.top = clamp(ev.clientY - dy, 0, innerHeight - 40) + 'px'; };
+  const up = () => { removeEventListener('pointermove', mv); removeEventListener('pointerup', up); };
+  addEventListener('pointermove', mv); addEventListener('pointerup', up);
+});
+// Tasten im Plugin-Fenster sollen nicht die Kürzel der App auslösen (außer Leertaste für Start/Stopp)
+pwEl.addEventListener('keydown', e => { if (e.code !== 'Space') e.stopPropagation(); });
+
+// Karten im Tab „Klang & Effekte“
+function pluginCards(tr) {
+  const fx = wamList().filter(p => !p.inst), insts = wamList().filter(p => p.inst), c = chans.get(tr.id);
+  const opt = p => `<option value="${esc(p.url)}">${esc(p.name)}${p.vendor ? ' · ' + esc(p.vendor) : ''}</option>`;
+  const status = inst => inst === undefined ? '<small>lädt</small>' : inst === null ? '<small class="bad">fehlt</small>' : '';
+  const rows = (tr.ins || []).map((s, i, a) => `<div class="pl-row ${s.on ? '' : 'off'}" data-slot="${s.id}">
+      <input type="checkbox" data-pl="on" ${s.on ? 'checked' : ''} title="Ein/Aus" aria-label="${esc(s.name)} ein/aus">
+      <button class="pl-name" data-pl="open" title="Oberfläche öffnen">${esc(s.name)}${status(c?.plugs.get(s.id))}</button>
+      <button data-pl="up" ${i ? '' : 'disabled'} title="Weiter nach vorn in der Kette">↑</button><button data-pl="down" ${i < a.length - 1 ? '' : 'disabled'} title="Weiter nach hinten">↓</button><button data-pl="del" title="Entfernen">×</button></div>`).join('');
+  const own = wamOwn.length ? `<div class="pl-own">${wamOwn.map((p, i) => `<span>${esc(p.name)}${p.inst ? ' <small>Instrument</small>' : ''}<button data-pl="forget" data-i="${i}" title="Aus der Liste entfernen">×</button></span>`).join('')}</div>` : '';
+  return `${tr.type === 'synth' ? `<section class="card plug"><h3>Instrument-Plugin</h3>
+      <label class="knob"><span>Klangquelle</span><select id="plInst"><option value="">Eingebaut</option>${insts.map(p => opt(p).replace('<option', `<option ${tr.wam?.url === p.url ? 'selected' : ''}`)).join('')}${tr.wam && !insts.some(p => p.url === tr.wam.url) ? `<option selected value="${esc(tr.wam.url)}">${esc(tr.wam.name)}</option>` : ''}</select></label>
+      ${tr.wam ? `<button class="sbtn" data-pl="iopen">Oberfläche öffnen${status(c && c.instUrl === tr.wam.url ? c.inst : undefined)}</button>` : '<p class="hint">Statt der eingebauten Sounds spielt ein Plugin die Noten dieser Spur.</p>'}</section>` : ''}
+    <section class="card plug"><h3>Plugins <small>Inserts</small></h3>
+      ${rows || '<p class="hint">Effekt-Plugins laufen nach dem Kompressor, vor dem Lautstärkeregler. Reihenfolge von oben nach unten.</p>'}
+      <label class="knob"><span>Einfügen</span><select id="plAdd"><option value="">Effekt wählen …</option>${fx.map(opt).join('')}</select></label>
+      <details class="pl-url"><summary>Eigenes Plugin per Link</summary>
+        <div><input type="url" id="plUrl" placeholder="https://…/index.js" aria-label="Link zum Plugin"><button class="sbtn" data-pl="url">Laden</button></div>
+        <p class="hint">Jedes Plugin im Format Web Audio Modules 2.0 (WAM), z. B. aus der Sammlung auf webaudiomodules.com. Braucht Internet.</p>${own}</details></section>`;
+}
+function pluginEvents(tr, box) {
+  box.addEventListener('change', e => {
+    if (e.target.id === 'plAdd' && e.target.value) { const p = wamList().find(x => x.url === e.target.value); if (p) addInsert(tr, p); }
+    if (e.target.id === 'plInst') setInstPlugin(tr, wamList().find(x => x.url === e.target.value) || (tr.wam?.url === e.target.value ? tr.wam : null));
+    if (e.target.dataset.pl === 'on') {
+      const s = tr.ins.find(x => x.id === e.target.closest('[data-slot]').dataset.slot);
+      pushUndo(); s.on = e.target.checked; save(); syncPlugins(tr); renderEditor(); renderArrange();
+    }
+  });
+  box.addEventListener('keydown', e => { if (e.target.id === 'plUrl' && e.key === 'Enter') addPluginUrl(tr, e.target.value); });
+  box.addEventListener('click', e => {
+    const b = e.target.closest('button[data-pl]'); if (!b) return;
+    const act = b.dataset.pl, row = b.closest('[data-slot]'), i = row ? tr.ins.findIndex(x => x.id === row.dataset.slot) : -1;
+    if (act === 'open') openPlugin(tr, row.dataset.slot);
+    if (act === 'iopen') openPlugin(tr, 'inst');
+    if (act === 'url') addPluginUrl(tr, $('#plUrl').value);
+    if (act === 'forget') { wamOwn.splice(+b.dataset.i, 1); saveWamOwn(); renderEditor(); }
+    if (act === 'del' || act === 'up' || act === 'down') {
+      pushUndo();
+      if (act === 'del') tr.ins.splice(i, 1);
+      else { const j = i + (act === 'up' ? -1 : 1); [tr.ins[i], tr.ins[j]] = [tr.ins[j], tr.ins[i]]; }
+      if (!tr.ins.length) delete tr.ins;
+      save(); syncPlugins(tr); renderEditor(); renderArrange();
+    }
+  });
 }
 
 // ================= Piano Roll =================
@@ -3325,11 +3607,11 @@ function drawNotes(r) {
   box.innerHTML = r.notes.map((n, i) => n.p < Z.lo || n.p > Z.hi ? '' :
     `<div class="nt ${selNotes.has(n) ? 'sel' : ''}" data-i="${i}" title="${Z === PR ? noteName(n.p) : 'Pad ' + (n.p + 1)} · Anschlag ${Math.round(n.v * 127)}" style="left:${n.s * Z.bw}px;top:${(Z.hi - n.p) * Z.rh}px;width:${Math.max(6, n.l * Z.bw)}px;${tall}${bg(n)}opacity:${.45 + n.v * .55}"></div>`).join('');
 }
-const prevPitch = tr => tr.type === 'sampler' ? 0 : tr.preset === 'user' ? tr.usmp.root : PRESETS[tr.preset].prev || (PRESETS[tr.preset].cat === 'Bass' ? 40 : 60);
+const prevPitch = tr => tr.type === 'sampler' ? 0 : tr.wam ? 60 : tr.preset === 'user' ? tr.usmp.root : PRESETS[tr.preset].prev || (PRESETS[tr.preset].cat === 'Bass' ? 40 : 60);
 function previewNote(tr, p) {
   ensureCtx();
   if (tr.type === 'sampler') { padPlay(tr, chan(tr).input, p, ctx.currentTime, .9, liveMono)?.release(ctx.currentTime + .3); return; }
-  const id = PRESETS[tr.preset]?.smp;
+  const id = !tr.wam && PRESETS[tr.preset]?.smp;
   if (id && id !== 'user' && !smpSets.get(id)?.zones) { loadSamples(id).then(() => previewNote(tr, p), () => { }); return; }
   const v = noteOn(tr, chan(tr).input, p, ctx.currentTime, .8);
   v.release(ctx.currentTime + .3);
@@ -4194,8 +4476,9 @@ function libBody(tr) {
   if (!tr) return `<p class="lib-note">Wähle links eine Spur aus oder lege eine neue an.</p><div class="lib-btns"><button data-lib-add="synth">+ Software-Instrument</button><button data-lib-add="drums">+ Drummer</button><button data-lib-add="audio">+ Audio-Spur</button><button data-lib-add="sampler">+ Sampler (MPC-Pads)</button></div>`;
   if (tr.type === 'synth') {
     const q = libQuery.trim().toLowerCase(), cats = { 'Eigene Samples': [], 'Echte Instrumente': [] };
-    if (tr.usmp && (!q || (tr.usmp.name + ' sample').toLowerCase().includes(q))) cats['Eigene Samples'].push(item('data-preset="user"', tr.preset === 'user', tr.usmp.name));
-    for (const [k, v] of Object.entries(PRESETS)) if (k !== 'user' && (!q || v.name.toLowerCase().includes(q) || v.cat.toLowerCase().includes(q))) (cats[v.cat] ||= []).push(item(`data-preset="${k}"`, k === tr.preset, v.name, v.smp ? '<small>Sample</small>' : ''));
+    if (tr.usmp && (!q || (tr.usmp.name + ' sample').toLowerCase().includes(q))) cats['Eigene Samples'].push(item('data-preset="user"', tr.preset === 'user' && !tr.wam, tr.usmp.name));
+    for (const [k, v] of Object.entries(PRESETS)) if (k !== 'user' && (!q || v.name.toLowerCase().includes(q) || v.cat.toLowerCase().includes(q))) (cats[v.cat] ||= []).push(item(`data-preset="${k}"`, k === tr.preset && !tr.wam, v.name, v.smp ? '<small>Sample</small>' : ''));
+    for (const p of wamList()) if (p.inst && (!q || (p.name + ' ' + p.vendor + ' plugin').toLowerCase().includes(q))) (cats['Plugin-Instrumente'] ||= []).push(item(`data-wam="${esc(p.url)}"`, tr.wam?.url === p.url, p.name, '<small>Plugin</small>'));
     const html = Object.entries(cats).filter(([, items]) => items.length).map(([c, items]) => group(c, items.join(''), items.length)).join('');
     return (q ? '' : `<div class="lib-btns"><button data-lib-act="usmp">${tr.usmp ? 'Anderes eigenes Sample laden …' : 'Eigenes Sample laden …'}</button></div>`) + (html || '<p class="lib-note">Kein Sound gefunden.</p>');
   }
@@ -4229,7 +4512,7 @@ function renderLib() {
   libEl.classList.toggle('closed', !libOpen); $('#bLib').classList.toggle('on', libOpen);
   if (!libOpen) return;
   const tr = findTrack(selTrack);
-  const key = [tr?.id, tr?.type, tr?.preset, tr?.kit, JSON.stringify(tr?.pieces || {}), tr?.usmp?.buf, tr?.usmp?.name, tr?.color, tr?.name, selRegion, tr?.srcs?.length, tr?.src, tr?.chops?.length].join('|');
+  const key = [tr?.id, tr?.type, tr?.preset, tr?.kit, JSON.stringify(tr?.pieces || {}), tr?.usmp?.buf, tr?.usmp?.name, tr?.wam?.url, tr?.color, tr?.name, selRegion, tr?.srcs?.length, tr?.src, tr?.chops?.length].join('|');
   if (key === libKey) return;
   libKey = key;
   const top = libEl.querySelector('.lib-list')?.scrollTop || 0, same = libEl.dataset.track === (tr?.id || '');
@@ -4260,8 +4543,9 @@ libEl.addEventListener('click', e => {
   if (b.dataset.src && tr) { tr.src = +b.dataset.src; smpUI.chop = tr.chops.find(c => c.buf === tr.srcs[tr.src].buf)?.id || null; edTab = 'smp'; save(); libKey = ''; renderLib(); renderEditor(); return; }
   if (!tr) return;
   const pick = () => { libEl.querySelectorAll('.lib-item.on').forEach(x => x !== b && !b.dataset.pat && x.classList.remove('on')); if (!b.dataset.pat) b.classList.add('on'); };
+  if (b.dataset.wam) { setInstPlugin(tr, wamList().find(p => p.url === b.dataset.wam)); return; }
   if (b.dataset.preset) {
-    if (tr.preset !== b.dataset.preset) { pushUndo(); tr.preset = b.dataset.preset; save(); }
+    if (tr.preset !== b.dataset.preset || tr.wam) { pushUndo(); tr.preset = b.dataset.preset; delete tr.wam; save(); syncPlugins(tr); }
     pick(); libKey = ''; renderArrange(); if (edTab !== 'eq') renderEditor();
     previewNote(tr, prevPitch(tr));
   }

@@ -10,6 +10,7 @@ Zuerst als Windows-Programm, später auch als Web-App fürs iPhone.
 | Audio-Engine | Web Audio API (JavaScript) | Läuft identisch in der Windows-App, in Chrome/Edge und in Safari auf dem iPhone |
 | Windows-Programm | Electron | Verpackt dieselbe App als `Klangwerk.exe`, erlaubt Mikrofon und MIDI ohne Rückfrage |
 | iPhone | dieselbe App als Web-App (PWA) | Kein zweiter Code. Einschränkung: Safari kann kein Web-MIDI |
+| Plug-ins | Web Audio Modules 2.0 (WAM), offener Web-Standard | Laufen in der Windows-App, im Browser und auf dem iPhone gleich |
 | Plug-ins (später) | VST3 über ein natives Node-Add-on | Nur in der Windows-Version möglich |
 
 Leitregel: Alles, was nur unter Windows geht (VST3, Dateisystem, ASIO), kommt hinter eine Schnittstelle, damit die Web-Version ohne diese Teile weiter läuft.
@@ -128,6 +129,16 @@ Bekannte Grenzen:
 - Veröffentlichung: `.github/workflows/pages.yml` stellt die Web-App bei jedem Merge auf main über GitHub Pages bereit
 - Neue Sounds: 10 echte Instrumente (jetzt 114 Klänge): FM-E-Piano und Clavi-Synth (Yamaha TX81Z), Klavier (Upright), Kirchenorgel, Glockenspiel, Röhrenglocken, Handglocken, Đàn Tranh (Zither), Blockflöte, Mbira; 2 neue Kits (jetzt 22): Welt-Percussion (Darbuka, Rahmentrommel, Schlitztrommel, Cabasa, Guiro …) und Orchester (Große Trommel, Pauken, Gong, Becken, Röhrenglocke, Ratsche …). Quelle: VCSL, CC0. `node scripts/fetch-vcsl.js instruments <ids>` baut einzelne neu
 
+## Version 0.95 (fertig): Externe Plugins (WAM 2.0)
+
+- Plugin-Host für **Web Audio Modules 2.0**, den offenen Plugin-Standard fürs Web. Läuft in der Windows-App, im Browser und auf dem iPhone
+- Effekt-Plugins als **Inserts** pro Spur (Tab „Klang & Effekte“): beliebig viele hintereinander, nach dem Kompressor und vor dem Lautstärkeregler. Ein/Aus, Reihenfolge mit ↑ ↓, entfernen mit ×
+- **Instrument-Plugins**: auf einer Instrument-Spur unter „Instrument-Plugin“ oder in der Bibliothek unter „Plugin-Instrumente“ wählen. Noten aus Regionen, MIDI-Keyboard, Computertastatur und Bildschirm-Keyboard spielen dann das Plugin
+- **Plugin-Fenster**: Klick auf den Plugin-Namen öffnet die Oberfläche, die das Plugin mitbringt. Verschiebbar, am Handy scrollbar
+- Einstellungen der Plugins werden im Projekt gespeichert (auch in `.soundgroot`-Dateien) und beim Export (WAV/MP3) mitgerendert
+- **Eigene Plugins per Link**: „Eigenes Plugin per Link“ nimmt die Adresse eines WAM-Plugins (Ordner oder `index.js`), z. B. aus der Sammlung auf webaudiomodules.com. Die Liste eigener Plugins wird pro Gerät gemerkt
+- Mitgeliefert (laufen offline): Synth-101 (Analog-Synth nach SH-101), Spectrum: Modal (Physical Modelling), Simple Delay, Simple Distortion, Simple EQ. Quelle: [burns-audio-wam](https://github.com/boourns/burns-audio-wam) von Tom Burns, MIT. `node scripts/fetch-plugins.js` lädt sie und das WAM-SDK neu
+
 ## Grundsatz
 
 Jedes Update bringt auch neue Sounds mit.
@@ -135,11 +146,11 @@ Jedes Update bringt auch neue Sounds mit.
 ## Fahrplan
 
 1. **v1.0**: Drums live über Pads einspielen, Touch-Gesten im Piano Roll (langes Drücken für Menüs), Feinschliff nach Tests auf dem iPhone
-2. **Später**: VST3-Plug-ins in der Windows-Version
+2. **Später**: VST3-Plug-ins zusätzlich in der Windows-Version (natives Add-on für Electron, eigener Prozess, damit ein abstürzendes Plugin die App nicht mitreißt). Die Plugin-Slots aus v0.95 sind dafür schon da
 
 ## Starten
 
-- Windows: `SoundGroot-0.9.0-win.zip` entpacken, `Sound Groot.exe` starten
+- Windows: `SoundGroot-0.9.5-win.zip` entpacken, `Sound Groot.exe` starten
 - iPhone/Browser: https://erikos47.github.io/Klangwerk/ öffnen (sobald GitHub Pages eingeschaltet ist), dann „Zum Home-Bildschirm“
 - Entwicklung: `npm install`, dann `npm start`
 - Windows-Build: `npm run dist:win`

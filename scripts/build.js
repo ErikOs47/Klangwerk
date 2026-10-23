@@ -23,6 +23,7 @@ fs.mkdirSync(dist, { recursive: true });
 fs.writeFileSync(path.join(dist, 'index.html'), html);
 fs.cpSync(path.join(root, 'src/vendor'), path.join(dist, 'vendor'), { recursive: true });
 fs.cpSync(path.join(root, 'src/samples'), path.join(dist, 'samples'), { recursive: true });
+fs.cpSync(path.join(root, 'src/plugins'), path.join(dist, 'plugins'), { recursive: true });
 fs.cpSync(path.join(root, 'src/brand'), path.join(dist, 'brand'), { recursive: true });
 fs.copyFileSync(path.join(root, 'src/splash.html'), path.join(dist, 'splash.html'));
 
@@ -42,8 +43,10 @@ fs.writeFileSync(path.join(dist, 'manifest.webmanifest'), JSON.stringify({
 // Jeder Sound bekommt einen Hash, damit geänderte Dateien nach einem Update neu geladen werden.
 const hash = f => crypto.createHash('sha1').update(fs.readFileSync(f)).digest('hex').slice(0, 10);
 const list = dir => fs.readdirSync(path.join(dist, dir)).filter(f => !f.startsWith('.')).map(f => dir + '/' + f);
+const tree = dir => list(dir).flatMap(f => fs.statSync(path.join(dist, f)).isDirectory() ? tree(f) : [f]);
 const shell = ['index.html', 'manifest.webmanifest', ...list('brand'), ...list('vendor')];
-const samples = Object.fromEntries(list('samples').filter(f => f.endsWith('.js')).map(f => [f, hash(path.join(dist, f))]));
+// Plugins (WAM) werden wie die Sounds beim ersten Laden gespeichert
+const samples = Object.fromEntries([...list('samples').filter(f => f.endsWith('.js')), ...tree('plugins')].map(f => [f, hash(path.join(dist, f))]));
 const sw = fs.readFileSync(path.join(root, 'src/sw.js'), 'utf8')
   .replace('__VERSION__', JSON.stringify(version + '-' + hash(path.join(dist, 'index.html'))))
   .replace('__SHELL__', JSON.stringify(shell))
