@@ -84,7 +84,14 @@ const INSTR = {
   'hand-chimes': { dir: 'Idiophones/Struck Idiophones/Hand Chimes', re: /(?:^|\/)sus_([A-G]#?\d)_r01/, dur: 4 },
   'dan-tranh': { dir: 'Chordophones/Zithers/Dan Tranh/Normal', re: /(?:^|\/)([A-G]#?\d)_f_1\.wav$/, dur: 3 },
   recorder: { dir: 'Aerophones/Edge-blown Aerophones/Baroque Alto Recorder/Sustain', re: /_Sus_([A-G]#?\d)_rr1/, dur: 3 },
-  mbira: { dir: 'Idiophones/Plucked Idiophones/Mbira dzaVadzimu Nyamaropa, Zimbabwe, Low B', re: /_Main_([A-G]#?\d)_\d+_/, dur: 3 }
+  mbira: { dir: 'Idiophones/Plucked Idiophones/Mbira dzaVadzimu Nyamaropa, Zimbabwe, Low B', re: /_Main_([A-G]#?\d)_\d+_/, dur: 3 },
+  // Neu in v1.0
+  'grand-kawai': { dir: 'Chordophones/Zithers/Grand Piano, Kawai/Sustains', re: /_sus_([A-G]#?-?\d)_v3_rr1/, dur: 4.5 },
+  strumstick: { dir: 'Chordophones/Composite Chordophones/Strumstick/Finger', re: /_Main_([A-G]#?\d)_vl3_/, dur: 3 },
+  psaltery: { dir: 'Chordophones/Zithers/Psaltery, Bowed and Plucked/LongBow', re: /BowedPsaltery_([A-G]#?\d)_Main/, dur: 3.5 },
+  'psaltery-pluck': { dir: 'Chordophones/Zithers/Psaltery, Bowed and Plucked/Pluck', re: /BowedPsaltery_([A-G]#?\d)_Main/, dur: 3 },
+  saxello: { dir: 'Aerophones/Reed Aerophones/Saxello/Non-Vibrato', re: /_([A-G]#?\d)_vl3_/, dur: 3.5 },
+  'kalimba-tz': { dir: 'Idiophones/Plucked Idiophones/Kalimba, Tanzania', re: /_Main_([A-G]#?\d)_k/, dur: 3 }
 };
 // Gruppiert passende Dateien nach Tonhöhe und korrigiert die Oktave anhand der gemessenen Tonhöhe (Median)
 async function noteSet(dir, re, maxSec) {
@@ -122,7 +129,10 @@ const P = {
   bd2: 'Membranophones/Struck Membranophones/Bass Drum 2', rope: 'Membranophones/Struck Membranophones/Snare Drum, Rope Tension/Hi',
   anvil: 'Idiophones/Struck Idiophones/Anvil', timp: 'Membranophones/Struck Membranophones/Timpani 1/Hit', slap: 'Idiophones/Struck Idiophones/Slapstick',
   bells: 'Idiophones/Struck Idiophones/Tubular Bells 1', clash: 'Idiophones/Struck Idiophones/Clash Cymbals 1', gong: 'Idiophones/Struck Idiophones/Gong 1',
-  ratchet: 'Idiophones/Struck Idiophones/Ratchet'
+  ratchet: 'Idiophones/Struck Idiophones/Ratchet',
+  bd3: 'Membranophones/Struck Membranophones/Bass Drum 3 - Legacy', sn2: 'Membranophones/Struck Membranophones/Snare Drum, Modern 2',
+  sn3: 'Membranophones/Struck Membranophones/Snare Drum, Modern 3', tom2: 'Membranophones/Struck Membranophones/Tom 2',
+  cym2: 'Idiophones/Struck Idiophones/Suspended Cymbal 2', brake: 'Idiophones/Struck Idiophones/Brake Drum'
 };
 const KITS = {
   vcsl: {
@@ -149,6 +159,13 @@ const KITS = {
     hat: [P.tamb2, 'Tamb2_Hit_v2_rr2_Mid.wav'], ohat: [P.sleigh, 'sleighbell2_hit_loud.wav'], tom: [P.timp, 'Timpani1_Hit_v4_rr1_Sum.wav', 2.5],
     rim: [P.slap, 'slapstick_rr1.wav'], cow: [P.bells, 'chimes_C4_ff_rr2.wav', 3], crash: [P.clash, 'cymbal_crash1_ff2.wav'],
     ride: [P.gong, 'gong_f.wav', 4], shaker: [P.ratchet, 'Ratchet1_Fast_rr1_Mid.wav'], conga: [P.timp, 'Timpani2_Hit_v4_rr1_Sum.wav', 2.5]
+  },
+  // Neu in v1.0
+  vcslstudio: {
+    kick: [P.bd3, 'bdrum_muted_fff_rr1.wav'], snare: [P.sn2, 'Snare3M_HitSN_v5_rr1_Mid.wav'], clap: [P.clap, 'Clap_rr3.wav'],
+    hat: [P.hh, 'HiHat_HitC_v4_rr1_Mid.wav'], ohat: [P.hh, 'HiHat_HitLoose_rr1_Mid.wav'], tom: [P.tom2, 'TomL_HitS_v4_rr1_Mid.wav', 1.5],
+    rim: [P.sn3, 'Snare4_Xstick_v2_rr1_Mid.wav'], cow: [P.brake, 'BrakeDrum1_Hammer_v3_rr1_Mid.wav'], crash: [P.cym2, 'susCymb2_hit_fff1.wav'],
+    ride: [P.cym2, 'susCymb2_hit_bell_f1.wav'], shaker: [P.ss, 'Mid_ShakerLowFaster_Down_rr1.wav'], conga: [P.sn3, 'Snare4_rimshot_v4_rr1_Mid.wav']
   }
 };
 async function kits() {
@@ -210,6 +227,10 @@ async function loops() {
   const quinto = await hit(P.conga, 'Quinto_HitN_v2_rr1_Sum.wav', .5), bh = await hit(P.bongo, 'BongoH_Hit1_v2_rr1_Mid.wav', .4), bl = await hit(P.bongo, 'BongoL_Hit1_v2_rr1_Mid.wav', .4);
   const clave = await hit(P.clave, 'Claves1_Hit_v2_rr1_Mid.wav', .3), cow = await hit(P.cow, 'Cowbell1_Muted_v3_rr1_Mid.wav', .3);
   const piano = await noteSet('Chordophones/Zithers/Grand Piano, Steinway B/NoSus', /_([A-G]#?\d)_vl3_/, 3);
+  // Neu in v1.0
+  const kickM = await hit(P.bd3, 'bdrum_muted_fff_rr1.wav', .5), clap = [await hit(P.clap, 'Clap_rr1.wav', .4), await hit(P.clap, 'Clap_rr2.wav', .4)];
+  const sn3 = await hit(P.sn2, 'Snare3M_HitSN_v5_rr1_Mid.wav', .6), xs = await hit(P.sn3, 'Snare4_Xstick_v2_rr1_Mid.wav', .3), rimS = await hit(P.sn3, 'Snare4_rimshot_v4_rr1_Mid.wav', .5);
+  const hl = await hit(P.hh, 'HiHat_HitLoose_rr1_Mid.wav', .5), shL = await hit(P.ss, 'Mid_ShakerLowFaster_Down_rr1.wav', .25), wood = await hit(P.wood, 'wood_click_f_rr1.wav', .3);
   const inst = id => noteSet(INSTR[id].dir, INSTR[id].re, INSTR[id].dur);
 
   const L = {
@@ -228,7 +249,19 @@ async function loops() {
     'conga-groove': [{ bpm: 110, grid: 16, bars: 2 }, [
       [clave, 'x.....x.....x... ....x...x.......', .5], [tumba, '..............x. ..............xx', .9], [conga, '......xx........ ......xx........', .7],
       [cmute, '....x.......x... ....x.......x...', .6], [[bh, bh, bl, bh], 'x-o-x-o-x-o-x-o- x-o-x-o-x-o-x-o-', .45], [quinto, '.........x...... ...........x.x..', .5],
-      [cow, 'x...x...x...x... x...x...x...x...', .3]]]
+      [cow, 'x...x...x...x... x...x...x...x...', .3]]],
+    // Neu in v1.0
+    'house-groove': [{ bpm: 124, grid: 16, bars: 2 }, [
+      [kickM, 'x...x...x...x... x...x...x...x...', 1], [clap, '....x.......x... ....x.......x...', .7], [hc, 'x.x.x.x.x.x.x.x. x.x.x.x.x.x.x.x.', .25],
+      [hl, '..x...x...x...x. ..x...x...x...x.', .4], [shL, 'o-o-o-o-o-o-o-o- o-o-o-o-o-o-o-o-', .25]]],
+    'halftime-break': [{ bpm: 140, grid: 16, bars: 2 }, [
+      [kickM, 'x.....x...x..... x.x.......x...x.', 1], [sn3, '........x....... ........x.......', .9], [ghost, '.....o.......o.. ...o.......o..o.', .4],
+      [hc, 'x-x-x-x-xxx-x-x- x-x-x-x-x-x-xxxx', .35], [hl, '..............x. ................', .35]]],
+    'bossa-groove': [{ bpm: 120, grid: 16, bars: 2 }, [
+      [kickM, 'x..xx..xx..xx..x x..xx..xx..xx..x', .7], [xs, 'x..x..x...x..x.. ..x..x...x..x...', .55], [sh, 'xoxoxoxoxoxoxoxo xoxoxoxoxoxoxoxo', .3]]],
+    'reggae-onedrop': [{ bpm: 76, grid: 16, bars: 2, swing: .1 }, [
+      [kickM, '........x....... ........x.......', 1], [rimS, '........x....... ........x.......', .6], [hc, 'x.x.x.x.x.x.x.x. x.x.x.x.x.xxx.x.', .3],
+      [wood, '....x.......x... ....x.......x...', .25]]]
   };
   const M = {
     'soul-keys': [{ bpm: 84, grid: 16, bars: 4 }, piano, .5, [[53, 57, 60, 64, 41], [52, 55, 59, 62, 40], [50, 53, 57, 60, 64, 38], [55, 59, 62, 65, 43]]
@@ -243,11 +276,18 @@ async function loops() {
     'organ-stabs': [{ bpm: 90, grid: 16, bars: 4 }, 'renaissance-organ', .45, [[57, 60, 64], [53, 57, 60], [55, 60, 64], [55, 59, 62]]
       .flatMap((c, b) => [[b * 16, c[0] - 12, 14, .7], ...[2, 6, 10, 14].flatMap(k => chord(b * 16 + k, c, 1.5, .8))])],
     'sax-licks': [{ bpm: 92, grid: 16, bars: 2 }, 'tenor-sax', .6, [[0, 65, 2], [2, 68, 1], [3, 70, 3], [6, 68, 2], [8, 65, 2], [10, 63, 1], [11, 64, 1], [12, 63, 2], [14, 61, 2],
-      [16, 58, 4], [22, 61, 2], [24, 63, 2], [26, 65, 5]]]
+      [16, 58, 4], [22, 61, 2], [24, 63, 2], [26, 65, 5]]],
+    // Neu in v1.0
+    'house-piano': [{ bpm: 122, grid: 16, bars: 2 }, 'grand-kawai', .45, [[57, 60, 64, 67], [55, 59, 62, 65]]
+      .flatMap((c, b) => [0, 3, 6, 10, 12].flatMap(k => chord(b * 16 + k, c, 1.5, k ? .75 : 1)))],
+    'strum-folk': [{ bpm: 100, grid: 16, bars: 2 }, 'strumstick', .5, [[50, 57, 62], [55, 59, 62], [50, 57, 62], [57, 61, 64]]
+      .flatMap((c, b) => [0, 3, 4, 6].flatMap((k, j) => c.map((m, i) => [b * 8 + k + i * .08, m, 2, j ? .6 : .9])))],
+    'saxello-line': [{ bpm: 96, grid: 16, bars: 2 }, 'saxello', .55, [[0, 62, 3], [3, 65, 1], [4, 67, 4], [10, 69, 2], [12, 67, 2], [14, 65, 2], [16, 62, 6], [24, 60, 2], [26, 62, 6]]],
+    'psaltery-pad': [{ bpm: 80, grid: 16, bars: 2 }, 'psaltery', .45, [...chord(0, [62, 66, 69], 16, .7), ...chord(16, [59, 62, 66], 16, .7)]]
   };
   const save = (id, x) => { fs.writeFileSync(path.join(out, 'loop-' + id + '.js'), `KW_SMP(${JSON.stringify('loop-' + id)},${JSON.stringify(mp3(x, 112))});\n`); console.log('loop-' + id, (x.length / SR).toFixed(2) + ' s'); };
-  for (const [id, [cfg, lanes]] of Object.entries(L)) save(id, render(cfg, lanes));
-  for (const [id, [cfg, src, gain, ev]] of Object.entries(M)) save(id, render(cfg, [], { set: typeof src === 'string' ? await inst(src) : src, ev, gain }));
+  for (const [id, [cfg, lanes]] of Object.entries(L)) if (want(id)) save(id, render(cfg, lanes));
+  for (const [id, [cfg, src, gain, ev]] of Object.entries(M)) if (want(id)) save(id, render(cfg, [], { set: typeof src === 'string' ? await inst(src) : src, ev, gain }));
 }
 
 (async () => {

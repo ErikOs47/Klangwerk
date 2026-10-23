@@ -139,18 +139,31 @@ Bekannte Grenzen:
 - **Eigene Plugins per Link**: „Eigenes Plugin per Link“ nimmt die Adresse eines WAM-Plugins (Ordner oder `index.js`), z. B. aus der Sammlung auf webaudiomodules.com. Die Liste eigener Plugins wird pro Gerät gemerkt
 - Mitgeliefert (laufen offline): Synth-101 (Analog-Synth nach SH-101), Spectrum: Modal (Physical Modelling), Simple Delay, Simple Distortion, Simple EQ. Quelle: [burns-audio-wam](https://github.com/boourns/burns-audio-wam) von Tom Burns, MIT. `node scripts/fetch-plugins.js` lädt sie und das WAM-SDK neu
 
+## Version 1.0 (fertig): Groove, Mixer-Ausbau, Undo-Verlauf, Time-Stretch
+
+- **Quantisieren und Groove** (Piano Roll, Knopf „Quantisieren“ und ▾ daneben, Taste Q): Raster, Stärke in %, Swing (50–75 %), Notenlängen mitquantisieren. „Humanize“ verschiebt Timing und Anschlag leicht zufällig. Optional wird nach einer MIDI-Aufnahme automatisch quantisiert. Alles lässt sich mit Strg+Z zurücknehmen
+- **Swing und Humanize für Drums**: zwei Regler im Step-Sequencer, wirken beim Abspielen und im Export
+- **Sampler-Chops im Raster**: Auto-Chop „Auf 16tel“ setzt die Schnitte genau ins Raster des Loop-Tempos
+- **Gruppen-Busse**: „+ Gruppe“ im Mixer, dann pro Spur unten „→ Gruppe“ wählen. Jede Gruppe hat Fader, Pan, Mute/Solo und einen „Glue“-Kompressor
+- **Sidechain-Kompression**: im Kompressor eine Auslöser-Spur wählen (z. B. Kick), Preset „Pumpen (Sidechain)“, optional nur die Bässe des Auslösers. Anzeige der Pegelreduktion
+- **LUFS-Lautheit** (EBU R128): kurzfristig und gesamt am Master-Kanal und oben im Display, nach dem Export im Hinweis. Ziel für Streaming: etwa −14 LUFS
+- **Undo-Verlauf**: Knopf mit der Uhr oben zeigt alle Bearbeitungsschritte mit Namen, ein Klick springt zu jedem Schritt. Wiederholen mit Strg+Umschalt+Z oder Strg+Y
+- **Autosave und Absturz-Wiederherstellung**: jede Änderung wird sofort gespeichert, alle zwei Minuten entsteht zusätzlich eine Sicherung (bis zu 20). Nach einem Absturz meldet sich die App und bietet ältere Sicherungen an
+- **Time-Stretch**: Audio-Regionen passen sich ohne Tonhöhenänderung ans Songtempo an („Tempo folgen“, Original-BPM erkennen) oder werden frei gedehnt (50–200 %, auch per Alt+Ziehen am rechten Rand). Loops aus der Bibliothek lassen sich als Audio-Region ins Songtempo legen. Läuft im Hintergrund (WSOLA)
+- Neue Sounds: 6 echte Instrumente: Flügel (Kawai), Strumstick, Psalter gestrichen und gezupft, Saxello, Kalimba (Tansania); neues Kit „Studio-Set 2 (echt)“ mit weiteren Kicks, Snares, Toms, Becken und Bremstrommel; 8 neue Loops (House-Groove, Halftime-Break, Bossa, Reggae One-Drop, House-Piano, Folk-Strumming, Saxello-Linie, Psalter-Fläche). Quelle: VCSL, CC0
+
 ## Grundsatz
 
 Jedes Update bringt auch neue Sounds mit.
 
 ## Fahrplan
 
-1. **v1.0**: Drums live über Pads einspielen, Touch-Gesten im Piano Roll (langes Drücken für Menüs), Feinschliff nach Tests auf dem iPhone
+1. **v1.1**: Drums live über Pads einspielen, Touch-Gesten im Piano Roll (langes Drücken für Menüs), Feinschliff nach Tests auf dem iPhone
 2. **Später**: VST3-Plug-ins zusätzlich in der Windows-Version (natives Add-on für Electron, eigener Prozess, damit ein abstürzendes Plugin die App nicht mitreißt). Die Plugin-Slots aus v0.95 sind dafür schon da
 
 ## Starten
 
-- Windows: `SoundGroot-0.9.5-win.zip` entpacken, `Sound Groot.exe` starten
+- Windows: `SoundGroot-1.0.0-win.zip` entpacken, `Sound Groot.exe` starten
 - iPhone/Browser: https://erikos47.github.io/Klangwerk/ öffnen (sobald GitHub Pages eingeschaltet ist), dann „Zum Home-Bildschirm“
 - Entwicklung: `npm install`, dann `npm start`
 - Windows-Build: `npm run dist:win`
