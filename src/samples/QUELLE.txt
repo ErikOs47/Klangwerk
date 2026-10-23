@@ -12,7 +12,8 @@ Für Klangwerk gekürzt, in Mono und mit 96 kbit/s neu kodiert (scripts/fetch-dr
 
 Instrumente (vibraphone, marimba, kalimba, balafon, tenor-sax, harmonica, ocarina, harpsichord,
 renaissance-organ, folk-harp, fm-piano, clavisynth, upright-piano, pipe-organ, glockenspiel, tubular-bells,
-hand-chimes, dan-tranh, recorder, mbira, grand-kawai, strumstick, psaltery, psaltery-pluck, saxello, kalimba-tz),
+hand-chimes, dan-tranh, recorder, mbira, grand-kawai, strumstick, psaltery, psaltery-pluck, saxello, kalimba-tz,
+tx-piano, nyunga, upright-knight, bass-recorder, harmonica-chrom, vibes-soft, tubular-glock, harpsichord-lute),
 die Kits drums-vcsl*.js sowie die Loops loop-*.js
 aus der "Versilian Community Sample Library" (VCSL) von Versilian Studios / Sam Gossner
 https://github.com/sgossner/VCSL

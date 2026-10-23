@@ -152,18 +152,26 @@ Bekannte Grenzen:
 - **Time-Stretch**: Audio-Regionen passen sich ohne Tonhöhenänderung ans Songtempo an („Tempo folgen“, Original-BPM erkennen) oder werden frei gedehnt (50–200 %, auch per Alt+Ziehen am rechten Rand). Loops aus der Bibliothek lassen sich als Audio-Region ins Songtempo legen. Läuft im Hintergrund (WSOLA)
 - Neue Sounds: 6 echte Instrumente: Flügel (Kawai), Strumstick, Psalter gestrichen und gezupft, Saxello, Kalimba (Tansania); neues Kit „Studio-Set 2 (echt)“ mit weiteren Kicks, Snares, Toms, Becken und Bremstrommel; 8 neue Loops (House-Groove, Halftime-Break, Bossa, Reggae One-Drop, House-Piano, Folk-Strumming, Saxello-Linie, Psalter-Fläche). Quelle: VCSL, CC0
 
+## Version 1.1 (fertig): Taktarten, lange Drum-Patterns, Malen im Drum-Editor
+
+- **Taktart des Songs** oben im Display (Feld „Taktart“): 2/4, 3/4, 4/4, 5/4, 6/4, 7/4, 3/8, 5/8, 6/8, 7/8, 9/8, 12/8. Lineal, Raster, Metronom (Betonung auf der Eins), Vorzähler, Positionsanzeige, Marker, Cycle und das Einrasten richten sich danach. Beim Umstellen bleibt alles im selben Takt, Drum-Patterns werden Takt für Takt umgebaut. Mit Strg+Z zurück
+- **Drum-Patterns mit 1 bis 16 Takten** (Feld „Länge“ im Step-Sequencer). Beim Verlängern wird das bisherige Pattern wiederholt, danach lassen sich die Takte einzeln abwandeln. Im Raster stehen Takt und Zählzeit (z. B. 2.3), Takte sind sichtbar abgesetzt
+- **Malen durch Ziehen**: im Step-Sequencer mit gedrückter Maus (oder dem Finger) über eine Reihe ziehen belegt alle Felder auf dem Weg, auf einem gesetzten Feld begonnen löscht das Ziehen. Im Drum-Editor eines Instruments malt Ziehen die Schläge in der Tonhöhe, in der man begonnen hat, mit dem Werkzeug „Löschen“ wird gelöscht
+- 8 neue Patterns für andere Taktarten: Walzer, Ballade 3/4, Jazz-Walzer, 6/8 Ballade, 6/8 Marsch, 12/8 Blues, 5/4 Groove, 7/8 Groove. Patterns in der Taktart des Songs stehen in der Liste oben
+- Neue Sounds: 8 echte Instrumente (DX-Piano TX81Z, Nyunga Nyunga, Klavier Knight, Bassblockflöte, chromatische Mundharmonika, Vibraphon weich, Röhren-Glockenspiel, Cembalo mit Lautenzug); Kit „Marsch-Set (echt)“ mit Marschtrommel, Tenortrommeln, Triangel und Schellenbaum; 8 Loops in anderen Taktarten (Walzer-Drums, Walzer-Klavier, Glockenspiel-Walzer, Ballade 6/8, Marsch 6/8, Mbira-Arpeggio 6/8, Groove 5/4, Groove 7/8). Quelle: VCSL, CC0
+
 ## Grundsatz
 
 Jedes Update bringt auch neue Sounds mit.
 
 ## Fahrplan
 
-1. **v1.1**: Drums live über Pads einspielen, Touch-Gesten im Piano Roll (langes Drücken für Menüs), Feinschliff nach Tests auf dem iPhone
+1. **v1.2**: Taktartwechsel mitten im Song, Drums live über Pads einspielen, Touch-Gesten im Piano Roll (langes Drücken für Menüs), Feinschliff nach Tests auf dem iPhone
 2. **Später**: VST3-Plug-ins zusätzlich in der Windows-Version (natives Add-on für Electron, eigener Prozess, damit ein abstürzendes Plugin die App nicht mitreißt). Die Plugin-Slots aus v0.95 sind dafür schon da
 
 ## Starten
 
-- Windows: `SoundGroot-1.0.0-win.zip` entpacken, `Sound Groot.exe` starten
+- Windows: `SoundGroot-1.1.0-win.zip` entpacken, `Sound Groot.exe` starten
 - iPhone/Browser: https://erikos47.github.io/Klangwerk/ öffnen (sobald GitHub Pages eingeschaltet ist), dann „Zum Home-Bildschirm“
 - Entwicklung: `npm install`, dann `npm start`
 - Windows-Build: `npm run dist:win`
