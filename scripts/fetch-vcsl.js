@@ -73,7 +73,18 @@ const INSTR = {
   ocarina: { dir: 'Aerophones/Edge-blown Aerophones/Ocarina, Typical/Sustains/SusVib', re: /_([A-G]#?\d)\.wav$/, dur: 3.5 },
   harpsichord: { dir: 'Chordophones/Zithers/Harpsichord, Flemish/Sustains/Low', re: /_([A-G]#?\d)_rr1/, dur: 3.5 },
   'renaissance-organ': { dir: "Aerophones/Edge-blown Aerophones/Renaissance Organ/8'", re: /_([A-G]#?\d)_rr1/, dur: 3.5 },
-  'folk-harp': { dir: 'Chordophones/Composite Chordophones/Folk Harp', re: /_([A-G]#?\d)_v3_/, dur: 3.5 }
+  'folk-harp': { dir: 'Chordophones/Composite Chordophones/Folk Harp', re: /_([A-G]#?\d)_v3_/, dur: 3.5 },
+  // Neu in v0.9
+  'fm-piano': { dir: 'Electrophones/TX81Z/FM Piano', re: /_([A-G]#?\d)_vl3/, dur: 3.5 },
+  clavisynth: { dir: 'Electrophones/TX81Z/Clavisynth', re: /_([A-G]#?\d)_vl3/, dur: 2.5 },
+  'upright-piano': { dir: 'Chordophones/Zithers/Upright Piano, Yamaha/Sustains', re: /_Sus_([A-G]#?\d)_vl3_rr1/, dur: 4.5 },
+  'pipe-organ': { dir: 'Aerophones/Edge-blown Aerophones/Pipe Organ/Loud', re: /_([A-G]#?\d)\.wav$/, dur: 4 },
+  glockenspiel: { dir: 'Idiophones/Struck Idiophones/Glockenspiel', re: /_loud_([A-G]#?\d)_01/, dur: 3 },
+  'tubular-bells': { dir: 'Idiophones/Struck Idiophones/Tubular Bells 1', re: /chimes_([A-G]#?\d)_f+_/, dur: 5 },
+  'hand-chimes': { dir: 'Idiophones/Struck Idiophones/Hand Chimes', re: /(?:^|\/)sus_([A-G]#?\d)_r01/, dur: 4 },
+  'dan-tranh': { dir: 'Chordophones/Zithers/Dan Tranh/Normal', re: /(?:^|\/)([A-G]#?\d)_f_1\.wav$/, dur: 3 },
+  recorder: { dir: 'Aerophones/Edge-blown Aerophones/Baroque Alto Recorder/Sustain', re: /_Sus_([A-G]#?\d)_rr1/, dur: 3 },
+  mbira: { dir: 'Idiophones/Plucked Idiophones/Mbira dzaVadzimu Nyamaropa, Zimbabwe, Low B', re: /_Main_([A-G]#?\d)_\d+_/, dur: 3 }
 };
 // Gruppiert passende Dateien nach Tonhöhe und korrigiert die Oktave anhand der gemessenen Tonhöhe (Median)
 async function noteSet(dir, re, maxSec) {
@@ -84,8 +95,11 @@ async function noteSet(dir, re, maxSec) {
   const shift = sh.length ? sh[sh.length >> 1] : 0;
   return ms.map((m, i) => ({ m: m + shift, d: d[i] }));
 }
+// Zweites Argument: nur diese ids neu bauen, z. B. node scripts/fetch-vcsl.js instruments mbira,recorder
+const pick = new Set((process.argv[3] || '').split(',').filter(Boolean)), want = id => !pick.size || pick.has(id);
 async function instruments() {
   for (const [id, o] of Object.entries(INSTR)) {
+    if (!want(id)) continue;
     const set = await noteSet(o.dir, o.re, o.dur), data = {}; let last = -99;
     for (const z of set) if (z.m - last >= 3) { data[z.m] = mp3(tidy(z.d, o.dur, .25), 64); last = z.m; }
     fs.writeFileSync(path.join(out, id + '.js'), `KW_SMP(${JSON.stringify(id)},${JSON.stringify(data)});\n`);
@@ -101,7 +115,14 @@ const P = {
   clap: 'Idiophones/Struck Idiophones/Claps', cow: 'Idiophones/Struck Idiophones/Cowbells', ss: 'Idiophones/Struck Idiophones/Shaker, Small',
   ls: 'Idiophones/Struck Idiophones/Shaker, Large', conga: 'Membranophones/Struck Membranophones/Conga', bongo: 'Membranophones/Struck Membranophones/Bongos',
   cajon: 'Idiophones/Struck Idiophones/Cajon', tamb: 'Idiophones/Struck Idiophones/Tambourine 1', clave: 'Idiophones/Struck Idiophones/Claves',
-  agogo: 'Idiophones/Struck Idiophones/Agogo Bells', tri: 'Idiophones/Struck Idiophones/Triangles'
+  agogo: 'Idiophones/Struck Idiophones/Agogo Bells', tri: 'Idiophones/Struck Idiophones/Triangles',
+  darb: 'Membranophones/Struck Membranophones/Darbuka', frame: 'Membranophones/Struck Membranophones/Frame Drum', cabasa: 'Idiophones/Struck Idiophones/Cabasa',
+  sleigh: 'Idiophones/Struck Idiophones/Sleigh Bells', slit: 'Idiophones/Struck Idiophones/Slit Drum', wood: 'Idiophones/Struck Idiophones/Woodblock',
+  fing: 'Idiophones/Struck Idiophones/Finger Cymbals', guiro: 'Idiophones/Struck Idiophones/Guiro', tamb2: 'Idiophones/Struck Idiophones/Tambourine 2',
+  bd2: 'Membranophones/Struck Membranophones/Bass Drum 2', rope: 'Membranophones/Struck Membranophones/Snare Drum, Rope Tension/Hi',
+  anvil: 'Idiophones/Struck Idiophones/Anvil', timp: 'Membranophones/Struck Membranophones/Timpani 1/Hit', slap: 'Idiophones/Struck Idiophones/Slapstick',
+  bells: 'Idiophones/Struck Idiophones/Tubular Bells 1', clash: 'Idiophones/Struck Idiophones/Clash Cymbals 1', gong: 'Idiophones/Struck Idiophones/Gong 1',
+  ratchet: 'Idiophones/Struck Idiophones/Ratchet'
 };
 const KITS = {
   vcsl: {
@@ -115,13 +136,27 @@ const KITS = {
     hat: [P.ss, 'Mid_ShakerHighFaster_Down_rr1.wav'], ohat: [P.tamb, 'Tamb1_Hit_v2_rr1_Mid.wav'], tom: [P.conga, 'Tumba_HitN_v3_rr1_Sum.wav'],
     rim: [P.clave, 'Claves1_Hit_v2_rr1_Mid.wav'], cow: [P.agogo, 'Agogo_High_v2_rr1_Mid.wav'], crash: [P.tri, 'Triangle1_Hit_v2_rr1_Mid.wav'],
     ride: [P.agogo, 'Agogo_Low_v2_rr1_Mid.wav'], shaker: [P.ls, 'LShaker_Hit_rr1_Mid.wav'], conga: [P.conga, 'Quinto_HitN_v2_rr1_Sum.wav']
+  },
+  // Neu in v0.9
+  vcslworld: {
+    kick: [P.darb, 'Darbuka_1_hit_vl2_rr1.wav'], snare: [P.darb, 'Darbuka_2_hit_vl2_rr1.wav'], clap: [P.darb, 'Darbuka_3_hit_vl2_rr1.wav'],
+    hat: [P.cabasa, 'Cabasa1_Hit_rr1_Mid.wav'], ohat: [P.sleigh, 'Sleighbells_Hit_rr1_Mid.wav'], tom: [P.frame, 'HDrumL_Hit_v3_rr1_Sum.wav', 1.5],
+    rim: [P.wood, 'wood_click_f_rr1.wav'], cow: [P.slit, 'LogDrumHi_MedM_v3_rr1_Sum.wav'], crash: [P.fing, 'Fing_Cymb.wav'],
+    ride: [P.guiro, 'Guiro_Hit_rr1_Mid.wav'], shaker: [P.tamb2, 'Tamb2_Shake_rr3_Mid.wav'], conga: [P.slit, 'LogDrumLo_MedM_v3_rr1_Sum.wav']
+  },
+  vcslorch: {
+    kick: [P.bd2, 'bassdrum_hit_f.wav'], snare: [P.rope, 'RopeSnare_hi_sn_Main_vl3_rr1.wav'], clap: [P.anvil, 'Anvil_Hit1_v3_rr1_Mid.wav'],
+    hat: [P.tamb2, 'Tamb2_Hit_v2_rr2_Mid.wav'], ohat: [P.sleigh, 'sleighbell2_hit_loud.wav'], tom: [P.timp, 'Timpani1_Hit_v4_rr1_Sum.wav', 2.5],
+    rim: [P.slap, 'slapstick_rr1.wav'], cow: [P.bells, 'chimes_C4_ff_rr2.wav', 3], crash: [P.clash, 'cymbal_crash1_ff2.wav'],
+    ride: [P.gong, 'gong_f.wav', 4], shaker: [P.ratchet, 'Ratchet1_Fast_rr1_Mid.wav'], conga: [P.timp, 'Timpani2_Hit_v4_rr1_Sum.wav', 2.5]
   }
 };
 async function kits() {
   for (const [id, map] of Object.entries(KITS)) {
+    if (!want(id)) continue;
     const data = {};
-    for (const [piece, [dir, name]] of Object.entries(map)) {
-      const max = piece === 'crash' || piece === 'ride' ? 3 : piece === 'ohat' ? 1.5 : 1;
+    for (const [piece, [dir, name, mx]] of Object.entries(map)) {
+      const max = mx || piece === 'crash' || piece === 'ride' ? 3 : piece === 'ohat' ? 1.5 : 1;
       data[piece] = mp3(tidy(await pcm(one(dir, name)), max, .08), 96);
     }
     fs.writeFileSync(path.join(out, 'drums-' + id + '.js'), `KW_SMP(${JSON.stringify('drums-' + id)},${JSON.stringify(data)});\n`);
