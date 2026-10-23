@@ -12,4 +12,6 @@ npm run build      # erzeugt dist/ für den Browser (mit Manifest und Service Wo
 npm run dist:win   # baut release/SoundGroot-<version>-win.zip
 ```
 
+Externe Plugins im Format Web Audio Modules 2.0 (WAM) lassen sich pro Spur als Effekt oder Instrument einsetzen, fünf freie Plugins liegen in `src/plugins/` (`node scripts/fetch-plugins.js`).
+
 Die ganze App steckt in `src/app.html`. Plan und nächste Schritte: siehe [PLAN.md](PLAN.md).
