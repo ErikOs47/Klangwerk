@@ -148,7 +148,8 @@ input[type=checkbox] { accent-color: var(--accent); }
 .mini { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--muted); }
 .mini input[type=range] { width: 80px; }
 @media (max-width: 1480px) { .views .lbl { display: none; } }
-@media (max-width: 1700px) { .lcd > .lcd-sig { display: none; } }
+.lcd select { appearance: none; -webkit-appearance: none; background: transparent; border: 0; padding: 0; font-family: var(--font-mono); font-size: 18px; font-weight: 600; color: var(--lcd-fg); text-shadow: 0 0 12px #8fb4ff40; cursor: pointer; }
+.lcd select option { background: #16181d; color: var(--fg); font-size: 13px; }
 @media (max-width: 960px) { .master { display: none !important; } }
 @media (max-width: 900px) { #bImport { display: none; } .bar { gap: 6px 8px; } }
 @media (max-width: 1200px) { .brand span, .pname, .bar .tbtn .lbl { display: none; } .bar { gap: 8px 10px; } }
@@ -423,6 +424,10 @@ input[type=checkbox] { accent-color: var(--accent); }
 .seq-sp { width: 128px; flex: none; }
 .seq-name { display: flex; justify-content: space-between; align-items: center; }
 .seq-name span { color: var(--faint); }
+.beat.bs, .beat-h.bs { margin-left: 12px; }
+.seq-name { position: sticky; left: 0; z-index: 2; }
+.seq-sp { position: sticky; left: 0; }
+.cell { touch-action: pan-y; }
 .seq-tip { margin: 12px 0 0; font-size: 12px; color: var(--muted); max-width: 70ch; }
 .cell { height: 28px; border-radius: 6px; border: 0; background: #23262d; padding: 0; position: relative; box-shadow: inset 0 1px 0 #ffffff08, inset 0 -1px 0 #0006; transition: background .1s, transform .08s; }
 .cell:hover { background: #2c3039; }
@@ -597,7 +602,7 @@ input.st-gname:focus { outline: 1px solid var(--accent); border-radius: 4px; }
   .lcd { flex: 1 1 130px; justify-content: space-around; padding: 2px; }
   .pname { display: block; }
   .lcd > div { padding: 0 8px; }
-  .lcd b, .lcd input { font-size: 15px; }
+  .lcd b, .lcd input, .lcd select { font-size: 15px; }
   .lcd input { width: 40px; }
 }
 @media (max-width: 700px) { .thead .eqb, .thead .ticon { display: none; } }
@@ -704,7 +709,7 @@ button { touch-action: manipulation; }
     <div class="lcd" id="lcd">
       <div><small>Takt</small><b id="lcdPos">001 1 1</b></div>
       <div><small>Tempo</small><input id="bpm" type="number" min="40" max="240" step="1" value="96" aria-label="Tempo in BPM"></div>
-      <div class="lcd-sig"><small>Taktart</small><b>4/4</b></div>
+      <div class="lcd-sig"><small>Taktart</small><select id="sigSel" aria-label="Taktart des Songs" title="Taktart des ganzen Songs: Raster, Metronom und Drum-Patterns richten sich danach"></select></div>
       <div class="lcd-lufs" id="lcdLu" title="Lautheit der letzten 3 Sekunden in LUFS. Streaming-Dienste spielen Songs um −14 LUFS ab. Klick öffnet den Mixer mit der integrierten Messung."><small>LUFS</small><b id="lcdLufs">–</b></div>
     </div>
     <div class="spacer"></div>
@@ -920,6 +925,8 @@ const KITS = {
   // Neu in v0.9
   s_vcslworld: { name: 'Welt-Percussion (echt)', smp: 'vcslworld', fb: 'perc', lbl: { kick: 'Darbuka Doum', snare: 'Darbuka Tek', clap: 'Darbuka Ka', hat: 'Cabasa', ohat: 'Schellen', tom: 'Rahmentrommel', rim: 'Holzblock', cow: 'Schlitztrommel hoch', crash: 'Fingerzimbeln', ride: 'Guiro', shaker: 'Tamburin', conga: 'Schlitztrommel tief' } },
   s_vcslstudio: { name: 'Studio-Set 2 (echt)', smp: 'vcslstudio', fb: 'acoustic', lbl: { kick: 'Bassdrum gedämpft', snare: 'Snare', clap: 'Klatschen', hat: 'Hi-Hat zu', ohat: 'Hi-Hat locker', tom: 'Tom tief', rim: 'Cross-Stick', cow: 'Bremstrommel', crash: 'Becken', ride: 'Becken-Glocke', shaker: 'Shaker', conga: 'Rimshot' } },
+  // Neu in v1.1
+  s_vcslmarch: { name: 'Marsch-Set (echt)', smp: 'vcslmarch', fb: 'acoustic', lbl: { kick: 'Große Trommel', snare: 'Marschtrommel', clap: 'Stockschlag', hat: 'Triangel gedämpft', ohat: 'Triangel', tom: 'Tenortrommel hoch', rim: 'Seiltrommel ohne Teppich', cow: 'Holzblock', crash: 'Becken', ride: 'Schellenbaum', shaker: 'Marschtrommel leise', conga: 'Tenortrommel tief' } },
   s_vcslorch: { name: 'Orchester (echt)', smp: 'vcslorch', fb: 'acoustic', lbl: { kick: 'Große Trommel', snare: 'Marschtrommel', clap: 'Amboss', hat: 'Tamburin', ohat: 'Schellen', tom: 'Pauke tief', rim: 'Peitsche', cow: 'Röhrenglocke', crash: 'Becken', ride: 'Gong', shaker: 'Ratsche', conga: 'Pauke hoch' } },
   perc:     { name: 'Percussion', kick: { f0: 90, f1: 55, sweep: .05, dec: .5, g: 1 }, snare: { hp: 2000, dec: .1, tone: .7, tf: 330 }, clap: { bp: 1800, dec: .2 }, hat: { hp: 5500, dec: .04 }, tom: { f0: 240, f1: 180, dec: .45 }, rim: { f: 2400, dec: .05 }, cow: { f1: 720, f2: 1080, dec: .25 }, shaker: { bp: 5000, dec: .12, att: .02 }, conga: { f0: 400, f1: 360, dec: .35, slap: .4 } }
 };
@@ -947,22 +954,82 @@ const PATTERNS = {
   'Bossa Nova':{ kick: 'x..xx..xx..xx..x', rim: 'x..x..x...x..x..', shaker: 'xxXxxxXxxxXxxxXx', ride: 'x.x.x.x.x.x.x.x.' },
   'Afrobeat':  { kick: 'X..x..x...X..x..', rim: '....x..x....x...', shaker: 'x.xxx.xxx.xxx.xx', conga: 'x..x.x..x..x.x..', cow: 'x.x.xx.x.x.xx.x.' },
   'Drum & Bass': { kick: 'X.........X.....', snare: '....X.......X..x', hat: 'x.x.x.x.x.x.x.x.', ride: '..x...x...x...x.' },
+  // Neu in v1.1: andere Taktarten (ein Zeichen = eine 16tel)
+  'Walzer':        { sig: [3, 4], kick: 'X...........', snare: '....x...x...', hat: 'x.x.x.x.x.x.' },
+  'Ballade 3/4':   { sig: [3, 4], kick: 'X.....x.....', snare: '........X...', hat: 'x.x.x.x.x.x.', ohat: '..........x.' },
+  'Jazz-Walzer':   { sig: [3, 4], trip: true, ride: 'x...x.x.x.x.', hat: '....x...x...', kick: 'x...........' },
+  '6/8 Ballade':   { sig: [6, 8], kick: 'X.........x.', snare: '......X.....', hat: 'x.x.x.x.x.x.' },
+  '6/8 Marsch':    { sig: [6, 8], kick: 'X.....X.....', snare: 'x.xxx.x.xxX.', crash: 'x...........' },
+  '12/8 Blues':    { sig: [12, 8], kick: 'X...........X.....x.....', snare: '......X...........X.....', ride: 'x.x.x.x.x.x.x.x.x.x.x.x.' },
+  '5/4 Groove':    { sig: [5, 4], kick: 'X.....x.....x.......', snare: '....X.......X.....X.', hat: 'x.x.x.x.x.x.x.x.x.x.' },
+  '7/8 Groove':    { sig: [7, 8], kick: 'X.......x.....', snare: '....X.....X...', hat: 'x.x.x.x.x.x.x.' },
   'Leer':      {}
 };
+const patLabel = k => k + (PATTERNS[k].sig && !k.includes('/') ? ` (${PATTERNS[k].sig.join('/')})` : '');
+// Patterns in der Taktart des Songs zuerst
+const patFits = k => String(PATTERNS[k].sig || [4, 4]) === String(sigOf());
+const patOrder = () => Object.keys(PATTERNS).sort((a, b) => patFits(b) - patFits(a));
 function patternSteps(name) {
-  const p = PATTERNS[name] || {}, o = {};
-  for (const d of DRUMS) o[d.id] = p[d.id] ? [...p[d.id]].map((c, k) => p.trip && k % 4 === 3 ? 0 : c === 'X' ? 1 : c === 'x' ? .7 : 0) : Array(16).fill(0);
+  const p = PATTERNS[name] || {}, [num, den] = p.sig || [4, 4], per = den === 8 ? 2 : 4, o = {};
+  for (const d of DRUMS) {
+    const a = o[d.id] = Array(num * 4).fill(0);
+    [...(p[d.id] || '')].forEach((c, j) => { const k = Math.floor(j / per) * 4 + j % per; if (k < a.length && !(p.trip && j % 4 === 3)) a[k] = c === 'X' ? 1 : c === 'x' ? .7 : 0; });
+  }
   return o;
 }
-const zeros = () => Object.fromEntries(DRUMS.map(d => [d.id, Array(16).fill(0)]));
-function drumRegion(name, start, len) { const t = !!PATTERNS[name]?.trip; return { id: uid(), name, start, len, steps: patternSteps(name), pitch: zeros(), trip: [t, t, t, t], v2: true }; }
-const phaseOf = r => (((r.phase || 0) % 4) + 4) % 4; // Versatz des Patterns nach Schneiden oder Kürzen vorne
+const zeros = (n = 16) => Object.fromEntries(DRUMS.map(d => [d.id, Array(n).fill(0)]));
+// Taktart des Songs als [Zähler, Nenner]. Die Zeit zählt intern immer in Vierteln, ein Takt ist also BL() Viertel lang.
+const SIGS = [[2, 4], [3, 4], [4, 4], [5, 4], [6, 4], [7, 4], [3, 8], [5, 8], [6, 8], [7, 8], [9, 8], [12, 8]];
+const sigOf = () => P?.sig || [4, 4];
+const BL = () => sigOf()[0] * 4 / sigOf()[1];
+const BT = () => 4 / sigOf()[1]; // eine Zählzeit in Vierteln
+const snapBar = b => Math.floor(b / BL() + 1e-9) * BL(), ceilBar = b => Math.ceil(b / BL() - 1e-9) * BL();
+// Die Patterns oben sind für einen 4/4-Takt geschrieben und werden beim Anlegen auf die Taktart des Songs übertragen
+function drumRegion(name, start, len, pb = 1, sig = sigOf()) {
+  const t = !!PATTERNS[name]?.trip, s0 = PATTERNS[name]?.sig || [4, 4];
+  const r = { id: uid(), name, start, len, steps: patternSteps(name), pitch: zeros(s0[0] * 4), trip: Array(s0[0]).fill(t), sig: [...s0], pb: 1, v2: true };
+  fitDrum(r, pb, sig); return r;
+}
+// Aufbau eines Drum-Patterns: pb Takte in der Taktart r.sig. Jede Zählzeit hat 4 Speicherplätze (k = Zählzeit * 4 + Position).
+const drumSig = r => r.sig || [4, 4];
+const drumBeats = r => (r.pb || 1) * drumSig(r)[0];
+const drumBT = r => 4 / drumSig(r)[1];
+const drumLen = r => drumBeats(r) * drumBT(r); // Länge des Patterns in Vierteln
+const phaseOf = r => { const L = drumLen(r); return (((r.phase || 0) % L) + L) % L; }; // Versatz des Patterns nach Schneiden oder Kürzen vorne
+// Pattern auf eine Taktart und Länge in Takten bringen. Schläge wandern nach ihrer Zeit mit,
+// beim Verlängern in derselben Taktart wird das bisherige Pattern wiederholt.
+function fitDrum(r, pb = r.pb || 1, sig = sigOf()) {
+  const old = drumSig(r), same = old[0] === sig[0] && old[1] === sig[1], nb1 = pb * sig[0];
+  if (same && (r.pb || 1) === pb && r.trip?.length === nb1 && DRUMS.every(d => r.steps[d.id]?.length === nb1 * 4)) return false;
+  const s0 = drumSlots(r), L0 = drumLen(r), bt0 = drumBT(r), st0 = r.steps, pt0 = r.pitch, tr0 = r.trip || [], r0pb = r.pb || 1;
+  r.sig = [...sig]; r.pb = pb;
+  const bt1 = drumBT(r), L1 = drumLen(r);
+  // Triolen bleiben auf ihrer Zählzeit im Takt, wenn der Nenner gleich bleibt
+  r.trip = Array.from({ length: nb1 }, (_, b) => old[1] === sig[1] && b % sig[0] < old[0] && !!tr0[(Math.floor(b / sig[0]) % (r0pb)) * old[0] + b % sig[0]]);
+  const s1 = drumSlots(r);
+  r.steps = zeros(nb1 * 4); r.pitch = zeros(nb1 * 4);
+  // Takt für Takt übertragen: Takt n bleibt Takt n, Schläge hinter dem Ende eines kürzeren Takts fallen weg
+  const pb0 = L0 / (old[0] * bt0), B0 = L0 / pb0, B1 = sig[0] * bt1;
+  for (const sl of s0) for (const d of DRUMS) {
+    const v = st0[d.id]?.[sl.k]; if (!v) continue;
+    const sb = Math.floor(sl.off / B0 + 1e-9), inBar = sl.off - sb * B0;
+    if (inBar >= B1 - 1e-9) continue;
+    for (let tb = sb; tb < pb; tb += pb0) {
+      const t = tb * B1 + inBar;
+      let best = s1[0]; for (const x of s1) if (Math.abs(x.off - t) < Math.abs(best.off - t)) best = x;
+      if (v > r.steps[d.id][best.k]) { r.steps[d.id][best.k] = v; r.pitch[d.id][best.k] = pt0[d.id]?.[sl.k] || 0; }
+    }
+  }
+  return true;
+}
 // Ältere Projekte: Schläge 1/2 (normal/Akzent) in Anschlag 0,7/1 umrechnen, Tonhöhen und Triolen ergänzen
 function normProject(p) {
   for (const t of p.tracks) if (t.type === 'drums') for (const r of t.regions) {
     if (!r.v2) { for (const d of DRUMS) r.steps[d.id] = (r.steps[d.id] || Array(16).fill(0)).map(v => v === 2 ? 1 : v === 1 ? .7 : v); r.v2 = true; }
     r.pitch ||= zeros(); r.trip ||= [false, false, false, false];
-    for (const d of DRUMS) { r.steps[d.id] ||= Array(16).fill(0); r.pitch[d.id] ||= Array(16).fill(0); }
+    const n = drumBeats(r) * 4;
+    for (const d of DRUMS) { r.steps[d.id] ||= Array(n).fill(0); r.pitch[d.id] ||= Array(n).fill(0); }
+    fitDrum(r, r.pb || 1, p.sig || [4, 4]);
   }
   for (const t of p.tracks) if (t.type === 'synth' && (!PRESETS[t.preset] || (t.preset === 'user' && !t.usmp))) t.preset = 'epiano';
   for (const t of p.tracks) if (t.type === 'sampler') normSampler(t);
@@ -1340,7 +1407,12 @@ const SAMPLED = {
   // Neu in v1.0: aus dem VCSL (CC0)
   'grand-kawai': ['Flügel (Kawai)', { r: .5, level: .5 }], strumstick: ['Strumstick (Folk-Zupfer)', { r: .5, prev: 62 }],
   psaltery: ['Psalter (gestrichen)', { hold: 1, a: .08, r: .5, prev: 74 }], 'psaltery-pluck': ['Psalter (gezupft)', { r: .8, prev: 74 }],
-  saxello: ['Saxello (Sopransax)', { hold: 1, a: .03, r: .2, prev: 70 }], 'kalimba-tz': ['Kalimba (Tansania)', { r: .6, prev: 65 }]
+  saxello: ['Saxello (Sopransax)', { hold: 1, a: .03, r: .2, prev: 70 }], 'kalimba-tz': ['Kalimba (Tansania)', { r: .6, prev: 65 }],
+  // Neu in v1.1: aus dem VCSL (CC0)
+  'tx-piano': ['DX-Piano (TX81Z)', { r: .5, prev: 64 }], nyunga: ['Nyunga Nyunga (Mbira)', { r: .7, prev: 65 }],
+  'upright-knight': ['Klavier (Knight, warm)', { r: .45, level: .52 }], 'bass-recorder': ['Bassblockflöte', { hold: 1, a: .04, r: .15, prev: 60 }],
+  'harmonica-chrom': ['Chromatische Mundharmonika', { hold: 1, a: .03, r: .2, prev: 67 }], 'vibes-soft': ['Vibraphon (weich)', { r: 1, prev: 67 }],
+  'tubular-glock': ['Röhren-Glockenspiel', { r: 1.5, prev: 84 }], 'harpsichord-lute': ['Cembalo (Lautenzug)', { r: .3, prev: 60 }]
 };
 for (const [id, [name, o]] of Object.entries(SAMPLED))
   PRESETS['s_' + id] = { cat: 'Echte Instrumente', name, smp: id, hold: !!o.hold, prev: o.prev, env: { a: o.a || .002, d: 1, s: 1, r: o.r }, cut: 20000, level: o.level || (o.hold ? .38 : .48) };
@@ -1647,6 +1719,7 @@ function changeLabel(a, b) {
   if (b.tracks.length > a.tracks.length) { const t = b.tracks.find(t => !a.tracks.some(x => x.id === t.id)); return t ? `Spur ${nm(t)} hinzugefügt` : 'Spur hinzugefügt'; }
   if (b.tracks.length < a.tracks.length) { const t = a.tracks.find(t => !b.tracks.some(x => x.id === t.id)); return t ? `Spur ${nm(t)} gelöscht` : 'Spur gelöscht'; }
   if (a.bpm !== b.bpm) return `Tempo ${b.bpm} BPM`;
+  if (J(a.sig || [4, 4]) !== J(b.sig || [4, 4])) return `Taktart ${(b.sig || [4, 4]).join('/')}`;
   if (J(a.groups || []) !== J(b.groups || [])) return (b.groups || []).length > (a.groups || []).length ? 'Gruppe angelegt' : (b.groups || []).length < (a.groups || []).length ? 'Gruppe gelöscht' : 'Gruppe im Mixer';
   if (J(a.markers) !== J(b.markers)) return 'Marker';
   if (J(a.fx) !== J(b.fx)) return 'Hall oder Delay';
@@ -1748,7 +1821,7 @@ function demoProject() {
     bpm: 96, bars: 16, master: .8, metro: false, loop: { on: true, start: 0, end: 32 },
     tracks: [
       { id: uid(), name: 'Drummer', type: 'drums', color: COLORS[0], vol: .85, pan: 0, mute: false, solo: false, fx: { ...trackFxDefaults(), comp: { on: true, ...COMP_PRESETS['Drums mit Punch'] }, rev: .12 }, regions: [
-        drumRegion('Pop', 0, 28), drumRegion('Fill', 28, 4)] },
+        drumRegion('Pop', 0, 28, 1, [4, 4]), drumRegion('Fill', 28, 4, 1, [4, 4])] },
       { id: uid(), name: 'Bass', type: 'synth', preset: 'bass', color: COLORS[1], vol: .8, pan: 0, mute: false, solo: false, regions: [
         { id: uid(), name: 'Bass', start: 0, len: 16, notes: clone(bassNotes) },
         { id: uid(), name: 'Bass', start: 16, len: 16, notes: clone(bassNotes) }] },
@@ -2104,7 +2177,10 @@ function schedule(b0, b1, t0) {
   if (b1 <= b0) return;
   const s = spb(), at = b => t0 + (b - b0) * s;
   // Metronom, und im Vorzähler auch ohne Metronom
-  if (P.metro || (rec && b0 < rec.countUntil)) for (let b = Math.ceil(b0 - 1e-9); b < b1; b++) if (P.metro || b < rec?.countUntil) click(at(b), ((b % 4) + 4) % 4 === 0);
+  if (P.metro || (rec && b0 < rec.countUntil)) {
+    const bt = BT(), bl = BL();
+    for (let i = Math.ceil(b0 / bt - 1e-9); i * bt < b1 - 1e-9; i++) { const b = i * bt; if (P.metro || b < rec?.countUntil) click(at(b), Math.abs(b / bl - Math.round(b / bl)) < 1e-6); }
+  }
   for (const tr of P.tracks) {
     scheduleAuto(tr, b0, b1, at);
     const hits = [];
@@ -2125,9 +2201,9 @@ function schedule(b0, b1, t0) {
           }
         }
       } else if (tr.type === 'drums') {
-        const slots = drumSlots(r), base = r.start - phaseOf(r), bar1 = Math.ceil((b1 - base) / 4), sw = drumSwing(r), hu = (r.human || 0) / 100;
-        for (let bar = Math.max(0, Math.floor((b0 - base) / 4)) - 1; bar <= bar1; bar++) for (const sl of slots) {
-          const nb = base + bar * 4 + sl.off + (sl.n === 4 && sl.k % 2 ? sw : 0);
+        const slots = drumSlots(r), PL = drumLen(r), base = r.start - phaseOf(r), bar1 = Math.ceil((b1 - base) / PL), hu = (r.human || 0) / 100;
+        for (let bar = Math.max(0, Math.floor((b0 - base) / PL)) - 1; bar <= bar1; bar++) for (const sl of slots) {
+          const nb = base + bar * PL + sl.off + slotSwing(r, sl);
           if (nb < r.start - 1e-9 || nb >= r.start + r.len - 1e-9 || nb < b0 || nb >= b1) continue;
           for (const d of DRUMS) {
             let v = r.steps[d.id]?.[sl.k]; if (!v) continue;
@@ -2168,6 +2244,26 @@ function startAudioRegion(tr, r, t, offset) {
 function fadeEnv(r, total) {
   const G = Math.pow(10, (r.gain || 0) / 20), fi = r.fi || 0, fo = r.fo || 0;
   return x => G * Math.max(0, Math.min(1, fi > 0 ? x / fi : 1, fo > 0 ? (total - x) / fo : 1));
+}
+// Taktart des Songs ändern. Alles bleibt im selben Takt: Regionen, Marker, Cycle und Automation wandern
+// mit ihrem Taktanfang mit, Drum-Patterns werden auf die neue Taktart umgebaut, Noten bleiben, wie sie sind.
+function setSig(sig) {
+  const o = sigOf(); if (o[0] === sig[0] && o[1] === sig[1]) return;
+  if (playing) stop();
+  pushUndo();
+  const f = (sig[0] * 4 / sig[1]) / (o[0] * 4 / o[1]), m = b => Math.round(b * f * 1e6) / 1e6;
+  P.sig = [...sig];
+  for (const t of P.tracks) {
+    for (const r of t.regions) {
+      r.start = m(r.start);
+      if (t.type === 'drums') { r.len = Math.max(BL(), m(r.len)); fitDrum(r); delete r.phase; }
+      else if (t.type !== 'audio') r.len = Math.max(BL(), ceilBar(r.len));
+    }
+    for (const k in t.auto || {}) if (Array.isArray(t.auto[k])) for (const pt of t.auto[k]) pt.b = m(pt.b);
+  }
+  for (const mk of P.markers) mk.b = m(mk.b);
+  P.loop.start = m(P.loop.start); P.loop.end = m(P.loop.end); playPos = m(playPos);
+  save(); render(); toast(`Taktart ${sig.join('/')}. Strg+Z macht es rückgängig.`);
 }
 function setBpm(v) {
   v = clamp(Math.round(v) || 96, 40, 240);
@@ -2311,7 +2407,7 @@ async function loopToAudio(id, trackId) {
   pushUndo();
   let tr = findTrack(trackId);
   if (!tr || tr.type !== 'audio') { tr = newTrack('audio', { name: L.name }); P.tracks.push(tr); applyMix(); }
-  const end = Math.max(0, ...tr.regions.map(r => r.start + r.len)), start = tr.regions.length ? Math.ceil(end / 4) * 4 : Math.floor(playPos / 4) * 4;
+  const end = Math.max(0, ...tr.regions.map(r => r.start + r.len)), start = tr.regions.length ? ceilBar(end) : snapBar(playPos);
   const r = { id: uid(), name: L.name, start, len: buf.duration / spb(), buf: addBuffer(buf), offset: 0 };
   setRegionTempo(r, L.bpm);
   tr.regions.push(r); selTrack = tr.id; selRegion = r.id; edTab = 'region'; libKey = '';
@@ -2363,7 +2459,7 @@ async function toggleRecord() {
     catch (e) { toast('Kein Mikrofonzugriff. Erlaube das Mikrofon oder importiere eine Audiodatei.'); return; }
     finally { recPending = false; }
   }
-  const start = playing ? currentBeat() : loopStartPos(playPos), ci = playing ? 0 : (P.countIn ?? 1) * 4;
+  const start = playing ? currentBeat() : loopStartPos(playPos), ci = playing ? 0 : (P.countIn ?? 1) * BL();
   rec = { type: tr.type === 'audio' ? 'audio' : 'midi', track: tr.id, startBeat: start, countUntil: start, cap, marks: [], region: null, held: new Map(), pass: 0 };
   if (playing) rec.marks.push({ time: ctx.currentTime, beat: start });
   else { playPos = start - ci; play(); }
@@ -2405,7 +2501,7 @@ function finishAudio(r) {
   const S = looped ? Math.min(L.start, passes[0].b0) : passes[0].b0, E = looped ? L.end : passes[0].b1;
   const len = E - S, N = Math.round(len * s * sr);
   // Kurze Reste am Ende (Stopp kurz nach dem Cycle-Sprung) verwerfen, solange es andere Takes gibt
-  const keep = passes.filter((p, i) => i === 0 || p.b1 - p.b0 >= Math.min(1, (L.end - L.start) / 4));
+  const keep = passes.filter((p, i) => i === 0 || p.b1 - p.b0 >= Math.min(1, (L.end - L.start) / BL()));
   const bufs = keep.map(p => {
     const out = new Float32Array(N), from = idx(p.m.time + (p.b0 - p.m.beat) * s), at = Math.round((p.b0 - S) * s * sr), n = Math.min(Math.round((p.b1 - p.b0) * s * sr), N - at);
     for (let i = 0; i < n; i++) { const j = from + i; if (j >= 0 && j < data.length) out[at + i] = data[j]; }
@@ -2443,15 +2539,15 @@ function recNoteStart(code, midi, vel = .8) {
   if (!rec.region) {
     pushUndo();
     const L = P.loop, inLoop = L.on && rec.startBeat >= L.start && rec.startBeat < L.end;
-    const start = inLoop ? L.start : Math.max(0, Math.floor(rec.startBeat / 4) * 4);
-    rec.region = { id: uid(), name: 'Aufnahme', start, len: inLoop ? L.end - L.start : 4, notes: [] };
+    const start = inLoop ? L.start : Math.max(0, snapBar(rec.startBeat));
+    rec.region = { id: uid(), name: 'Aufnahme', start, len: inLoop ? L.end - L.start : BL(), notes: [] };
     tr.regions.push(rec.region); selRegion = rec.region.id;
   }
   const r = rec.region;
   if (b < r.start) return;
   const n = { p: midi, s: b - r.start, l: .25, v: vel };
   r.notes.push(n); rec.held.set(code, { n, b });
-  r.len = Math.max(r.len, Math.ceil((n.s + .25) / 4) * 4);
+  r.len = Math.max(r.len, ceilBar(n.s + .25));
   renderArrange(); renderEditor();
 }
 function endRecNote(r, code) {
@@ -2460,15 +2556,15 @@ function endRecNote(r, code) {
   let l = currentBeat() - outLatency() / spb() - h.b;
   if (l <= 0) l = .25;
   h.n.l = Math.max(.05, l);
-  r.region.len = Math.max(r.region.len, Math.ceil((h.n.s + h.n.l) / 4) * 4);
+  r.region.len = Math.max(r.region.len, ceilBar(h.n.s + h.n.l));
 }
 // Vorzähler-Anzeige
 const countEl = $('#countin');
 function showCount(b) {
   const left = rec.countUntil - b;
   if (left <= 0) { hideCount(); return; }
-  const n = Math.floor(((b % 4) + 4) % 4) + 1;
-  countEl.hidden = false; countEl.firstChild.textContent = n; countEl.lastChild.textContent = `Vorzähler · noch ${Math.ceil(left / 4)} Takt${Math.ceil(left / 4) > 1 ? 'e' : ''}`;
+  const bl = BL(), n = Math.floor((((b % bl) + bl) % bl) / BT() + 1e-6) + 1, bars = Math.ceil(left / bl - 1e-6);
+  countEl.hidden = false; countEl.firstChild.textContent = n; countEl.lastChild.textContent = `Vorzähler · noch ${bars} Takt${bars > 1 ? 'e' : ''}`;
 }
 function hideCount() { countEl.hidden = true; }
 // Latenz messen: drei Klicks über die Lautsprecher, das Mikrofon hört mit
@@ -2514,8 +2610,9 @@ const hw = () => rowsEl.querySelector('.thead')?.offsetWidth || $('.corner').off
 function songLen() {
   let end = 0;
   for (const t of P.tracks) for (const r of t.regions) end = Math.max(end, r.start + r.len);
-  P.bars = Math.max(P.bars, 16, Math.ceil(end / 4) + 4, Math.ceil(P.loop.end / 4) + 1);
-  return P.bars * 4;
+  const bl = BL();
+  P.bars = Math.max(P.bars, 16, Math.ceil(end / bl - 1e-9) + 4, Math.ceil(P.loop.end / bl - 1e-9) + 1);
+  return P.bars * bl;
 }
 function render() { renderArrange(); renderEditor(); updateTransport(); renderLib(); }
 function renderArrange() {
@@ -2525,10 +2622,10 @@ function renderArrange() {
   rulerEl.style.width = W + 'px';
   let rh = '';
   const every = ppb < 16 ? 4 : ppb < 24 ? 2 : 1;
-  for (let b = 0; b < P.bars; b += every) rh += `<span class="bn" data-b="${b}" style="left:${b * 4 * ppb}px">${b + 1}</span>`;
+  for (let b = 0; b < P.bars; b += every) rh += `<span class="bn" data-b="${b}" style="left:${b * BL() * ppb}px">${b + 1}</span>`;
   rh += `<div class="loopband ${P.loop.on ? 'on' : ''}" style="left:${P.loop.start * ppb}px;width:${(P.loop.end - P.loop.start) * ppb}px"></div>`;
   rulerEl.innerHTML = rh;
-  const lineBg = `repeating-linear-gradient(90deg, #22252d 0 1px, transparent 1px ${ppb * 4}px)`;
+  const lineBg = `repeating-linear-gradient(90deg, #22252d 0 1px, transparent 1px ${ppb * BL()}px)`;
   rowsEl.innerHTML = P.tracks.map(tr => {
     const sel = tr.id === selTrack ? 'sel' : '';
     let ctrl = '';
@@ -2623,9 +2720,9 @@ function drawRegion(cv, tr, r) {
     const used = DRUMS.filter(d => r.steps[d.id]?.some(v => v)), rows = Math.max(4, used.length), rh = (h - 4) / rows, ph = phaseOf(r);
     used.forEach((d, i) => {
       const st = r.steps[d.id];
-      for (let bar = 0; bar * 4 - ph < r.len; bar++) for (const sl of drumSlots(r)) {
-        const off = bar * 4 + sl.off - ph + (sl.n === 4 && sl.k % 2 ? drumSwing(r) : 0), v = st[sl.k];
-        if (v && off >= 0 && off < r.len) { g.globalAlpha = .35 + v * .65; g.fillRect(off * ppb, 2 + i * rh, Math.max(1.5, ppb / sl.n - 1), Math.max(1.5, rh - 1)); }
+      for (let bar = 0, PL = drumLen(r); bar * PL - ph < r.len; bar++) for (const sl of drumSlots(r)) {
+        const off = bar * PL + sl.off - ph + slotSwing(r, sl), v = st[sl.k];
+        if (v && off >= 0 && off < r.len) { g.globalAlpha = .35 + v * .65; g.fillRect(off * ppb, 2 + i * rh, Math.max(1.5, ppb * drumBT(r) / sl.n - 1), Math.max(1.5, rh - 1)); }
       }
     });
     g.globalAlpha = 1;
@@ -2657,7 +2754,7 @@ function drawWave(g, buf, off, dur, w, h, color, gain = 1) {
 function updatePlayhead() {
   const b = currentBeat();
   playheadEl.style.left = (hw() + Math.max(0, b) * ppb) + 'px';
-  const m = x => ((x % 4) + 4) % 4, bar = Math.floor(b / 4) + 1, beat = Math.floor(m(b)) + 1, six = Math.floor((((b % 1) + 1) % 1) * 4) + 1;
+  const bl = BL(), bt = BT(), m = x => ((x % bl) + bl) % bl, bar = Math.floor(b / bl + 1e-9) + 1, inBar = m(b), beat = Math.floor(inBar / bt + 1e-9) + 1, six = Math.floor(((inBar / bt) % 1) * bt * 4 + 1e-6) + 1;
   $('#lcdPos').textContent = `${String(bar).padStart(3, '0')} ${beat} ${six}`;
   if (!playing && autoPos !== playPos) { autoPos = playPos; applyAutoStatic(); }
 }
@@ -2676,6 +2773,7 @@ function updateTransport() {
   $('#bLoop').classList.toggle('on', P.loop.on);
   $('#bMetro').classList.toggle('on', !!P.metro);
   $('#bpm').value = P.bpm;
+  $('#sigSel').value = sigOf().join('/');
   $('#zoom').value = ppb;
   $('#masterVol').value = P.master ?? .8;
 }
@@ -2767,9 +2865,9 @@ function renderRegionEditor() {
   const keep = same && sc ? { left: sc.scrollLeft, top: sc.scrollTop } : null;
   edState = { id: r.id, kind: tr.type, piece: same ? edState.piece : null, scrolled: same && edState.scrolled };
   eBody.style.setProperty('--c', tr.color);
-  const bars = (r.len / 4).toFixed(r.len % 4 ? 2 : 0).replace('.', ',');
+  const nbar = r.len / BL(), bars = (Math.abs(nbar - Math.round(nbar)) < 1e-6 ? Math.round(nbar) : nbar.toFixed(2)).toString().replace('.', ',');
   if (tr.type === 'synth' || tr.type === 'sampler') renderPianoRoll(tr, r, bars);
-  else if (tr.type === 'drums') { normProject({ tracks: [tr] }); edState.piece ? renderDrumRoll(tr, r, edState.piece) : renderSteps(tr, r, bars); }
+  else if (tr.type === 'drums') { normProject({ tracks: [tr], sig: sigOf() }); edState.piece ? renderDrumRoll(tr, r, edState.piece) : renderSteps(tr, r, bars); }
   else renderAudioEditor(tr, r);
   const rn = $('#rname'); if (rn) rn.onchange = e => { pushUndo(); r.name = e.target.value || r.name; save(); renderArrange(); };
   const del = `<button class="sbtn rdel" data-rdel title="Ganze Region aus der Spur löschen (Entf)">Region löschen</button>`;
@@ -3039,7 +3137,16 @@ const LOOPS = [
   { id: 'house-piano', name: 'House-Piano', bpm: 122, cat: 'Melodie' },
   { id: 'strum-folk', name: 'Folk-Strumming', bpm: 100, cat: 'Melodie' },
   { id: 'saxello-line', name: 'Saxello-Melodie', bpm: 96, cat: 'Melodie' },
-  { id: 'psaltery-pad', name: 'Psalter-Fläche', bpm: 80, cat: 'Melodie' }
+  { id: 'psaltery-pad', name: 'Psalter-Fläche', bpm: 80, cat: 'Melodie' },
+  // Neu in v1.1: andere Taktarten
+  { id: 'waltz-drums', name: 'Walzer-Drums 3/4', bpm: 120, cat: 'Drums', sig: [3, 4] },
+  { id: 'sixeight-ballad', name: 'Ballade 6/8', bpm: 100, cat: 'Drums', sig: [6, 8] },
+  { id: 'sixeight-march', name: 'Marsch 6/8', bpm: 112, cat: 'Drums', sig: [6, 8] },
+  { id: 'fivefour-groove', name: 'Groove 5/4', bpm: 110, cat: 'Drums', sig: [5, 4] },
+  { id: 'seveneight-groove', name: 'Groove 7/8', bpm: 100, cat: 'Drums', sig: [7, 8] },
+  { id: 'waltz-piano', name: 'Walzer-Klavier 3/4', bpm: 120, cat: 'Melodie', sig: [3, 4] },
+  { id: 'waltz-glock', name: 'Glockenspiel-Walzer 3/4', bpm: 120, cat: 'Melodie', sig: [3, 4] },
+  { id: 'sixeight-arp', name: 'Mbira-Arpeggio 6/8', bpm: 96, cat: 'Melodie', sig: [6, 8] }
 ];
 async function loadLoop(id, trackId) {
   const L = LOOPS.find(x => x.id === id); if (!L) return;
@@ -3411,7 +3518,7 @@ function chopsToRegion(tr) {
   }
   if (!notes.length) { toast('Keine Chops zum Einfügen.'); return; }
   pushUndo();
-  const start = Math.max(0, Math.floor(currentBeat() / 4) * 4), r = { id: uid(), name: 'Chops', start, len: Math.max(4, Math.ceil(pos / 4) * 4), notes };
+  const start = Math.max(0, snapBar(currentBeat())), r = { id: uid(), name: 'Chops', start, len: Math.max(BL(), ceilBar(pos)), notes };
   tr.regions.push(r); selTrack = tr.id; selRegion = r.id; edTab = 'region'; save(); render();
   toast(`${notes.length} Chops als Region eingefügt${skipped ? ` (${skipped} ohne freies Pad ausgelassen)` : ''}. Im Editor kannst du sie verschieben.`);
 }
@@ -3471,7 +3578,7 @@ function renderMarkers() {
   }).join('');
 }
 function addMarker(b) {
-  b = Math.max(0, Math.floor(b / 4) * 4);
+  b = Math.max(0, snapBar(b));
   if (P.markers.some(m => m.b === b)) { toast('An diesem Takt steht schon ein Marker.'); return; }
   pushUndo();
   const n = P.markers.length, used = new Set(P.markers.map(x => x.name));
@@ -3523,7 +3630,7 @@ mlaneEl.addEventListener('pointerdown', e => {
     if (moved) { save(); renderMarkers(); return; }
     if (ev.shiftKey) {
       const ms = markersSorted(), nx = ms[ms.indexOf(m) + 1];
-      P.loop = { on: true, start: m.b, end: nx ? nx.b : Math.max(m.b + 4, Math.ceil(songLen() / 4) * 4) }; save(); renderArrange(); updateTransport();
+      P.loop = { on: true, start: m.b, end: nx ? nx.b : Math.max(m.b + BL(), ceilBar(songLen())) }; save(); renderArrange(); updateTransport();
       toast(`Cycle auf „${m.name}“ gesetzt.`); return;
     }
     jumpTo(m.b);
@@ -4028,7 +4135,7 @@ const PR = { lo: 24, hi: 108, rh: 14, bw: 88 };
 const PADROLL = { lo: 0, hi: 15, rh: 24, get bw() { return PR.bw; } };
 let PRZ = PR; // Raster des gerade offenen Piano Rolls
 const SNAPS = [[1, '1/4'], [.5, '1/8'], [.25, '1/16'], [.125, '1/32'], [2 / 3, '1/4 Triole'], [1 / 3, '1/8 Triole'], [1 / 6, '1/16 Triole']];
-const LENS = [[.125, '1/32'], [.25, '1/16'], [.5, '1/8'], [.75, '1/8 punktiert'], [1, '1/4'], [1.5, '1/4 punktiert'], [2, '1/2'], [4, '1 Takt'], [1 / 6, '1/16 Triole'], [1 / 3, '1/8 Triole'], [2 / 3, '1/4 Triole']];
+const LENS = [[.125, '1/32'], [.25, '1/16'], [.5, '1/8'], [.75, '1/8 punktiert'], [1, '1/4'], [1.5, '1/4 punktiert'], [2, '1/2'], [4, '1/1'], [1 / 6, '1/16 Triole'], [1 / 3, '1/8 Triole'], [2 / 3, '1/4 Triole']];
 const TOOLS = [['draw', 'Zeichnen'], ['select', 'Auswählen'], ['erase', 'Löschen']];
 let prTool = 'draw', prSnap = .25, selNotes = new Set();
 const near = (a, b) => Math.abs(a - b) < 1e-6;
@@ -4101,7 +4208,7 @@ function renderPianoRoll(tr, r, bars) {
     }
     const tripl = !near(prSnap * 4 % 1, 0) && !near(prSnap * 4 % 1, 1);
     for (let t = 0; t <= r.len + 1e-6; t += prSnap) { g.fillStyle = tripl ? '#283040' : '#24272f'; g.fillRect(Math.round(t * Z.bw), 0, 1, H); }
-    for (let b = 0; b <= r.len; b++) { g.fillStyle = b % 4 === 0 ? '#555b69' : '#343844'; g.fillRect(b * Z.bw, 0, 1, H); }
+    for (let i = 0, bt = BT(), bl = BL(); i * bt <= r.len + 1e-6; i++) { const b = i * bt; g.fillStyle = Math.abs(b / bl - Math.round(b / bl)) < 1e-6 ? '#555b69' : '#343844'; g.fillRect(Math.round(b * Z.bw), 0, 1, H); }
   };
   drawGrid();
   const items = () => r.notes.map(n => ({ x: n.s * Z.bw, v: n.v, sel: selNotes.has(n) }));
@@ -4276,16 +4383,25 @@ function previewNote(tr, p) {
 // Ein Schlag ist entweder in vier 16tel oder in drei Triolen geteilt. Speicherplatz k = Schlag * 4 + Position.
 function drumSlots(r) {
   const out = [];
-  for (let b = 0; b < 4; b++) { const n = r.trip?.[b] ? 3 : 4; for (let i = 0; i < n; i++) out.push({ off: b + i / n, k: b * 4 + i, n }); }
+  const bt = drumBT(r), sub = bt < 1 ? 2 : 4, nb = drumBeats(r);
+  for (let b = 0; b < nb; b++) { const n = r.trip?.[b] ? 3 : sub; for (let i = 0; i < n; i++) out.push({ off: (b + i / n) * bt, k: b * 4 + i, n, b }); }
   return out;
 }
-function drumStepAt(r, rel) { const pos = ((rel % 4) + 4) % 4, b = Math.floor(pos), n = r.trip?.[b] ? 3 : 4; return b * 4 + Math.min(n - 1, Math.floor((pos - b) * n)); }
+// Swing schiebt jede zweite 16tel nach hinten (nicht bei Triolen)
+const slotSwing = (r, sl) => sl.n !== 3 && sl.k % 2 ? drumSwing(r) : 0;
+function drumStepAt(r, rel) {
+  const L = drumLen(r), bt = drumBT(r), pos = ((rel % L) + L) % L, b = Math.floor(pos / bt + 1e-9), n = r.trip?.[b] ? 3 : bt < 1 ? 2 : 4;
+  return b * 4 + Math.min(n - 1, Math.floor((pos / bt - b) * n + 1e-9));
+}
+const PBS = [1, 2, 3, 4, 6, 8, 12, 16]; // wählbare Pattern-Längen in Takten
 function renderSteps(tr, r, bars) {
-  eHead.innerHTML = `<input class="rn" id="rname" value="${esc(r.name)}" aria-label="Regionsname"><span class="note">${bars} Takte, 1-Takt-Pattern wiederholt</span>
-    <label class="note">Pattern <select id="patsel"><option value="">Wählen …</option>${Object.keys(PATTERNS).map(k => `<option>${k}</option>`).join('')}</select></label>
+  const pb = r.pb || 1, [num] = drumSig(r), bt = drumBT(r), nb = drumBeats(r), bw = Math.round((pb <= 2 ? 136 : pb <= 4 ? 100 : 80) * bt);
+  eHead.innerHTML = `<input class="rn" id="rname" value="${esc(r.name)}" aria-label="Regionsname"><span class="note">${bars} Takte · ${drumSig(r).join('/')}</span>
+    <label class="note" title="So viele Takte lang ist das Pattern, bevor es sich wiederholt">Länge <select id="patLen">${PBS.map(n => `<option value="${n}" ${n === pb ? 'selected' : ''}>${n} Takt${n > 1 ? 'e' : ''}</option>`).join('')}</select></label>
+    <label class="note">Pattern <select id="patsel"><option value="">Wählen …</option>${patOrder().map(k => `<option value="${esc(k)}">${esc(patLabel(k))}</option>`).join('')}</select></label>
     <label class="note velctl afx" title="Jede zweite 16tel nach hinten schieben. 50 % = gerade, 66 % = Triolen-Gefühl">Swing <input type="range" id="dSwing" min="50" max="75" step="1" value="${r.swing || 50}"><output>${r.swing || 50} %</output></label>
     <label class="note velctl afx" title="Kleine Abweichungen in Zeit und Anschlag, damit es wie gespielt klingt">Humanize <input type="range" id="dHum" min="0" max="100" step="5" value="${r.human || 0}"><output>${r.human || 0} %</output></label>
-    <span class="note hint">Klick = Schlag, Shift+Klick = Akzent</span>`;
+    <span class="note hint">Klick = Schlag, ziehen = ganze Reihe, Shift = Akzent</span>`;
   let gUndo = false;
   eHead.oninput = e => {
     const k = e.target.id === 'dSwing' ? 'swing' : e.target.id === 'dHum' ? 'human' : null; if (!k) return;
@@ -4294,39 +4410,68 @@ function renderSteps(tr, r, bars) {
     e.target.nextElementSibling.textContent = e.target.value + ' %';
   };
   eHead.onchange = e => { if (e.target.id === 'dSwing' || e.target.id === 'dHum') { gUndo = false; save(); renderArrange(); } };
-  const head = [0, 1, 2, 3].map(b => `<button class="beat-h ${r.trip[b] ? 'on' : ''}" data-trip="${b}" title="Schlag ${b + 1}: zwischen 16teln und Triolen umschalten">${b + 1}${r.trip[b] ? ' · Triole' : ''}</button>`).join('');
-  const rows = DRUMS.map(d => `<div class="seq-row"><button class="seq-name" data-piece="${d.id}" title="${d.name}${tr.pieces?.[d.id] ? ' aus Kit ' + KITS[tr.pieces[d.id]]?.name : ''}: Tonhöhe, Anschlag und Klang pro Schlag bearbeiten">${d.name}${tr.pieces?.[d.id] || pieceLbl(tr, d.id) ? `<small>${esc(pieceLbl(tr, d.id) || KITS[tr.pieces[d.id]]?.name || '')}</small>` : ''}<span>›</span></button><div class="beats">${[0, 1, 2, 3].map(b => {
-    const n = r.trip[b] ? 3 : 4;
-    return `<div class="beat ${b % 2 ? 'q' : ''} ${n === 3 ? 't' : ''}">${Array.from({ length: n }, (_, i) => {
+  const cls = b => `${(b % num) % 2 ? 'q' : ''} ${b && b % num === 0 ? 'bs' : ''}`;
+  const lbl = b => (pb > 1 ? `${Math.floor(b / num) + 1}.` : '') + (b % num + 1);
+  const head = Array.from({ length: nb }, (_, b) => `<button class="beat-h ${r.trip[b] ? 'on' : ''} ${cls(b)}" style="width:${bw}px" data-trip="${b}" title="${pb > 1 ? `Takt ${Math.floor(b / num) + 1}, ` : ''}Zählzeit ${b % num + 1}: zwischen 16teln und Triolen umschalten">${lbl(b)}${r.trip[b] && bw >= 90 ? ' · Triole' : r.trip[b] ? ' · 3' : ''}</button>`).join('');
+  const rows = DRUMS.map(d => `<div class="seq-row"><button class="seq-name" data-piece="${d.id}" title="${d.name}${tr.pieces?.[d.id] ? ' aus Kit ' + KITS[tr.pieces[d.id]]?.name : ''}: Tonhöhe, Anschlag und Klang pro Schlag bearbeiten">${d.name}${tr.pieces?.[d.id] || pieceLbl(tr, d.id) ? `<small>${esc(pieceLbl(tr, d.id) || KITS[tr.pieces[d.id]]?.name || '')}</small>` : ''}<span>›</span></button><div class="beats" data-row="${d.id}">${Array.from({ length: nb }, (_, b) => {
+    const n = r.trip[b] ? 3 : bt < 1 ? 2 : 4;
+    return `<div class="beat ${cls(b)}" style="width:${bw}px;grid-template-columns:repeat(${n},1fr)">${Array.from({ length: n }, (_, i) => {
       const k = b * 4 + i, v = r.steps[d.id][k], p = r.pitch[d.id][k];
-      return `<button class="cell ${v ? 'on' : ''} ${v >= .95 ? 'acc' : ''}" data-d="${d.id}" data-k="${k}" style="--v:${v || 0}" aria-label="${d.name} Schlag ${b + 1}.${i + 1}">${v && p ? `<i>${p > 0 ? '+' : ''}${p}</i>` : ''}</button>`;
+      return `<button class="cell ${v ? 'on' : ''} ${v >= .95 ? 'acc' : ''}" data-d="${d.id}" data-k="${k}" style="--v:${v || 0}" aria-label="${d.name} ${lbl(b)}.${i + 1}">${v && p ? `<i>${p > 0 ? '+' : ''}${p}</i>` : ''}</button>`;
     }).join('')}</div>`;
   }).join('')}</div></div>`).join('');
   eBody.innerHTML = `<div class="seq"><div class="seq-row seq-head"><span class="seq-sp"></span><div class="beats">${head}</div></div>${rows}
-    <p class="seq-tip">Klick auf einen Instrumentnamen öffnet den Drum-Editor mit Tonhöhe und Anschlag für jeden Schlag. Klick auf eine Schlagzahl teilt diesen Schlag in Triolen.</p></div>`;
+    <p class="seq-tip">Mit gedrückter Maus über eine Reihe ziehen belegt alle Felder auf dem Weg, auf einem gesetzten Feld begonnen löscht das Ziehen. Klick auf einen Instrumentnamen öffnet den Drum-Editor mit Tonhöhe und Anschlag für jeden Schlag. Klick auf eine Zählzeit teilt sie in Triolen. Die Taktart stellst du oben im Display ein.</p></div>`;
   edState.pxb = 0;
-  liveCells = { r, cols: Array.from({ length: 16 }, (_, k) => [...eBody.querySelectorAll(`.cell[data-k="${k}"]`)]), last: -1 };
-  eBody.querySelector('.seq').onclick = e => {
+  liveCells = { r, cols: Array.from({ length: nb * 4 }, (_, k) => [...eBody.querySelectorAll(`.cell[data-k="${k}"]`)]), last: -1 };
+  const seq = eBody.querySelector('.seq');
+  seq.onclick = e => {
     const nm = e.target.closest('[data-piece]');
     if (nm) { ensureCtx(); playDrum(nm.dataset.piece, chan(tr).input, ctx.currentTime, 1, pieceKit(tr, nm.dataset.piece)); edState.piece = nm.dataset.piece; renderEditor(); return; }
     const th = e.target.closest('[data-trip]');
     if (th) {
       pushUndo(); const b = +th.dataset.trip; r.trip[b] = !r.trip[b];
-      if (r.trip[b]) DRUMS.forEach(d => { r.steps[d.id][b * 4 + 3] = 0; });
+      DRUMS.forEach(d => { r.steps[d.id][b * 4 + 3] = 0; if (!r.trip[b] && bt < 1) r.steps[d.id][b * 4 + 2] = 0; });
       save(); renderEditor(); renderArrange(); return;
     }
-    const c = e.target.closest('.cell'); if (!c) return;
-    pushUndo();
-    const arr = r.steps[c.dataset.d], k = +c.dataset.k;
-    arr[k] = arr[k] && !(e.shiftKey && arr[k] < .95) ? 0 : (e.shiftKey ? 1 : .7);
-    c.classList.toggle('on', !!arr[k]); c.classList.toggle('acc', arr[k] >= .95); c.style.setProperty('--v', arr[k]);
-    if (!arr[k]) c.innerHTML = '';
-    if (arr[k]) { ensureCtx(); playDrum(c.dataset.d, chan(tr).input, ctx.currentTime, arr[k], pieceKit(tr, c.dataset.d), r.pitch[c.dataset.d][k]); }
-    save(); renderArrange();
+  };
+  // Malen: Der erste Klick entscheidet, ob das Ziehen über die Reihe Schläge setzt oder löscht
+  seq.onpointerdown = e => {
+    const c = e.target.closest('.cell'); if (!c || e.button > 0) return;
+    e.preventDefault();
+    const d = c.dataset.d, arr = r.steps[d], k0 = +c.dataset.k, cells = [...c.closest('.beats').querySelectorAll('.cell')];
+    const nv = arr[k0] && !(e.shiftKey && arr[k0] < .95) ? 0 : (e.shiftKey ? 1 : .7);
+    let pushed = false, last = cells.indexOf(c);
+    const put = el => {
+      const k = +el.dataset.k, v = nv ? (arr[k] && !e.shiftKey ? arr[k] : nv) : 0;
+      if (v === arr[k] && el !== c) return;
+      if (!pushed) { pushUndo(); pushed = true; }
+      arr[k] = v; if (!v) r.pitch[d][k] = 0;
+      el.classList.toggle('on', !!v); el.classList.toggle('acc', v >= .95); el.style.setProperty('--v', v);
+      if (!v) el.innerHTML = '';
+      else { ensureCtx(); playDrum(d, chan(tr).input, ctx.currentTime, v, pieceKit(tr, d), r.pitch[d][k]); }
+    };
+    put(c);
+    seq.setPointerCapture(e.pointerId);
+    seq.onpointermove = ev => {
+      const el = document.elementFromPoint(ev.clientX, ev.clientY)?.closest('.cell'); if (!el || el.dataset.d !== d) return;
+      const i = cells.indexOf(el); if (i < 0 || i === last) return;
+      // auch Felder dazwischen belegen, wenn die Maus schnell gezogen wird
+      for (let j = last + Math.sign(i - last); j !== i + Math.sign(i - last); j += Math.sign(i - last)) put(cells[j]);
+      last = i;
+    };
+    seq.onpointerup = seq.onpointercancel = () => {
+      seq.onpointermove = seq.onpointerup = seq.onpointercancel = null;
+      if (pushed) { save(); renderArrange(); }
+    };
   };
   $('#patsel').onchange = e => {
     if (!e.target.value) return;
-    pushUndo(); Object.assign(r, drumRegion(e.target.value, r.start, r.len), { id: r.id }); save(); render();
+    pushUndo(); Object.assign(r, drumRegion(e.target.value, r.start, r.len, pb), { id: r.id }); save(); render();
+  };
+  $('#patLen').onchange = e => {
+    pushUndo(); fitDrum(r, +e.target.value);
+    r.len = Math.max(r.len, drumLen(r)); save(); render();
   };
 }
 
@@ -4340,20 +4485,23 @@ function renderDrumRoll(tr, r, piece) {
     <label class="note">Klang aus <select id="drKit" title="Nur dieses Instrument aus einem anderen Kit nehmen">${Object.entries(KITS).map(([k, v]) => `<option value="${k}" ${k === pieceKit(tr, piece) ? 'selected' : ''}>${v.name}${k === (tr.kit || 'standard') ? ' (Spur-Kit)' : ''}</option>`).join('')}</select></label>
     ${toolButtons([['draw', 'Zeichnen'], ['erase', 'Löschen']], drTool)}
     <span class="note">Alle Schläge</span><button class="sbtn" id="drDown" title="Alle Schläge einen Halbton tiefer">−1</button><button class="sbtn" id="drUp" title="Alle Schläge einen Halbton höher">+1</button><button class="sbtn" id="drZero">Tonhöhe 0</button>${zoomCtl}
-    <span class="note hint">Tippen = Schlag setzen oder löschen, hoch/runter ziehen = Tonhöhe</span>`;
-  const rows = DR.range * 2 + 1, W = 4 * DR.bw, H = rows * DR.rh, slots = drumSlots(r);
+    <span class="note hint">Klick = Schlag setzen oder löschen, mit der Maus ziehen = ganze Reihe, Schlag hoch/runter ziehen = Tonhöhe</span>`;
+  // Lange Patterns werden schmaler gezeichnet, damit die Leinwand nicht zu groß wird
+  const PL = drumLen(r), bw = Math.min(DR.bw, 6000 / PL), bl = drumSig(r)[0] * drumBT(r);
+  const rows = DR.range * 2 + 1, W = PL * bw, H = rows * DR.rh, slots = drumSlots(r);
   let keys = '';
   for (let p = DR.range; p >= -DR.range; p--) keys += `<div class="key dkey ${p === 0 ? 'zero' : ''}">${p > 0 ? '+' : ''}${p}</div>`;
   eBody.innerHTML = `<div class="prw"><div class="pr" id="pr"><div class="pr-keys" style="height:${H}px">${keys}</div>
     <div class="pr-grid" id="prgrid" style="width:${W}px;height:${H}px"><canvas id="prbg"></canvas><div id="prnotes"></div><div class="ed-play" id="edplay"></div></div></div><div class="vl" id="vl"></div></div>`;
-  edState.pxb = DR.bw; edState.bar1 = true;
+  edState.pxb = bw; edState.bar1 = true;
   const pr = $('#pr'), grid = $('#prgrid'), box = $('#prnotes');
   const cv = $('#prbg'), dpr = devicePixelRatio || 1;
   cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px';
   const g = cv.getContext('2d'); g.scale(dpr, dpr);
   for (let i = 0; i < rows; i++) { g.fillStyle = DR.range - i === 0 ? '#2b2e37' : i % 2 ? '#18191e' : '#1c1e24'; g.fillRect(0, i * DR.rh, W, DR.rh); }
-  slots.forEach(sl => { g.fillStyle = sl.off % 1 === 0 ? '#555b69' : sl.n === 3 ? '#30405a' : '#292c34'; g.fillRect(sl.off * DR.bw, 0, 1, H); });
-  const slotX = sl => sl.off * DR.bw, slotW = sl => DR.bw / sl.n;
+  const on = (a, b) => Math.abs(a / b - Math.round(a / b)) < 1e-6;
+  slots.forEach(sl => { g.fillStyle = on(sl.off, bl) ? '#7a8294' : on(sl.off, drumBT(r)) ? '#555b69' : sl.n === 3 ? '#30405a' : '#292c34'; g.fillRect(Math.round(sl.off * bw), 0, on(sl.off, bl) && sl.off ? 2 : 1, H); });
+  const slotX = sl => sl.off * bw, slotW = sl => bw * drumBT(r) / sl.n;
   const draw = () => {
     box.innerHTML = slots.filter(sl => st[sl.k]).map(sl => `<div class="nt dhit" data-k="${sl.k}" title="Tonhöhe ${pt[sl.k] > 0 ? '+' : ''}${pt[sl.k]} · Anschlag ${Math.round(st[sl.k] * 127)}" style="left:${slotX(sl) + 2}px;top:${(DR.range - pt[sl.k]) * DR.rh + 1}px;width:${slotW(sl) - 4}px;height:${DR.rh - 2}px;opacity:${.45 + st[sl.k] * .55}"></div>`).join('');
   };
@@ -4368,7 +4516,31 @@ function renderDrumRoll(tr, r, piece) {
   grid.onpointerdown = e => {
     if (e.button > 0) return;
     const rect = grid.getBoundingClientRect(), x = e.clientX - rect.left, y = e.clientY - rect.top;
-    const el = e.target.closest('.dhit');
+    const el = e.target.closest('.dhit'), mouse = e.pointerType !== 'touch';
+    // Mit der Maus ziehen malt Schläge über die ganze Reihe (in der Tonhöhe, in der begonnen wurde) oder löscht sie
+    const paintDrag = (x0, p0) => {
+      const slotAt = px => slots.find(s => px >= slotX(s) && px < slotX(s) + slotW(s));
+      let pushed = false, lastX = x0;
+      const paint = px => {
+        const sl = slotAt(px); if (!sl) return;
+        if (drTool === 'erase' ? !st[sl.k] : st[sl.k] && pt[sl.k] === p0) return;
+        if (!pushed) { pushUndo(); pushed = true; }
+        if (drTool === 'erase') { st[sl.k] = 0; pt[sl.k] = 0; } else { st[sl.k] = st[sl.k] || .8; pt[sl.k] = p0; audition(sl.k); }
+        draw();
+      };
+      paint(x0);
+      grid.setPointerCapture(e.pointerId);
+      grid.onpointermove = ev => {
+        const nx = ev.clientX - grid.getBoundingClientRect().left, step = Math.sign(nx - lastX) * Math.max(2, bw * drumBT(r) / 8);
+        if (step) for (let px = lastX + step; step > 0 ? px < nx : px > nx; px += step) paint(px);
+        paint(nx); lastX = nx;
+      };
+      grid.onpointerup = grid.onpointercancel = () => {
+        grid.onpointermove = grid.onpointerup = grid.onpointercancel = null;
+        if (pushed) { vel.draw(); commit(); }
+      };
+    };
+    if (mouse && (!el || drTool === 'erase')) { paintDrag(x, pAt(y)); return; }
     if (el) {
       const k = +el.dataset.k, p0 = pt[k], y0 = e.clientY;
       if (drTool === 'erase') { pushUndo(); st[k] = 0; pt[k] = 0; draw(); vel.draw(); commit(); return; }
@@ -4376,6 +4548,8 @@ function renderDrumRoll(tr, r, piece) {
       grid.setPointerCapture(e.pointerId);
       grid.onpointermove = ev => {
         const dp = -Math.round((ev.clientY - y0) / DR.rh);
+        // seitwärts gezogen: ab diesem Schlag die Reihe in seiner Tonhöhe malen
+        if (mouse && !moved && Math.abs(ev.clientX - e.clientX) >= 8 && Math.abs(ev.clientY - y0) < 5) { paintDrag(x, p0); grid.onpointermove(ev); return; }
         if (!moved && Math.abs(ev.clientY - y0) < 5) return;
         if (!pushed) { pushUndo(); pushed = true; } moved = true;
         const np = clamp(p0 + dp, -DR.range, DR.range);
@@ -4405,7 +4579,7 @@ function renderDrumRoll(tr, r, piece) {
     const b = e.target.closest('[data-tool]'); if (!b) return;
     drTool = b.dataset.tool; eHead.querySelectorAll('[data-tool]').forEach(x => x.classList.toggle('on', x === b));
   };
-  const shift = dp => { pushUndo(); for (let k = 0; k < 16; k++) if (st[k]) pt[k] = clamp(dp === null ? 0 : pt[k] + dp, -DR.range, DR.range); draw(); commit(); const h = hits()[0]; if (h) audition(h.k); };
+  const shift = dp => { pushUndo(); for (let k = 0; k < st.length; k++) if (st[k]) pt[k] = clamp(dp === null ? 0 : pt[k] + dp, -DR.range, DR.range); draw(); commit(); const h = hits()[0]; if (h) audition(h.k); };
   $('#drUp').onclick = () => shift(1); $('#drDown').onclick = () => shift(-1); $('#drZero').onclick = () => shift(null);
 }
 
@@ -4434,11 +4608,11 @@ function createRegionAt(lane, clientX) {
   const tr = findTrack(lane.dataset.track); if (!tr) return;
   laneMade = performance.now();
   if (tr.type === 'audio') { importTarget = tr.id; $('#fileIn').click(); return; }
-  const x = clientX - lane.getBoundingClientRect().left, start = Math.floor(x / ppb / 4) * 4;
+  const x = clientX - lane.getBoundingClientRect().left, start = snapBar(x / ppb);
   pushUndo();
   const r = tr.type === 'drums'
-    ? drumRegion('Rock', start, 16)
-    : { id: uid(), name: 'Region', start, len: 4, notes: [] };
+    ? drumRegion('Rock', start, 4 * BL())
+    : { id: uid(), name: 'Region', start, len: BL(), notes: [] };
   tr.regions.push(r); selTrack = tr.id; selRegion = r.id; edTab = 'region'; save(); render();
 }
 rowsEl.addEventListener('dblclick', e => {
@@ -4505,7 +4679,7 @@ function regionDrag(e, el) {
   }
   const cl = e.target.classList, mode = stretchMode ? 'stretch' : cl.contains('fi') ? 'fi' : cl.contains('fo') ? 'fo' : cl.contains('rh') ? 'resize' : cl.contains('lh') ? 'trim' : 'move';
   const x0 = e.clientX, s0 = r.start, l0 = r.len, o0 = r.offset || 0, ph0 = r.phase || 0, notes0 = r.notes?.map(n => n.s), st0 = r.st || 1;
-  const snapOf = ev => ev.shiftKey ? 1 / 16 : ppb < 18 ? 4 : ppb < 60 ? 1 : .25;
+  const snapOf = ev => ev.shiftKey ? 1 / 16 : ppb < 18 ? BL() : ppb < 60 ? BT() : .25;
   let moved = false, target = null;
   const y0 = e.clientY, lane0 = el.parentElement, top0 = lane0.getBoundingClientRect().top;
   el.setPointerCapture(e.pointerId);
@@ -4638,8 +4812,8 @@ rulerEl.addEventListener('pointerdown', e => {
     const x = ev.clientX - rect.left;
     if (!dragging && Math.abs(x - x0) < 5) return;
     dragging = true;
-    const a = Math.floor(Math.min(b0, x / ppb) / 4) * 4, b = Math.ceil(Math.max(b0, x / ppb) / 4) * 4;
-    P.loop = { on: true, start: Math.max(0, a), end: Math.max(a + 4, b) };
+    const a = snapBar(Math.min(b0, x / ppb)), b = ceilBar(Math.max(b0, x / ppb));
+    P.loop = { on: true, start: Math.max(0, a), end: Math.max(a + BL(), b) };
     renderArrange(); updateTransport();
   };
   rulerEl.onpointerup = () => {
@@ -4658,6 +4832,8 @@ $('#bRec').onclick = toggleRecord;
 $('#bLoop').onclick = () => { P.loop.on = !P.loop.on; save(); renderArrange(); updateTransport(); };
 $('#bMetro').onclick = () => { P.metro = !P.metro; save(); updateTransport(); };
 $('#bpm').onchange = e => setBpm(+e.target.value);
+$('#sigSel').innerHTML = SIGS.map(g => `<option>${g.join('/')}</option>`).join('');
+$('#sigSel').onchange = e => { setSig(e.target.value.split('/').map(Number)); e.target.blur(); };
 $('#lcdLu').onclick = () => { if (edTab !== 'mix') $('#bMix').click(); };
 $('#masterVol').oninput = e => { P.master = +e.target.value; if (ctx) master.gain.setTargetAtTime(P.master, ctx.currentTime, .02); save(); mixPaint(); };
 $('#bUndo').onclick = undo;
@@ -4894,7 +5070,7 @@ function deleteSelection() {
 function duplicateRegion() {
   const [tr, r] = findRegion(selRegion); if (!r) return;
   pushUndo();
-  const c = JSON.parse(JSON.stringify(r)); c.id = uid(); c.start = r.start + Math.ceil(r.len / 4) * 4;
+  const c = JSON.parse(JSON.stringify(r)); c.id = uid(); c.start = r.start + ceilBar(r.len);
   tr.regions.push(c); selRegion = c.id; save(); render();
 }
 
@@ -4935,7 +5111,7 @@ function frame() {
     const b = currentBeat();
     updatePlayhead();
     if (!P.loop.on && !rec && b >= songLen()) { stop(); playPos = 0; updatePlayhead(); }
-    if (rec && b > P.bars * 4 - 8) { P.bars += 8; renderArrange(); }
+    if (rec && b > (P.bars - 2) * BL()) { P.bars += 8; renderArrange(); }
     updateGhost();
     if (rec && b < rec.countUntil) showCount(b); else if (!countEl.hidden) hideCount();
     followPlayhead(b);
@@ -4948,7 +5124,7 @@ function frame() {
       }
     }
     const [, er] = findRegion(selRegion), ep = $('#edplay');
-    if (ep && er && edState.pxb) { let rel = b - er.start; ep.style.display = rel >= 0 && rel <= er.len ? '' : 'none'; if (edState.bar1) rel = (((rel + phaseOf(er)) % 4) + 4) % 4; ep.style.left = rel * edState.pxb + 'px'; }
+    if (ep && er && edState.pxb) { let rel = b - er.start; ep.style.display = rel >= 0 && rel <= er.len ? '' : 'none'; if (edState.bar1) { const L = drumLen(er); rel = (((rel + phaseOf(er)) % L) + L) % L; } ep.style.left = rel * edState.pxb + 'px'; }
   } else if (liveCells && liveCells.last !== -1) { liveCells.cols[liveCells.last]?.forEach(c => c.classList.remove('now')); liveCells.last = -1; }
   if (eqView && (playing || edTab === 'fx')) eqView.draw();
   if (ctx) while (padHits.length && padHits[0].t <= ctx.currentTime + .01) { const h = padHits.shift(); flashPad(h.id, h.pad); }
@@ -5215,7 +5391,7 @@ function libBody(tr) {
   if (tr.type === 'drums') {
     const [rt] = findRegion(selRegion), into = rt === tr, q = libQuery.trim().toLowerCase(), hit = s => !q || s.toLowerCase().includes(q);
     const kits = Object.entries(KITS).filter(([, v]) => hit(v.name + ' kit'));
-    const pats = Object.keys(PATTERNS).filter(k => hit(k + ' pattern'));
+    const pats = patOrder().filter(k => hit(patLabel(k) + ' pattern'));
     let html = kits.length ? group('Drumkits', kits.map(([k, v]) => item(`data-kit="${k}"`, k === (tr.kit || 'standard'), v.name, k === (tr.kit || 'standard') && tr.pieces && Object.keys(tr.pieces).length ? '<small>gemischt</small>' : '')).join(''), kits.length) : '';
     // Einzelne Instrumente aus allen Kits: z. B. nur die Kick aus dem 808-Kit
     const pieces = DRUMS.map(d => {
@@ -5223,7 +5399,7 @@ function libBody(tr) {
       return its.length ? group(d.name, its.join(''), its.length) : '';
     }).join('');
     if (pieces) html += `<p class="lib-sub">Einzelne Sounds</p>` + pieces;
-    if (pats.length) html += group('Pattern', pats.map(k => item(`data-pat="${esc(k)}"`, false, k, `<small>${into ? 'ersetzen' : 'neu'}</small>`)).join(''), pats.length)
+    if (pats.length) html += group('Pattern', pats.map(k => item(`data-pat="${esc(k)}"`, false, patLabel(k), `<small>${into ? 'ersetzen' : 'neu'}</small>`)).join(''), pats.length)
       + `<p class="lib-note">${into ? 'Ein Pattern ersetzt die ausgewählte Region.' : 'Ein Pattern kommt als neue Region ans Ende der Spur.'} Unter „Einzelne Sounds“ nimmst du nur ein Instrument aus einem anderen Kit, etwa die Kick aus 808 und die Snare aus Akustik.</p>`;
     return html || '<p class="lib-note">Nichts gefunden.</p>';
   }
@@ -5294,9 +5470,9 @@ libEl.addEventListener('click', e => {
   if (b.dataset.pat) {
     pushUndo();
     const [rt, rr] = findRegion(selRegion);
-    if (rt === tr) Object.assign(rr, drumRegion(b.dataset.pat, rr.start, rr.len), { id: rr.id, name: b.dataset.pat });
+    if (rt === tr) Object.assign(rr, drumRegion(b.dataset.pat, rr.start, rr.len, rr.pb), { id: rr.id, name: b.dataset.pat });
     else {
-      const start = Math.ceil(Math.max(0, ...tr.regions.map(r => r.start + r.len)) / 4) * 4, r = drumRegion(b.dataset.pat, start, 16);
+      const start = ceilBar(Math.max(0, ...tr.regions.map(r => r.start + r.len))), r = drumRegion(b.dataset.pat, start, 4 * BL());
       tr.regions.push(r); selRegion = r.id;
     }
     edTab = 'region'; save(); render();
@@ -5463,9 +5639,9 @@ let zoomT = null, zoomFull = 0, pinch = null, follow = null, userScroll = 0;
 function layoutZoom() {
   const W = songLen() * ppb;
   rulerEl.style.width = W + 'px';
-  rulerEl.querySelectorAll('.bn').forEach(el => { el.style.left = el.dataset.b * 4 * ppb + 'px'; });
+  rulerEl.querySelectorAll('.bn').forEach(el => { el.style.left = el.dataset.b * BL() * ppb + 'px'; });
   const lb = rulerEl.querySelector('.loopband'); if (lb) { lb.style.left = P.loop.start * ppb + 'px'; lb.style.width = (P.loop.end - P.loop.start) * ppb + 'px'; }
-  const bg = `repeating-linear-gradient(90deg, #22252d 0 1px, transparent 1px ${ppb * 4}px)`;
+  const bg = `repeating-linear-gradient(90deg, #22252d 0 1px, transparent 1px ${ppb * BL()}px)`;
   rowsEl.querySelectorAll('.lane').forEach(l => { l.style.width = W + 'px'; if (l.dataset.track) l.style.backgroundImage = bg; });
   rowsEl.querySelectorAll('.region[data-region]').forEach(el => { const [, r] = findRegion(el.dataset.region); if (r) { el.style.left = r.start * ppb + 'px'; el.style.width = Math.max(4, r.len * ppb) + 'px'; } });
   rowsEl.querySelectorAll('.alane').forEach(l => drawAuto(l, findTrack(l.dataset.auto)));
