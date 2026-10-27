@@ -20,3 +20,12 @@ https://github.com/sgossner/VCSL
 Lizenz: CC0 1.0 (gemeinfrei, https://creativecommons.org/publicdomain/zero/1.0/)
 Die Loops wurden aus einzelnen VCSL-Anschlägen und -Tönen zusammengesetzt. Alles gekürzt, in Mono
 und neu kodiert (scripts/fetch-vcsl.js).
+
+Instrumente gm-*.js (Sound Groot 1.2) aus dem "FluidR3_GM"-Soundfont von Frank Wen,
+vorgerendert als MP3 im Projekt "midi-js-soundfonts" von Benjamin Gleitzman
+https://github.com/gleitz/midi-js-soundfonts
+Lizenz laut Projekt: CC-BY 3.0 (https://creativecommons.org/licenses/by/3.0/us/)
+Für Sound Groot etwa alle vier Halbtöne ein Ton, gekürzt, in Mono und mit 56 kbit/s neu kodiert (scripts/fetch-gm.js).
+
+Drumkits drums-drumtraks.js (Sequential Circuits Drumtraks) und drums-808mini.js ebenfalls aus
+"drum-machines" von smpldsnds (siehe oben, gemeinfrei).

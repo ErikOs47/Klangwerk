@@ -11,10 +11,16 @@ const KITS = {
   cr8000: ['Roland-CR-8000', { kick: 'kick', snare: 'snare', clap: 'clap', hat: 'hihat-closed', ohat: 'hihat-open', tom: 'tom-low', rim: 'rimshot', cow: 'cowbell', crash: 'cymball', conga: 'conga-high' }],
   mfb512: ['MFB-512', { kick: 'kick', snare: 'snare', clap: 'clap', hat: 'hihat-closed', ohat: 'hihat-open', tom: 'tom-mid', crash: 'cymbal' }],
   mr10: ['Yamaha-MR10', { kick: 'kick', snare: 'snare', hat: 'chihat', ohat: 'ohihat', tom: 'midtom', rim: 'shortsn', crash: 'crash', ride: 'cymbal', shaker: 'shaker' }],
-  sk1: ['Casio-SK1', { kick: 'kick', snare: 'snare', hat: 'hithat', ohat: 'hihat-open', tom: 'tom-hi' }]
+  sk1: ['Casio-SK1', { kick: 'kick', snare: 'snare', hat: 'hithat', ohat: 'hihat-open', tom: 'tom-hi' }],
+  // Neu in v1.2
+  drumtraks: ['Sequential-Circuits-Drumtraks', { kick: 'DT_Kick', snare: 'DT_Snare', clap: 'DT_Clap', hat: 'DT_Closedhat', ohat: 'DT_Openhat', tom: 'DT_Tom01', rim: 'DT_Rimshot', cow: 'DT_Cowbell', crash: 'DT_Crash', ride: 'DT_Ride', shaker: 'DT_Cabasa', conga: 'DT_Tom02' }],
+  '808mini': ['808-mini', { kick: 'kick', snare: 'snare-2', clap: 'snare-3', hat: 'hhclosed-1', ohat: 'hhopen-1', tom: 'tom-mid', crash: 'crash', ride: 'ride', conga: 'tom-high' }]
 };
+// Optional nur bestimmte Kits: node scripts/fetch-drums.js drumtraks,808mini
+const pick = new Set((process.argv[2] || '').split(',').filter(Boolean));
 fs.mkdirSync(out, { recursive: true });
 for (const [id, [dir, map]] of Object.entries(KITS)) {
+  if (pick.size && !pick.has(id)) continue;
   const data = {};
   for (const [piece, name] of Object.entries(map)) {
     const raw = path.join(tmp, 'raw.ogg'), enc = path.join(tmp, 'enc.mp3');

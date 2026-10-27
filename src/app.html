@@ -189,7 +189,7 @@ input[type=checkbox] { accent-color: var(--accent); }
 .lib-head { padding: 12px 14px 8px; display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid var(--hair); }
 .lib-title { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
 .lib-title b { color: var(--c, var(--fg)); letter-spacing: 0; text-transform: none; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lib-title .x { margin-left: auto; width: 24px; height: 24px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font-size: 16px; line-height: 1; }
+.lib-title .x { margin-left: auto; flex: none; width: 24px; height: 24px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font-size: 16px; line-height: 1; }
 .lib-title .x:hover { background: var(--hover); color: var(--fg); }
 .lib-search { height: 30px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg-deep) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='7' cy='7' r='4.5' fill='none' stroke='%235d6372' stroke-width='1.6'/%3E%3Cpath d='M10.5 10.5L14 14' stroke='%235d6372' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat 9px center / 14px; padding: 0 10px 0 30px; font-size: 13px; outline: none; }
 .lib-search:focus { border-color: #f2b84b88; box-shadow: 0 0 0 3px var(--accent-soft); }
@@ -207,7 +207,29 @@ input[type=checkbox] { accent-color: var(--accent); }
 .lib-item i { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); flex: none; transition: background .15s, box-shadow .15s; }
 .lib-item.on { background: color-mix(in srgb, var(--c, var(--accent)) 22%, transparent); color: #fff; }
 .lib-item.on i { background: var(--c, var(--accent)); box-shadow: 0 0 8px var(--c, var(--accent)); }
-.lib-item small { margin-left: auto; color: var(--faint); font-size: 11px; }
+.lib-item .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lib-item small { flex: none; color: var(--faint); font-size: 11px; }
+.lib-item small.real { color: #8fc7a0; font-size: 10px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+/* Vorhören und Stern: erscheinen beim Überfahren, auf Touch-Geräten immer */
+.lib-item .pv, .lib-item .fv { flex: none; width: 22px; height: 22px; margin-right: -4px; display: grid; place-items: center; border-radius: 6px; color: var(--faint); opacity: 0; transition: opacity .12s, background .12s, color .12s; }
+.lib-item .pv::before { content: ""; border-left: 7px solid currentColor; border-top: 4.5px solid transparent; border-bottom: 4.5px solid transparent; margin-left: 2px; }
+.lib-item .pv.on::before { width: 7px; height: 7px; border: 0; margin: 0; background: currentColor; border-radius: 1px; }
+.lib-item .fv { font-size: 13px; }
+.lib-item:hover .pv, .lib-item:hover .fv, .lib-item:focus-visible .pv, .lib-item:focus-visible .fv, .lib-item .pv.on, .lib-item .fv.on { opacity: 1; }
+.lib-item .pv:hover, .lib-item .fv:hover { background: #ffffff14; color: var(--fg); }
+.lib-item .pv.on { color: var(--c, var(--accent)); }
+.lib-item .fv.on { color: var(--accent); }
+@media (hover: none) { .lib-item .pv, .lib-item .fv { opacity: .55; width: 30px; height: 30px; } }
+.lib-chips { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.lib-chip { height: 24px; padding: 0 9px; border-radius: 12px; border: 1px solid var(--line); background: transparent; color: var(--muted); font-size: 11.5px; font-weight: 600; transition: background .12s, color .12s, border-color .12s; }
+.lib-chip:hover { color: var(--fg); border-color: #ffffff30; }
+.lib-chip.on { background: color-mix(in srgb, var(--c, var(--accent)) 26%, transparent); border-color: color-mix(in srgb, var(--c, var(--accent)) 60%, transparent); color: #fff; }
+.lib-chip span { color: var(--faint); font-weight: 500; }
+.lib-chip.on span { color: #ffffffb0; }
+.lib-fold { margin-left: auto; flex: none; width: 24px; height: 24px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font-size: 13px; }
+.lib-fold + .x { margin-left: 0; }
+.lib-title b + .lib-fold { margin-left: auto !important; }
+.lib-fold:hover { background: var(--hover); color: var(--fg); }
 .lib-note { margin: 10px 10px 0; font-size: 12px; line-height: 1.5; color: var(--muted); }
 .lib-btns { display: flex; flex-direction: column; gap: 6px; margin: 12px 8px 0; }
 .lib-btns button { height: 32px; border-radius: 8px; border: 1px solid var(--line); background: var(--raise); font-size: 13px; }
@@ -324,7 +346,6 @@ input[type=checkbox] { accent-color: var(--accent); }
 .sm.ab.has:not(.on) { border-color: color-mix(in srgb, var(--c) 70%, transparent); color: var(--c); }
 .trow input[type=range]:disabled { opacity: .45; cursor: not-allowed; }
 .seq-name small { font-size: 9.5px; font-weight: 600; color: var(--c); margin-left: auto; margin-right: 5px; max-width: 46px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lib-item .play { margin-left: auto; color: var(--faint); font-size: 10px; }
 .lib-sub { margin: 14px 8px 2px; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
 .drop-hint { position: absolute; inset: 8px; display: none; gap: 10px; z-index: 20; pointer-events: none; }
 .arrange.dragging .drop-hint { display: flex; }
@@ -892,9 +913,9 @@ const PRESETS = {
   riser:    { cat: 'Synth & FX', name: 'Riser', osc: [{ type: 'sawtooth', mult: 1, detune: -10, gain: .25 }, { type: 'sawtooth', mult: 1, detune: 10, gain: .25 }, { type: 'noise', gain: .06 }], glide: { from: .25, time: 3 }, env: { a: 2.5, d: .5, s: 1, r: .6 }, cut: 6000, level: .28 }
 };
 function presetOptions(sel) {
-  const cats = {};
-  for (const [k, v] of Object.entries(PRESETS)) (cats[v.cat] ||= []).push(`<option value="${k}" ${k === sel ? 'selected' : ''}>${v.name}</option>`);
-  return Object.entries(cats).map(([c, o]) => `<optgroup label="${c}">${o.join('')}</optgroup>`).join('');
+  const cats = Object.fromEntries(FAMS.map(([f]) => [f, []]));
+  for (const [k, v] of Object.entries(PRESETS)) (cats[famOf(k)] ||= []).push(`<option value="${k}" ${k === sel ? 'selected' : ''}>${v.name}</option>`);
+  return Object.entries(cats).filter(([, o]) => o.length).map(([c, o]) => `<optgroup label="${c}">${o.join('')}</optgroup>`).join('');
 }
 const presetName = tr => tr.wam ? tr.wam.name : tr.preset === 'user' ? (tr.usmp?.name || 'Eigenes Sample') : PRESETS[tr.preset]?.name || tr.preset;
 const instName = tr => tr.type === 'synth' ? presetName(tr) : tr.type === 'sampler' ? (tr.srcs?.[tr.src]?.name || 'Kein Sample geladen') : tr.type === 'drums' ? 'Kit: ' + (KITS[tr.kit || 'standard']?.name || 'Standard') + (Object.keys(tr.pieces || {}).length ? ' · gemischt' : '') : 'Audio';
@@ -928,6 +949,9 @@ const KITS = {
   // Neu in v1.1
   s_vcslmarch: { name: 'Marsch-Set (echt)', smp: 'vcslmarch', fb: 'acoustic', lbl: { kick: 'Große Trommel', snare: 'Marschtrommel', clap: 'Stockschlag', hat: 'Triangel gedämpft', ohat: 'Triangel', tom: 'Tenortrommel hoch', rim: 'Seiltrommel ohne Teppich', cow: 'Holzblock', crash: 'Becken', ride: 'Schellenbaum', shaker: 'Marschtrommel leise', conga: 'Tenortrommel tief' } },
   s_vcslorch: { name: 'Orchester (echt)', smp: 'vcslorch', fb: 'acoustic', lbl: { kick: 'Große Trommel', snare: 'Marschtrommel', clap: 'Amboss', hat: 'Tamburin', ohat: 'Schellen', tom: 'Pauke tief', rim: 'Peitsche', cow: 'Röhrenglocke', crash: 'Becken', ride: 'Gong', shaker: 'Ratsche', conga: 'Pauke hoch' } },
+  // Neu in v1.2 (smpldsnds/drum-machines, gemeinfrei)
+  s_drumtraks: { name: 'Drumtraks (echt)', smp: 'drumtraks', fb: 'electro', lbl: { shaker: 'Cabasa', conga: 'Tom tief' } },
+  s_808mini: { name: '808 Mini (echt)', smp: '808mini', fb: 'k808', has: 'kick snare clap hat ohat tom crash ride conga', lbl: { clap: 'Snare hell', conga: 'Tom hoch' } },
   perc:     { name: 'Percussion', kick: { f0: 90, f1: 55, sweep: .05, dec: .5, g: 1 }, snare: { hp: 2000, dec: .1, tone: .7, tf: 330 }, clap: { bp: 1800, dec: .2 }, hat: { hp: 5500, dec: .04 }, tom: { f0: 240, f1: 180, dec: .45 }, rim: { f: 2400, dec: .05 }, cow: { f1: 720, f2: 1080, dec: .25 }, shaker: { bp: 5000, dec: .12, att: .02 }, conga: { f0: 400, f1: 360, dec: .35, slap: .4 } }
 };
 const DRUMS = [
@@ -1412,11 +1436,51 @@ const SAMPLED = {
   'tx-piano': ['DX-Piano (TX81Z)', { r: .5, prev: 64 }], nyunga: ['Nyunga Nyunga (Mbira)', { r: .7, prev: 65 }],
   'upright-knight': ['Klavier (Knight, warm)', { r: .45, level: .52 }], 'bass-recorder': ['Bassblockflöte', { hold: 1, a: .04, r: .15, prev: 60 }],
   'harmonica-chrom': ['Chromatische Mundharmonika', { hold: 1, a: .03, r: .2, prev: 67 }], 'vibes-soft': ['Vibraphon (weich)', { r: 1, prev: 67 }],
-  'tubular-glock': ['Röhren-Glockenspiel', { r: 1.5, prev: 84 }], 'harpsichord-lute': ['Cembalo (Lautenzug)', { r: .3, prev: 60 }]
+  'tubular-glock': ['Röhren-Glockenspiel', { r: 1.5, prev: 84 }], 'harpsichord-lute': ['Cembalo (Lautenzug)', { r: .3, prev: 60 }],
+  // Neu in v1.2: aus dem FluidR3-GM-Soundfont (CC-BY 3.0, scripts/fetch-gm.js)
+  'gm-epiano': ['E-Piano (Rhodes-Art)', { r: .5 }], 'gm-honky': ['Honky-Tonk-Piano (echt)', { r: .4 }], 'gm-clavinet': ['Clavinet (echt)', { r: .12 }],
+  'gm-celesta': ['Celesta (echt)', { r: .8, prev: 72 }], 'gm-musicbox': ['Spieluhr (echt)', { r: 1, prev: 76 }], 'gm-dulcimer': ['Hackbrett', { r: .8, prev: 67 }],
+  'gm-drawbar': ['Hammond-Orgel', { hold: 1, a: .01, r: .1 }], 'gm-rockorgan': ['Rock-Orgel', { hold: 1, a: .01, r: .1 }],
+  'gm-accordion': ['Akkordeon (echt)', { hold: 1, a: .03, r: .15 }], 'gm-bandoneon': ['Bandoneon', { hold: 1, a: .03, r: .15 }],
+  'gm-guitar-clean': ['E-Gitarre clean (echt)', { r: .3, prev: 55 }], 'gm-guitar-muted': ['E-Gitarre gedämpft', { r: .08, prev: 52 }],
+  'gm-overdrive': ['E-Gitarre Crunch', { hold: 1, a: .005, r: .15, prev: 52 }], 'gm-distortion': ['E-Gitarre verzerrt (echt)', { hold: 1, a: .005, r: .15, prev: 52 }],
+  'gm-banjo': ['Banjo (echt)', { r: .3, prev: 62 }],
+  'gm-acbass': ['Akustikbass (gezupft)', { r: .15, prev: 40 }], 'gm-fretless': ['Fretless-Bass', { r: .15, prev: 40 }], 'gm-slap': ['Slap-Bass (echt)', { r: .1, prev: 40 }],
+  'gm-pickbass': ['E-Bass (Plektrum)', { r: .1, prev: 40 }], 'gm-synthbass': ['Synth-Bass (Sample)', { r: .1, prev: 40 }],
+  'gm-viola': ['Bratsche', { hold: 1, a: .05, r: .3, prev: 60 }], 'gm-strings': ['Streicher-Ensemble', { hold: 1, a: .08, r: .5 }],
+  'gm-tremolo': ['Streicher Tremolo', { hold: 1, a: .04, r: .4 }], 'gm-pizz': ['Pizzicato-Streicher (echt)', { r: .2 }], 'gm-synthstrings': ['Synth-Streicher', { hold: 1, a: .1, r: .6 }],
+  'gm-choir': ['Chor Aah (echt)', { hold: 1, a: .12, r: .6 }], 'gm-oohs': ['Chor Ooh (echt)', { hold: 1, a: .12, r: .6 }],
+  'gm-brass': ['Bläsersatz', { hold: 1, a: .03, r: .2 }], 'gm-mutedtpt': ['Trompete gedämpft', { hold: 1, a: .02, r: .2, prev: 67 }],
+  'gm-altosax': ['Altsaxophon', { hold: 1, a: .03, r: .2, prev: 65 }], 'gm-barisax': ['Baritonsaxophon', { hold: 1, a: .03, r: .2, prev: 48 }],
+  'gm-oboe': ['Oboe (echt)', { hold: 1, a: .03, r: .2, prev: 70 }], 'gm-englhorn': ['Englischhorn', { hold: 1, a: .03, r: .2, prev: 64 }],
+  'gm-piccolo': ['Piccoloflöte', { hold: 1, a: .03, r: .15, prev: 84 }], 'gm-panflute': ['Panflöte (echt)', { hold: 1, a: .04, r: .2, prev: 72 }],
+  'gm-shakuhachi': ['Shakuhachi', { hold: 1, a: .05, r: .25, prev: 67 }],
+  'gm-timpani': ['Pauken', { r: .8, prev: 45 }], 'gm-orchhit': ['Orchester-Hit', { r: .3 }], 'gm-steeldrum': ['Steel Drum (echt)', { r: .5, prev: 67 }],
+  'gm-sitar': ['Sitar (echt)', { r: .5, prev: 62 }], 'gm-koto': ['Koto (echt)', { r: .5, prev: 64 }], 'gm-shamisen': ['Shamisen', { r: .3, prev: 62 }],
+  'gm-bagpipe': ['Dudelsack', { hold: 1, a: .03, r: .2, prev: 67 }], 'gm-fiddle': ['Fiddle (Folk-Geige)', { hold: 1, a: .04, r: .25, prev: 69 }],
+  'gm-shanai': ['Shehnai', { hold: 1, a: .03, r: .2, prev: 72 }],
+  'gm-pad-warm': ['Pad Warm (Sample)', { hold: 1, a: .3, r: 1 }], 'gm-pad-halo': ['Pad Halo', { hold: 1, a: .3, r: 1.2 }],
+  'gm-pad-newage': ['Pad New Age', { hold: 1, a: .05, r: 1.2 }], 'gm-crystal': ['Kristall', { r: 1.2, prev: 72 }]
 };
 for (const [id, [name, o]] of Object.entries(SAMPLED))
   PRESETS['s_' + id] = { cat: 'Echte Instrumente', name, smp: id, hold: !!o.hold, prev: o.prev, env: { a: o.a || .002, d: 1, s: 1, r: o.r }, cut: 20000, level: o.level || (o.hold ? .38 : .48) };
 PRESETS.user = { cat: 'Eigene Samples', name: 'Eigenes Sample', smp: 'user', env: { a: .002, d: 1, s: 1, r: .25 }, cut: 20000, level: .9 };
+// Bibliothek: Synth-Klänge und Aufnahmen stehen gemeinsam nach Instrumentenfamilie sortiert (Reihenfolge = Anzeige)
+const FAMS = [
+  ['Klavier & Tasten', 'piano epiano tines honky wurli toypiano lofikeys clav harpsi s_piano s_upright-piano s_grand-kawai s_upright-knight s_fm-piano s_tx-piano s_harpsichord s_harpsichord-lute s_clavisynth s_gm-epiano s_gm-honky s_gm-clavinet'],
+  ['Orgel & Akkordeon', 'organ church accordion s_organ s_harmonium s_renaissance-organ s_pipe-organ s_gm-drawbar s_gm-rockorgan s_gm-accordion s_gm-bandoneon'],
+  ['Gitarre & Zupfinstrumente', 'guitar harp acgtr nylon egtr dist banjo twelve ukulele mandolin s_guitar-acoustic s_guitar-nylon s_guitar-electric s_harp s_folk-harp s_strumstick s_psaltery-pluck s_gm-guitar-clean s_gm-guitar-muted s_gm-overdrive s_gm-distortion s_gm-banjo s_gm-dulcimer'],
+  ['Bass', 'bass ebass sub b808 acid reese upright slap wobble fmbass moog s_bass-electric s_contrabass s_gm-acbass s_gm-fretless s_gm-slap s_gm-pickbass s_gm-synthbass'],
+  ['Streicher', 'strings pizz cello violin tutti s_cello s_violin s_psaltery s_gm-viola s_gm-strings s_gm-tremolo s_gm-pizz s_gm-synthstrings'],
+  ['Blechbläser', 'brass trumpet synbrass s_trumpet s_trombone s_french-horn s_tuba s_gm-brass s_gm-mutedtpt'],
+  ['Holzbläser & Flöten', 'flute sax clarinet oboe harmonica whistle s_flute s_clarinet s_saxophone s_bassoon s_tenor-sax s_saxello s_harmonica s_harmonica-chrom s_ocarina s_recorder s_bass-recorder s_gm-altosax s_gm-barisax s_gm-oboe s_gm-englhorn s_gm-piccolo'],
+  ['Mallets, Glocken & Pauken', 'celesta marimba vibes musicbox bell glock tubular s_xylophone s_vibraphone s_vibes-soft s_marimba s_balafon s_glockenspiel s_tubular-glock s_tubular-bells s_hand-chimes s_gm-celesta s_gm-musicbox s_gm-crystal s_gm-timpani'],
+  ['Chor & Flächen', 'pad glass choir darkpad shimmer vox s_gm-choir s_gm-oohs s_gm-pad-warm s_gm-pad-halo s_gm-pad-newage'],
+  ['Weltmusik', 'sitar koto steeldrum panflute kalimba s_kalimba s_kalimba-tz s_mbira s_nyunga s_dan-tranh s_gm-steeldrum s_gm-sitar s_gm-koto s_gm-shamisen s_gm-shakuhachi s_gm-panflute s_gm-bagpipe s_gm-fiddle s_gm-shanai'],
+  ['Lead & Synth', 'lead square supersaw pluck arp chip hoover sweep riser s_gm-orchhit']
+];
+const FAM_OF = Object.fromEntries(FAMS.flatMap(([f, ids]) => ids.split(' ').map(k => [k, f])));
+const famOf = k => FAM_OF[k] || PRESETS[k]?.cat || 'Weitere';
 const smpSets = new Map(), smpRaw = {};
 let smpDec = null;
 window.KW_SMP = (id, data) => { smpRaw[id] = data; }; // wird von samples/<id>.js aufgerufen
@@ -2830,7 +2894,7 @@ function renderRegionEditor() {
         <p>Doppelklicke (am Touchscreen: doppelt tippen) in eine leere Stelle einer Spur, um eine Region zu erstellen. Ein Klick auf eine Region öffnet sie hier im Editor.</p>
         <p>Regionen verschiebst du mit der Maus, am rechten Rand änderst du die Länge, am linken Rand kürzt du den Anfang. Zum Löschen eine Region antippen und oben im Editor „Region löschen“ wählen (oder Entf). Ziehen im Lineal oben setzt den Cycle-Bereich.</p>
         <p>Mit „A“ im Spurkopf öffnest du die Automation: Lautstärke, Panorama, Filter, Hall und Delay als Kurve über die Zeit. Marker für Intro, Strophe, Refrain setzt du mit „+ Marker“ oder per Doppelklick in die Marker-Leiste.</p>
-        <p>In der Bibliothek (I) findest du unter „Echte Instrumente“ aufgenommene Klänge wie Flügel, Gitarren, Streicher und Bläser. Mit „Eigenes Sample laden …“ machst du aus einer beliebigen Audiodatei ein spielbares Instrument.</p>
+        <p>In der Bibliothek (I) sind alle Klänge nach Instrumentenfamilie sortiert. „Echt“ zeigt nur aufgenommene Instrumente, ▶ spielt einen Sound vor, ohne ihn auszuwählen, und mit dem Stern landet er unter „Favoriten“. Mit „Eigenes Sample laden …“ machst du aus einer beliebigen Audiodatei ein spielbares Instrument.</p>
         <p>Sampler wie eine MPC: Zieh eine Audiodatei ins Arrangement (rechte Hälfte) oder lege mit „+ Spur“ einen Sampler an. Sound Groot schneidet sie in Chops und legt sie auf 16 Pads. Jeden Chop kannst du stimmen, ein- und ausblenden, umdrehen und filtern. Gespielt wird mit Maus, Tasten oder Pad-Controller; R (auf der Sampler-Spur Umschalt+R) nimmt auf.</p>
         <p>Groove: Im Piano Roll zieht „Quantisieren“ die Noten aufs Raster, unter „Groove“ stellst du Stärke, Swing und Humanize ein. Im Drum-Pattern gibt es Swing und Humanize pro Region. Audio-Regionen folgen auf Wunsch dem Songtempo, ohne dass sich die Tonhöhe ändert. Loops dafür liegen in der Bibliothek einer Audio-Spur.</p>
         <p>Im Mixer (M) fasst du Spuren zu Gruppen zusammen, rechts zeigt der Master die Lautheit in LUFS. Unter Klang & Effekte kann der Kompressor per Sidechain von einer anderen Spur gesteuert werden, etwa damit die Kick den Bass kurz wegdrückt.</p>
@@ -5358,7 +5422,6 @@ const libEl = $('#lib');
 const narrow = () => window.innerWidth < 900;
 let libOpen = (() => { try { const v = localStorage.getItem('klangwerk.lib'); if (v && !narrow()) return v === '1'; } catch (e) { } return !narrow(); })();
 let libQuery = '', libKey = '';
-const libShut = new Set(DRUMS.map(d => d.name)); // Einzel-Sounds starten zugeklappt
 // Ein einzelnes Instrument aus einem anderen Kit nehmen
 function setPieceKit(tr, id, kit) {
   if (pieceKit(tr, id) !== kit) {
@@ -5375,48 +5438,139 @@ function setLib(open) {
   if (!narrow()) try { localStorage.setItem('klangwerk.lib', open ? '1' : '0'); } catch (e) { }
   libKey = ''; renderLib();
   if (open) requestAnimationFrame(() => libEl.querySelector('.lib-item.on')?.scrollIntoView({ block: 'nearest' }));
+  if (!open) stopLoopPreview();
+}
+// Favoriten, zuletzt benutzte Sounds und auf-/zugeklappte Gruppen gelten für alle Songs (localStorage)
+const libStore = (k, d) => { try { return JSON.parse(localStorage.getItem('klangwerk.' + k)) ?? d; } catch (e) { return d; } };
+const libPut = (k, v) => { try { localStorage.setItem('klangwerk.' + k, JSON.stringify(v)); } catch (e) { } };
+const libFavs = new Set(libStore('favs', [])), libFold = libStore('fold', {});
+let libRecent = libStore('recent', []), libFilter = 'all';
+function toggleFav(key) { libFavs.has(key) ? libFavs.delete(key) : libFavs.add(key); libPut('favs', [...libFavs]); }
+function addRecent(key) { libRecent = [key, ...libRecent.filter(x => x !== key)].slice(0, 15); libPut('recent', libRecent); }
+// Filter-Leiste je Spurtyp
+const LIB_CHIPS = {
+  synth: [['all', 'Alle'], ['fav', '★ Favoriten'], ['recent', 'Zuletzt'], ['real', 'Echt'], ['synth', 'Synth']],
+  drums: [['all', 'Alle'], ['fav', '★ Favoriten'], ['real', 'Echt'], ['synth', 'Synth']],
+  loops: [['all', 'Alle'], ['fav', '★ Favoriten'], ['recent', 'Zuletzt']]
+};
+const chipSet = tr => LIB_CHIPS[tr.type === 'synth' || tr.type === 'drums' ? tr.type : 'loops'];
+const libF = tr => chipSet(tr).some(([k]) => k === libFilter) ? libFilter : 'all';
+// Gruppe offen? Beim Suchen und in Favoriten/Zuletzt immer; sonst wie zuletzt geklappt, Instrument-Familien und Einzel-Sounds starten zu
+const libIsOpen = (name, defOpen) => libQuery.trim() ? true : name in libFold ? libFold[name] : defOpen;
+// Vorhören ohne Auswählen
+let loopPrev = null;
+const loopBufs = new Map();
+function stopLoopPreview() {
+  if (!loopPrev) return;
+  try { loopPrev.src.stop(); } catch (e) { }
+  libEl.querySelectorAll('.pv.on').forEach(x => x.classList.remove('on'));
+  loopPrev = null;
+}
+async function previewLoop(id, el) {
+  const was = loopPrev?.id; stopLoopPreview(); if (was === id) return;
+  const L = LOOPS.find(x => x.id === id); if (!L) return;
+  ensureCtx(); el?.classList.add('on'); loopPrev = { id, src: { stop() { } } };
+  const key = 'loop-' + id;
+  let buf = loopBufs.get(id);
+  if (!buf) {
+    try { if (!smpRaw[key]) await loadScript('samples/' + key + '.js'); buf = await ctx.decodeAudioData(unb64(smpRaw[key]).buffer.slice(0)); loopBufs.set(id, buf); }
+    catch (e) { toast(`Der Loop „${L.name}“ ließ sich nicht laden.`); stopLoopPreview(); return; }
+  }
+  if (loopPrev?.id !== id) return;
+  const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = buf; g.gain.value = .9;
+  src.connect(g).connect(master); src.start();
+  src.onended = () => { if (loopPrev?.src === src) { loopPrev = null; el?.classList.remove('on'); } };
+  loopPrev = { id, src };
+}
+function libPreview(b, tr) {
+  const d = b.dataset; ensureCtx();
+  if (d.preset) { const t = { ...tr, preset: d.preset, wam: undefined }; previewNote(t, prevPitch(t)); }
+  else if (d.kit) whenKit(d.kit, () => { const t = ctx.currentTime, k = d.kit, c = chan(tr).input; playDrum('kick', c, t, 1, k); playDrum('hat', c, t + .2, .7, k); playDrum('snare', c, t + .4, 1, k); playDrum('hat', c, t + .6, .7, k); });
+  else if (d.pk) whenKit(d.pk, () => playDrum(d.pd, chan(tr).input, ctx.currentTime, 1, d.pk));
+  else if (d.loop || d.aloop) previewLoop(d.loop || d.aloop, b.querySelector('.pv'));
 }
 function libBody(tr) {
-  const item = (attr, on, label, extra = '') => `<button class="lib-item ${on ? 'on' : ''}" ${attr}><i></i>${esc(label)}${extra}</button>`;
-  const group = (name, items, count) => { const shut = libShut.has(name) && !libQuery.trim(); return `<button class="lib-cat ${shut ? 'shut' : ''}" data-cat="${esc(name)}">${esc(name)}<span>${count}</span></button><div class="lib-items ${shut ? 'shut' : ''}"><div>${items}</div></div>`; };
+  const f = tr ? libF(tr) : 'all', q = libQuery.trim().toLowerCase(), hit = s => !q || s.toLowerCase().includes(q);
+  // fav: Schlüssel für den Stern, pv: Vorhör-Knopf
+  const item = (attr, on, label, extra = '', fav = '', pv = true) => `<button class="lib-item ${on ? 'on' : ''}" ${attr}><i></i><span class="nm">${esc(label)}</span>${extra}${pv ? `<span class="pv ${loopPrev && attr.includes('"' + loopPrev.id + '"') && attr.includes('loop=') ? 'on' : ''}" data-pv title="Vorhören, ohne auszuwählen"></span>` : ''}${fav ? `<span class="fv ${libFavs.has(fav) ? 'on' : ''}" data-fav="${esc(fav)}" title="Favorit">★</span>` : ''}</button>`;
+  const group = (name, items, count, defOpen = true) => { const open = libIsOpen(name, defOpen); return `<button class="lib-cat ${open ? '' : 'shut'}" data-cat="${esc(name)}" data-def="${defOpen ? 1 : 0}">${esc(name)}<span>${count}</span></button><div class="lib-items ${open ? '' : 'shut'}"><div>${items}</div></div>`; };
+  const flat = items => `<div class="lib-items"><div>${items.join('')}</div></div>`;
+  const empty = msg => `<p class="lib-note">${msg}</p>`;
   if (!tr) return `<p class="lib-note">Wähle links eine Spur aus oder lege eine neue an.</p><div class="lib-btns"><button data-lib-add="synth">+ Software-Instrument</button><button data-lib-add="drums">+ Drummer</button><button data-lib-add="audio">+ Audio-Spur</button><button data-lib-add="sampler">+ Sampler (MPC-Pads)</button></div>`;
   if (tr.type === 'synth') {
-    const q = libQuery.trim().toLowerCase(), cats = { 'Eigene Samples': [], 'Echte Instrumente': [] };
-    if (tr.usmp && (!q || (tr.usmp.name + ' sample').toLowerCase().includes(q))) cats['Eigene Samples'].push(item('data-preset="user"', tr.preset === 'user' && !tr.wam, tr.usmp.name));
-    for (const [k, v] of Object.entries(PRESETS)) if (k !== 'user' && (!q || v.name.toLowerCase().includes(q) || v.cat.toLowerCase().includes(q))) (cats[v.cat] ||= []).push(item(`data-preset="${k}"`, k === tr.preset && !tr.wam, v.name, v.smp ? '<small>Sample</small>' : ''));
-    for (const p of wamList()) if (p.inst && (!q || (p.name + ' ' + p.vendor + ' plugin').toLowerCase().includes(q))) (cats['Plugin-Instrumente'] ||= []).push(item(`data-wam="${esc(p.url)}"`, tr.wam?.url === p.url, p.name, '<small>Plugin</small>'));
-    const html = Object.entries(cats).filter(([, items]) => items.length).map(([c, items]) => group(c, items.join(''), items.length)).join('');
-    return (q ? '' : `<div class="lib-btns"><button data-lib-act="usmp">${tr.usmp ? 'Anderes eigenes Sample laden …' : 'Eigenes Sample laden …'}</button></div>`) + (html || '<p class="lib-note">Kein Sound gefunden.</p>');
+    const pItem = (k, sub) => { const v = PRESETS[k]; return item(`data-preset="${k}"`, k === tr.preset && !tr.wam, v.name, sub ? `<small>${esc(sub)}</small>` : v.smp ? '<small class="real">Echt</small>' : '', 'p:' + k); };
+    const ok = k => { const v = PRESETS[k]; return v && k !== 'user' && hit(v.name + ' ' + famOf(k) + (v.smp ? ' echt sample' : ' synth')) && (f !== 'real' || v.smp) && (f !== 'synth' || !v.smp); };
+    const btn = q ? '' : `<div class="lib-btns"><button data-lib-act="usmp">${tr.usmp ? 'Anderes eigenes Sample laden …' : 'Eigenes Sample laden …'}</button></div>`;
+    if (f === 'fav' || f === 'recent') {
+      const keys = f === 'fav' ? [...libFavs] : libRecent;
+      const its = keys.filter(x => x.startsWith('p:')).map(x => x.slice(2)).filter(ok).map(k => pItem(k, famOf(k)));
+      if (f === 'fav') for (const p of wamList()) if (p.inst && libFavs.has('w:' + p.url) && hit(p.name)) its.push(item(`data-wam="${esc(p.url)}"`, tr.wam?.url === p.url, p.name, '<small>Plugin</small>', 'w:' + p.url, false));
+      return its.length ? flat(its) : empty(f === 'fav' ? 'Noch keine Favoriten. Tippe auf den Stern neben einem Sound, dann findest du ihn hier wieder.' : 'Hier erscheinen die Sounds, die du zuletzt gewählt hast.');
+    }
+    const cats = new Map(FAMS.map(([n]) => [n, []]));
+    if (tr.usmp && f !== 'synth' && hit(tr.usmp.name + ' eigenes sample')) cats.set('Eigene Samples', [item('data-preset="user"', tr.preset === 'user' && !tr.wam, tr.usmp.name, '<small>Eigenes</small>')]);
+    for (const k of Object.keys(PRESETS)) if (ok(k)) { const c = famOf(k); if (!cats.has(c)) cats.set(c, []); cats.get(c).push(pItem(k)); }
+    if (f === 'all') for (const p of wamList()) if (p.inst && hit(p.name + ' ' + p.vendor + ' plugin')) { if (!cats.has('Plugin-Instrumente')) cats.set('Plugin-Instrumente', []); cats.get('Plugin-Instrumente').push(item(`data-wam="${esc(p.url)}"`, tr.wam?.url === p.url, p.name, '<small>Plugin</small>', 'w:' + p.url, false)); }
+    const html = [...cats].filter(([, its]) => its.length).map(([c, its]) => group(c, its.join(''), its.length, c === 'Eigene Samples' || c === 'Plugin-Instrumente')).join('');
+    return btn + (html || empty('Kein Sound gefunden.'));
   }
   if (tr.type === 'drums') {
-    const [rt] = findRegion(selRegion), into = rt === tr, q = libQuery.trim().toLowerCase(), hit = s => !q || s.toLowerCase().includes(q);
-    const kits = Object.entries(KITS).filter(([, v]) => hit(v.name + ' kit'));
-    const pats = patOrder().filter(k => hit(patLabel(k) + ' pattern'));
-    let html = kits.length ? group('Drumkits', kits.map(([k, v]) => item(`data-kit="${k}"`, k === (tr.kit || 'standard'), v.name, k === (tr.kit || 'standard') && tr.pieces && Object.keys(tr.pieces).length ? '<small>gemischt</small>' : '')).join(''), kits.length) : '';
+    const [rt] = findRegion(selRegion), into = rt === tr, cur = tr.kit || 'standard';
+    const kOk = v => (f !== 'real' || v.smp) && (f !== 'synth' || !v.smp);
+    const kItem = ([k, v]) => item(`data-kit="${k}"`, k === cur, v.name, k === cur && tr.pieces && Object.keys(tr.pieces).length ? '<small>gemischt</small>' : '', 'k:' + k);
+    const pItem = (d, k, v, long) => item(`data-pk="${k}" data-pd="${d.id}"`, k === pieceKit(tr, d.id), (long ? d.name + ' · ' : '') + v.name + (v.lbl?.[d.id] ? ' · ' + v.lbl[d.id] : ''), '', 'd:' + k + ':' + d.id);
+    const has = (v, d) => !v.has || v.has.split(' ').includes(d.id);
+    if (f === 'fav') {
+      const its = [];
+      for (const x of libFavs) {
+        const [t, k, pd] = x.split(':'), v = KITS[k]; if (!v) continue;
+        if (t === 'k' && hit(v.name)) its.push(kItem([k, v]));
+        const d = t === 'd' && DRUMS.find(y => y.id === pd);
+        if (d && hit(d.name + ' ' + v.name)) its.push(pItem(d, k, v, true));
+      }
+      return its.length ? flat(its) : empty('Noch keine Favoriten. Mit dem Stern merkst du dir Kits und einzelne Sounds, etwa deine Lieblings-Kick.');
+    }
+    const kits = Object.entries(KITS).filter(([, v]) => kOk(v) && hit(v.name + ' kit' + (v.smp ? ' echt' : ' synth')));
+    const real = kits.filter(([, v]) => v.smp), syn = kits.filter(([, v]) => !v.smp);
+    let html = (syn.length ? group('Synth-Kits', syn.map(kItem).join(''), syn.length) : '') + (real.length ? group('Echte Kits (Samples)', real.map(kItem).join(''), real.length) : '');
     // Einzelne Instrumente aus allen Kits: z. B. nur die Kick aus dem 808-Kit
     const pieces = DRUMS.map(d => {
-      const its = Object.entries(KITS).filter(([, v]) => (!v.has || v.has.split(' ').includes(d.id)) && hit(d.name + ' ' + v.name + ' ' + (v.lbl?.[d.id] || ''))).map(([k, v]) => item(`data-pk="${k}" data-pd="${d.id}"`, k === pieceKit(tr, d.id), v.name + (v.lbl?.[d.id] ? ' · ' + v.lbl[d.id] : ''), '<span class="play">▶</span>'));
-      return its.length ? group(d.name, its.join(''), its.length) : '';
+      const its = Object.entries(KITS).filter(([, v]) => kOk(v) && has(v, d) && hit(d.name + ' ' + v.name + ' ' + (v.lbl?.[d.id] || ''))).map(([k, v]) => pItem(d, k, v));
+      return its.length ? group(d.name, its.join(''), its.length, false) : '';
     }).join('');
     if (pieces) html += `<p class="lib-sub">Einzelne Sounds</p>` + pieces;
-    if (pats.length) html += group('Pattern', pats.map(k => item(`data-pat="${esc(k)}"`, false, patLabel(k), `<small>${into ? 'ersetzen' : 'neu'}</small>`)).join(''), pats.length)
+    const pats = f === 'all' ? patOrder().filter(k => hit(patLabel(k) + ' pattern')) : [];
+    if (pats.length) html += `<p class="lib-sub">Pattern</p>` + group('Pattern', pats.map(k => item(`data-pat="${esc(k)}"`, false, patLabel(k), `<small>${into ? 'ersetzen' : 'neu'}</small>`, '', false)).join(''), pats.length)
       + `<p class="lib-note">${into ? 'Ein Pattern ersetzt die ausgewählte Region.' : 'Ein Pattern kommt als neue Region ans Ende der Spur.'} Unter „Einzelne Sounds“ nimmst du nur ein Instrument aus einem anderen Kit, etwa die Kick aus 808 und die Snare aus Akustik.</p>`;
-    return html || '<p class="lib-note">Nichts gefunden.</p>';
+    return html || empty('Nichts gefunden.');
   }
-  if (tr.type === 'sampler') {
-    const q = libQuery.trim().toLowerCase(), hit = L => !q || (L.name + ' ' + L.cat + ' loop').toLowerCase().includes(q);
-    let html = q ? '' : `<div class="lib-btns"><button data-lib-act="smpload">Audiodatei laden …</button><button data-lib-act="smpopen">Pads & Chops öffnen</button></div>`;
-    if (tr.srcs.length) html += group('Samples dieser Spur', tr.srcs.map((x, i) => item(`data-src="${i}"`, i === tr.src, x.name, `<small>${tr.chops.filter(c => c.buf === x.buf).length} Chops</small>`)).join(''), tr.srcs.length);
+  // Sampler- und Audio-Spuren: Loops
+  const smp = tr.type === 'sampler', attr = smp ? 'data-loop' : 'data-aloop';
+  const lOk = L => hit(L.name + ' ' + L.cat + ' loop ' + (L.sig ? L.sig.join('/') : '4/4'));
+  const lItem = (L, sub) => item(`${attr}="${L.id}"`, smp && tr.srcs.some(x => x.name.startsWith(L.name + ' (')), L.name, `<small>${sub ? esc(sub) + ' · ' : ''}${L.bpm} BPM</small>`, 'l:' + L.id);
+  let html = q ? '' : smp ? `<div class="lib-btns"><button data-lib-act="smpload">Audiodatei laden …</button><button data-lib-act="smpopen">Pads & Chops öffnen</button></div>`
+    : `<p class="lib-note">Audio-Spuren spielen Aufnahmen vom Mikrofon und importierte Dateien ab. Den Eingang wählst du oben unter Geräte.</p><div class="lib-btns"><button data-lib-act="import">Audiodatei importieren</button><button data-lib-act="rec">Aufnahme starten (R)</button></div>`;
+  if (smp && tr.srcs.length && f === 'all') html += group('Samples dieser Spur', tr.srcs.map((x, i) => item(`data-src="${i}"`, i === tr.src, x.name, `<small>${tr.chops.filter(c => c.buf === x.buf).length} Chops</small>`, '', false)).join(''), tr.srcs.length);
+  if (f === 'fav' || f === 'recent') {
+    const keys = f === 'fav' ? [...libFavs] : libRecent;
+    const its = keys.filter(x => x.startsWith('l:')).map(x => LOOPS.find(L => L.id === x.slice(2))).filter(L => L && lOk(L)).map(L => lItem(L, L.cat));
+    html += its.length ? flat(its) : empty(f === 'fav' ? 'Noch keine Lieblings-Loops. Tippe auf den Stern neben einem Loop.' : 'Hier erscheinen die Loops, die du zuletzt eingefügt hast.');
+  } else {
     const cats = {};
-    for (const L of LOOPS) if (hit(L)) (cats[L.cat] ||= []).push(item(`data-loop="${L.id}"`, tr.srcs.some(x => x.name.startsWith(L.name + ' (')), L.name, `<small>${L.bpm} BPM</small>`));
-    html += Object.entries(cats).map(([c, it]) => group('Loops · ' + c, it.join(''), it.length)).join('');
-    return html + `<p class="lib-note">Ein Loop wird in den Sampler geladen und nach Anschlägen in Chops geschnitten. Eigene Dateien ziehst du einfach auf die Spur. Die Loops sind aus gemeinfreien Aufnahmen (VCSL) gebaut.</p>`;
+    for (const L of LOOPS) if (lOk(L)) (cats[L.cat] ||= []).push(lItem(L));
+    html += Object.entries(cats).map(([c, it]) => group('Loops · ' + c, it.join(''), it.length)).join('') || empty('Kein Loop gefunden.');
   }
-  const q = libQuery.trim().toLowerCase(), cats = {};
-  for (const L of LOOPS) if (!q || (L.name + ' ' + L.cat + ' loop').toLowerCase().includes(q)) (cats[L.cat] ||= []).push(item(`data-aloop="${L.id}"`, false, L.name, `<small>${L.bpm} BPM</small>`));
-  return (q ? '' : `<p class="lib-note">Audio-Spuren spielen Aufnahmen vom Mikrofon und importierte Dateien ab. Den Eingang wählst du oben unter Geräte.</p><div class="lib-btns"><button data-lib-act="import">Audiodatei importieren</button><button data-lib-act="rec">Aufnahme starten (R)</button></div>`)
-    + Object.entries(cats).map(([c, it]) => group('Loops · ' + c, it.join(''), it.length)).join('')
-    + `<p class="lib-note">Loops kommen als Audio-Region auf die Spur und folgen dem Songtempo, ohne dass sich die Tonhöhe ändert. Ändere das Tempo oben und hör, wie sie mitgehen.</p>`;
+  return html + (smp ? `<p class="lib-note">Ein Loop wird in den Sampler geladen und nach Anschlägen in Chops geschnitten. Mit ▶ hörst du ihn vorher an. Eigene Dateien ziehst du einfach auf die Spur.</p>`
+    : `<p class="lib-note">Loops kommen als Audio-Region auf die Spur und folgen dem Songtempo, ohne dass sich die Tonhöhe ändert. Mit ▶ hörst du sie vorher im Originaltempo an.</p>`);
+}
+function libChips(tr) {
+  const f = libF(tr), nf = tr.type === 'synth' ? [...libFavs].filter(x => x.startsWith('p:') || x.startsWith('w:')).length : tr.type === 'drums' ? [...libFavs].filter(x => x.startsWith('k:') || x.startsWith('d:')).length : [...libFavs].filter(x => x.startsWith('l:')).length;
+  return `<div class="lib-chips" role="tablist">${chipSet(tr).map(([k, l]) => `<button class="lib-chip ${k === f ? 'on' : ''}" data-filter="${k}" role="tab" aria-selected="${k === f}">${l}${k === 'fav' && nf ? ` <span>${nf}</span>` : ''}</button>`).join('')}</div>`;
+}
+function libCount(tr) {
+  if (tr.type === 'synth') return Object.keys(PRESETS).length - 1 + wamList().filter(p => p.inst).length;
+  if (tr.type === 'drums') return Object.keys(KITS).length;
+  return LOOPS.length;
 }
 function renderLib() {
   libEl.classList.toggle('closed', !libOpen); $('#bLib').classList.toggle('on', libOpen);
@@ -5426,9 +5580,12 @@ function renderLib() {
   if (key === libKey) return;
   libKey = key;
   const top = libEl.querySelector('.lib-list')?.scrollTop || 0, same = libEl.dataset.track === (tr?.id || '');
+  // Beim Wechsel der Spur die Familie des aktuellen Klangs aufklappen
+  if (!same && tr?.type === 'synth' && !tr.wam && PRESETS[tr.preset]) libFold[tr.preset === 'user' ? 'Eigene Samples' : famOf(tr.preset)] = true;
   libEl.dataset.track = tr?.id || '';
-  libEl.innerHTML = `<div class="lib-in" style="--c:${tr?.color || 'var(--accent)'}"><div class="lib-head"><div class="lib-title">Bibliothek${tr ? `<b>${esc(tr.name)}</b>` : ''}<button class="x" data-lib-close title="Schließen (I)">×</button></div>
-    ${tr ? `<input class="lib-search" type="search" placeholder="${tr.type === 'drums' ? 'Kit, Kick, Snare … suchen' : tr.type === 'sampler' || tr.type === 'audio' ? 'Loop suchen …' : 'Sound suchen …'}" value="${esc(libQuery)}" aria-label="Sound suchen">` : ''}</div><div class="lib-list">${libBody(tr)}</div></div>`;
+  const ph = tr?.type === 'drums' ? `${libCount(tr)} Kits, Kick, Snare … suchen` : tr?.type === 'sampler' || tr?.type === 'audio' ? `${libCount(tr)} Loops durchsuchen …` : tr ? `${libCount(tr)} Sounds durchsuchen …` : '';
+  libEl.innerHTML = `<div class="lib-in" style="--c:${tr?.color || 'var(--accent)'}"><div class="lib-head"><div class="lib-title">Bibliothek${tr ? `<b>${esc(tr.name)}</b><button class="lib-fold" data-fold title="Alle Gruppen auf- oder zuklappen">⇕</button>` : ''}<button class="x" data-lib-close title="Schließen (I)">×</button></div>
+    ${tr ? `<input class="lib-search" type="search" placeholder="${ph}" value="${esc(libQuery)}" aria-label="Sound suchen">${libChips(tr)}` : ''}</div><div class="lib-list">${libBody(tr)}</div></div>`;
   const list = libEl.querySelector('.lib-list');
   if (same) list.scrollTop = top; else list.querySelector('.lib-item.on')?.scrollIntoView({ block: 'nearest' });
 }
@@ -5439,9 +5596,26 @@ libEl.addEventListener('input', e => {
 libEl.addEventListener('click', e => {
   const tr = findTrack(selTrack), b = e.target.closest('button'); if (!b) return;
   if ('libClose' in b.dataset) { setLib(false); return; }
+  // Stern und Vorhören liegen im Eintrag, lösen aber keine Auswahl aus
+  const fv = e.target.closest('[data-fav]');
+  if (fv) {
+    toggleFav(fv.dataset.fav);
+    if (libF(tr) === 'fav') { libKey = ''; renderLib(); }
+    else { libEl.querySelectorAll(`[data-fav="${CSS.escape(fv.dataset.fav)}"]`).forEach(x => x.classList.toggle('on', libFavs.has(fv.dataset.fav))); libEl.querySelector('.lib-chips').outerHTML = libChips(tr); }
+    return;
+  }
+  if (e.target.closest('[data-pv]')) { libPreview(b, tr); return; }
+  if (b.dataset.filter) { libFilter = b.dataset.filter; libKey = ''; renderLib(); libEl.querySelector('.lib-list').scrollTop = 0; return; }
+  if ('fold' in b.dataset) {
+    // Sind gerade Gruppen offen, alle zuklappen, sonst alle aufklappen
+    const cats = [...libEl.querySelectorAll('.lib-cat')], open = cats.some(c => !c.classList.contains('shut'));
+    for (const c of cats) { libFold[c.dataset.cat] = !open; c.classList.toggle('shut', open); c.nextElementSibling.classList.toggle('shut', open); }
+    libPut('fold', libFold); return;
+  }
   if (b.dataset.cat) {
-    const c = b.dataset.cat; libShut.has(c) ? libShut.delete(c) : libShut.add(c);
-    b.classList.toggle('shut', libShut.has(c)); b.nextElementSibling.classList.toggle('shut', libShut.has(c)); return;
+    const c = b.dataset.cat, open = b.classList.contains('shut');
+    libFold[c] = open; libPut('fold', libFold);
+    b.classList.toggle('shut', !open); b.nextElementSibling.classList.toggle('shut', !open); return;
   }
   if (b.dataset.libAdd) { pushUndo(); const t = newTrack(b.dataset.libAdd); P.tracks.push(t); selTrack = t.id; selRegion = null; applyMix(); save(); render(); return; }
   if (b.dataset.libAct === 'import') { importTarget = tr?.id; $('#fileIn').click(); return; }
@@ -5449,20 +5623,22 @@ libEl.addEventListener('click', e => {
   if (b.dataset.libAct === 'usmp') { smpTarget = tr?.id; $('#smpIn').click(); return; }
   if (b.dataset.libAct === 'smpload') { smpTarget2 = tr?.id; $('#smpFileIn').click(); return; }
   if (b.dataset.libAct === 'smpopen') { edTab = 'smp'; renderEditor(); return; }
-  if (b.dataset.loop) { loadLoop(b.dataset.loop, tr?.id); return; }
-  if (b.dataset.aloop) { loopToAudio(b.dataset.aloop, tr?.id); return; }
+  if (b.dataset.loop) { stopLoopPreview(); addRecent('l:' + b.dataset.loop); loadLoop(b.dataset.loop, tr?.id); return; }
+  if (b.dataset.aloop) { stopLoopPreview(); addRecent('l:' + b.dataset.aloop); loopToAudio(b.dataset.aloop, tr?.id); return; }
   if (b.dataset.src && tr) { tr.src = +b.dataset.src; smpUI.chop = tr.chops.find(c => c.buf === tr.srcs[tr.src].buf)?.id || null; edTab = 'smp'; save(); libKey = ''; renderLib(); renderEditor(); return; }
   if (!tr) return;
   const pick = () => { libEl.querySelectorAll('.lib-item.on').forEach(x => x !== b && !b.dataset.pat && x.classList.remove('on')); if (!b.dataset.pat) b.classList.add('on'); };
   if (b.dataset.wam) { setInstPlugin(tr, wamList().find(p => p.url === b.dataset.wam)); return; }
   if (b.dataset.preset) {
     if (tr.preset !== b.dataset.preset || tr.wam) { pushUndo(); tr.preset = b.dataset.preset; delete tr.wam; save(); syncPlugins(tr); }
+    if (b.dataset.preset !== 'user') addRecent('p:' + b.dataset.preset);
     pick(); libKey = ''; renderArrange(); if (edTab !== 'eq') renderEditor();
     previewNote(tr, prevPitch(tr));
   }
   if (b.dataset.kit) {
     // Ein ganzes Kit wählen ersetzt auch einzeln gewählte Instrumente
     if ((tr.kit || 'standard') !== b.dataset.kit || tr.pieces) { pushUndo(); tr.kit = b.dataset.kit; delete tr.pieces; save(); }
+    addRecent('k:' + b.dataset.kit);
     libKey = ''; renderLib(); renderArrange(); if (edTab === 'mix' || edTab === 'region') renderEditor();
     ensureCtx(); whenKit(tr.kit, () => { const t = ctx.currentTime; playDrum('kick', chan(tr).input, t, 1, tr.kit); playDrum('hat', chan(tr).input, t + .2, .7, tr.kit); playDrum('snare', chan(tr).input, t + .4, 1, tr.kit); });
   }
