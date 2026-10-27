@@ -160,18 +160,28 @@ Bekannte Grenzen:
 - 8 neue Patterns für andere Taktarten: Walzer, Ballade 3/4, Jazz-Walzer, 6/8 Ballade, 6/8 Marsch, 12/8 Blues, 5/4 Groove, 7/8 Groove. Patterns in der Taktart des Songs stehen in der Liste oben
 - Neue Sounds: 8 echte Instrumente (DX-Piano TX81Z, Nyunga Nyunga, Klavier Knight, Bassblockflöte, chromatische Mundharmonika, Vibraphon weich, Röhren-Glockenspiel, Cembalo mit Lautenzug); Kit „Marsch-Set (echt)“ mit Marschtrommel, Tenortrommeln, Triangel und Schellenbaum; 8 Loops in anderen Taktarten (Walzer-Drums, Walzer-Klavier, Glockenspiel-Walzer, Ballade 6/8, Marsch 6/8, Mbira-Arpeggio 6/8, Groove 5/4, Groove 7/8). Quelle: VCSL, CC0
 
+## Version 1.2 (fertig): Mehr Sounds und übersichtlichere Bibliothek
+
+- **Bibliothek nach Instrumentenfamilien**: Synth-Klänge und echte Aufnahmen stehen gemeinsam in 11 Familien (Klavier & Tasten, Orgel & Akkordeon, Gitarre & Zupfinstrumente, Bass, Streicher, Blechbläser, Holzbläser & Flöten, Mallets/Glocken/Pauken, Chor & Flächen, Weltmusik, Lead & Synth). Die Familien starten zugeklappt, die des aktuellen Klangs ist offen; der Klappzustand bleibt gespeichert, ⇕ klappt alle auf oder zu
+- **Filter-Leiste**: Alle · ★ Favoriten · Zuletzt · Echt · Synth (bei Drums: Alle · Favoriten · Echt · Synth, bei Loops: Alle · Favoriten · Zuletzt)
+- **Favoriten**: Stern an jedem Sound, Kit, einzelnen Drum-Sound und Loop. Gilt für alle Songs
+- **Vorhören ohne Auswählen**: ▶ an jedem Eintrag spielt den Sound bzw. das Kit an, Loops laufen einmal im Originaltempo (nochmal klicken stoppt)
+- Suche zeigt die Anzahl der Sounds und findet auch Familien („bläser“, „echt“, „synth“) und bei Loops die Taktart („6/8“)
+- Drumkits getrennt in „Synth-Kits“ und „Echte Kits (Samples)“
+- Neue Sounds: **49 echte Instrumente** aus dem FluidR3-GM-Soundfont (CC-BY 3.0): E-Piano (Rhodes-Art), Honky-Tonk, Clavinet, Celesta, Spieluhr, Hackbrett, Hammond- und Rock-Orgel, Akkordeon, Bandoneon, E-Gitarre clean/gedämpft/Crunch/verzerrt, Banjo, Akustik-, Fretless-, Slap-, Plektrum- und Synth-Bass, Bratsche, Streicher-Ensemble, Tremolo, Pizzicato, Synth-Streicher, Chor Aah/Ooh, Bläsersatz, gedämpfte Trompete, Alt- und Baritonsax, Oboe, Englischhorn, Piccolo, Panflöte, Shakuhachi, Pauken, Orchester-Hit, Steel Drum, Sitar, Koto, Shamisen, Dudelsack, Fiddle, Shehnai, drei Pads und Kristall; 2 neue Drumcomputer-Kits: Sequential Circuits Drumtraks und 808 Mini (gemeinfrei)
+
 ## Grundsatz
 
 Jedes Update bringt auch neue Sounds mit.
 
 ## Fahrplan
 
-1. **v1.2**: Taktartwechsel mitten im Song, Drums live über Pads einspielen, Touch-Gesten im Piano Roll (langes Drücken für Menüs), Feinschliff nach Tests auf dem iPhone
+1. **v1.3**: Taktartwechsel mitten im Song, Drums live über Pads einspielen, Touch-Gesten im Piano Roll (langes Drücken für Menüs), Feinschliff nach Tests auf dem iPhone
 2. **Später**: VST3-Plug-ins zusätzlich in der Windows-Version (natives Add-on für Electron, eigener Prozess, damit ein abstürzendes Plugin die App nicht mitreißt). Die Plugin-Slots aus v0.95 sind dafür schon da
 
 ## Starten
 
-- Windows: `SoundGroot-1.1.0-win.zip` entpacken, `Sound Groot.exe` starten
-- iPhone/Browser: https://erikos47.github.io/Klangwerk/ öffnen (sobald GitHub Pages eingeschaltet ist), dann „Zum Home-Bildschirm“
+- Windows: `SoundGroot-1.2.0-win.zip` entpacken, `Sound Groot.exe` starten
+- iPhone/Browser: https://erikos47.github.io/Klangwerk/ öffnen, dann „Zum Home-Bildschirm“
 - Entwicklung: `npm install`, dann `npm start`
 - Windows-Build: `npm run dist:win`
