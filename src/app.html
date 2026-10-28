@@ -612,6 +612,8 @@ input.st-gname:focus { outline: 1px solid var(--accent); border-radius: 4px; }
 .pl-own { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
 .pl-own span { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; background: var(--panel-2); border-radius: 6px; padding: 2px 4px 2px 8px; }
 .pl-own button { border: 0; background: none; color: var(--muted); cursor: pointer; }
+.pl-vst > div { margin-top: 6px; flex-wrap: wrap; }
+.pl-vst summary small { margin-left: 4px; }
 .plugwin { position: fixed; left: 50%; top: 90px; transform: none; z-index: 60; min-width: 260px; max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); display: flex; flex-direction: column; background: #1b1e24f2; -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); border: 1px solid #ffffff14; border-radius: 12px; box-shadow: 0 24px 60px #000c, 0 0 0 1px #000; overflow: hidden; }
 .plugwin:not([hidden]) { animation: toast .2s var(--ease); }
 .pw-head { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 14px; font-size: 12.5px; cursor: move; user-select: none; touch-action: none; border-bottom: 1px solid #ffffff0d; }
@@ -1297,7 +1299,7 @@ function defaultEq() {
 const eqOf = tr => (tr.eq ||= defaultEq());
 const trackFxDefaults = () => ({ comp: { on: false, thr: -18, ratio: 4, att: 10, rel: 200, gain: 0 }, rev: 0, del: 0 });
 const fxOf = tr => (tr.fx ||= trackFxDefaults());
-// Kanalzug: Eingang -> EQ -> Filter (für Automation) -> Kompressor -> Sidechain-Ducker -> Plugins -> Lautstärke -> Mute -> Panorama -> Master oder Gruppe
+// Kanalzug: Eingang -> EQ -> Filter (für Automation) -> Kompressor -> Sidechain-Ducker -> Plugins -> Latenzausgleich -> Lautstärke -> Mute -> Panorama -> Master oder Gruppe
 function chan(tr) {
   let c = chans.get(tr.id);
   if (!c) {
@@ -1306,11 +1308,11 @@ function chan(tr) {
     const bands = eqOf(tr).bands.map(() => ctx.createBiquadFilter());
     const flt = ctx.createBiquadFilter(); flt.type = 'lowpass'; flt.frequency.value = 20000; flt.Q.value = .9;
     const comp = ctx.createDynamicsCompressor(), makeup = ctx.createGain(), duck = ctx.createGain(), revS = ctx.createGain(), delS = ctx.createGain();
-    const insIn = ctx.createGain(), insOut = ctx.createGain();
+    const insIn = ctx.createGain(), insOut = ctx.createGain(), pdc = ctx.createDelay(1);
     let n = input; for (const b of bands) n = n.connect(b);
-    n.connect(flt).connect(comp).connect(makeup).connect(duck).connect(insIn).connect(insOut).connect(vol).connect(mute).connect(pan); mute.connect(an);
+    n.connect(flt).connect(comp).connect(makeup).connect(duck).connect(insIn).connect(insOut).connect(pdc).connect(vol).connect(mute).connect(pan); mute.connect(an);
     pan.connect(revS).connect(buses.rev); pan.connect(delS).connect(buses.del);
-    c = { input, vol, mute, pan, bands, flt, an, comp, makeup, duck, insIn, insOut, revS, delS, ctx, plugs: new Map(), sig: '', dest: null }; chans.set(tr.id, c);
+    c = { input, vol, mute, pan, bands, flt, an, comp, makeup, duck, insIn, insOut, pdc, revS, delS, ctx, plugs: new Map(), sig: '', dest: null }; chans.set(tr.id, c);
     routeOut(tr, c); applyEq(tr, true); applyFx(tr, true); syncPlugins(tr);
   }
   return c;
@@ -1478,24 +1480,34 @@ const SAMPLED = {
   // Neu in v1.3: weitere FluidR3-GM-Instrumente (auch damit MIDI-Dateien mit diesen Programmen passend klingen)
   'gm-egrand': ['E-Flügel (CP-Art)', { r: .5 }], 'gm-percorgan': ['Perkussive Orgel', { hold: 1, a: .005, r: .1 }], 'gm-harmonics': ['Gitarren-Flageolett', { r: .8, prev: 67 }],
   'gm-bottle': ['Flasche (geblasen)', { hold: 1, a: .05, r: .2, prev: 72 }], 'gm-tinkle': ['Glöckchen', { r: 1, prev: 79 }], 'gm-agogo': ['Agogo (gestimmt)', { r: .3, prev: 67 }],
-  'gm-taiko': ['Taiko-Trommel', { r: .6, prev: 45 }], 'gm-woodblock': ['Holzblock (gestimmt)', { r: .2, prev: 67 }], 'gm-synthvox': ['Synth-Chor', { hold: 1, a: .15, r: .8 }]
+  'gm-taiko': ['Taiko-Trommel', { r: .6, prev: 45 }], 'gm-woodblock': ['Holzblock (gestimmt)', { r: .2, prev: 67 }], 'gm-synthvox': ['Synth-Chor', { hold: 1, a: .15, r: .8 }],
+  // Neu in v1.4: Synth-Leads, Flächen und Effektklänge (FluidR3 GM)
+  'gm-lead-square': ['Lead Square (Sample)', { hold: 1, a: .005, r: .2, prev: 72 }], 'gm-lead-saw': ['Lead Sägezahn (Sample)', { hold: 1, a: .005, r: .2, prev: 72 }],
+  'gm-calliope': ['Calliope', { hold: 1, a: .02, r: .25, prev: 72 }], 'gm-chiff': ['Chiff-Lead', { hold: 1, a: .005, r: .3, prev: 72 }],
+  'gm-charang': ['Charang (Gitarren-Lead)', { hold: 1, a: .005, r: .25, prev: 64 }], 'gm-lead-voice': ['Voice-Lead', { hold: 1, a: .05, r: .3, prev: 67 }],
+  'gm-fifths': ['Quinten-Lead', { hold: 1, a: .005, r: .25, prev: 60 }], 'gm-basslead': ['Bass-Lead', { hold: 1, a: .005, r: .2, prev: 48 }],
+  'gm-synthbass2': ['Synth-Bass 2', { hold: 1, a: .003, r: .15, prev: 40 }], 'gm-synthbrass': ['Synth-Bläser (Sample)', { hold: 1, a: .02, r: .25, prev: 60 }],
+  'gm-epiano2': ['E-Piano DX (Sample)', { r: .6 }], 'gm-polysynth': ['Polysynth', { hold: 1, a: .01, r: .5 }],
+  'gm-pad-bowed': ['Pad gestrichen', { hold: 1, a: .3, r: 1.2 }], 'gm-pad-metal': ['Pad metallisch', { hold: 1, a: .2, r: 1.2 }],
+  'gm-pad-sweep': ['Pad Sweep (Sample)', { hold: 1, a: .3, r: 1.2 }], 'gm-atmosphere': ['Atmosphäre', { hold: 1, a: .02, r: 1.2 }],
+  'gm-brightness': ['Brightness', { hold: 1, a: .1, r: 1.2 }], 'gm-echoes': ['Echoes', { hold: 1, a: .2, r: 1.5 }], 'gm-scifi': ['Sci-Fi', { hold: 1, a: .05, r: 1.2, prev: 60 }]
 };
 for (const [id, [name, o]] of Object.entries(SAMPLED))
   PRESETS['s_' + id] = { cat: 'Echte Instrumente', name, smp: id, hold: !!o.hold, prev: o.prev, env: { a: o.a || .002, d: 1, s: 1, r: o.r }, cut: 20000, level: o.level || (o.hold ? .38 : .48) };
 PRESETS.user = { cat: 'Eigene Samples', name: 'Eigenes Sample', smp: 'user', env: { a: .002, d: 1, s: 1, r: .25 }, cut: 20000, level: .9 };
 // Bibliothek: Synth-Klänge und Aufnahmen stehen gemeinsam nach Instrumentenfamilie sortiert (Reihenfolge = Anzeige)
 const FAMS = [
-  ['Klavier & Tasten', 'piano epiano tines honky wurli toypiano lofikeys clav harpsi s_piano s_upright-piano s_grand-kawai s_upright-knight s_fm-piano s_tx-piano s_harpsichord s_harpsichord-lute s_clavisynth s_gm-epiano s_gm-honky s_gm-clavinet s_gm-egrand'],
+  ['Klavier & Tasten', 'piano epiano tines honky wurli toypiano lofikeys clav harpsi s_piano s_upright-piano s_grand-kawai s_upright-knight s_fm-piano s_tx-piano s_harpsichord s_harpsichord-lute s_clavisynth s_gm-epiano s_gm-honky s_gm-clavinet s_gm-egrand s_gm-epiano2'],
   ['Orgel & Akkordeon', 'organ church accordion s_organ s_harmonium s_renaissance-organ s_pipe-organ s_gm-drawbar s_gm-rockorgan s_gm-accordion s_gm-bandoneon s_gm-percorgan'],
   ['Gitarre & Zupfinstrumente', 'guitar harp acgtr nylon egtr dist banjo twelve ukulele mandolin s_guitar-acoustic s_guitar-nylon s_guitar-electric s_harp s_folk-harp s_strumstick s_psaltery-pluck s_gm-guitar-clean s_gm-guitar-muted s_gm-overdrive s_gm-distortion s_gm-banjo s_gm-dulcimer s_gm-harmonics'],
-  ['Bass', 'bass ebass sub b808 acid reese upright slap wobble fmbass moog s_bass-electric s_contrabass s_gm-acbass s_gm-fretless s_gm-slap s_gm-pickbass s_gm-synthbass'],
+  ['Bass', 'bass ebass sub b808 acid reese upright slap wobble fmbass moog s_bass-electric s_contrabass s_gm-acbass s_gm-fretless s_gm-slap s_gm-pickbass s_gm-synthbass s_gm-synthbass2 s_gm-basslead'],
   ['Streicher', 'strings pizz cello violin tutti s_cello s_violin s_psaltery s_gm-viola s_gm-strings s_gm-tremolo s_gm-pizz s_gm-synthstrings'],
-  ['Blechbläser', 'brass trumpet synbrass s_trumpet s_trombone s_french-horn s_tuba s_gm-brass s_gm-mutedtpt'],
+  ['Blechbläser', 'brass trumpet synbrass s_trumpet s_trombone s_french-horn s_tuba s_gm-brass s_gm-mutedtpt s_gm-synthbrass'],
   ['Holzbläser & Flöten', 'flute sax clarinet oboe harmonica whistle s_flute s_clarinet s_saxophone s_bassoon s_tenor-sax s_saxello s_harmonica s_harmonica-chrom s_ocarina s_recorder s_bass-recorder s_gm-altosax s_gm-barisax s_gm-oboe s_gm-englhorn s_gm-piccolo s_gm-bottle'],
   ['Mallets, Glocken & Pauken', 'celesta marimba vibes musicbox bell glock tubular s_xylophone s_vibraphone s_vibes-soft s_marimba s_balafon s_glockenspiel s_tubular-glock s_tubular-bells s_hand-chimes s_gm-celesta s_gm-musicbox s_gm-crystal s_gm-timpani s_gm-tinkle s_gm-agogo s_gm-woodblock s_gm-taiko'],
-  ['Chor & Flächen', 'pad glass choir darkpad shimmer vox s_gm-choir s_gm-oohs s_gm-pad-warm s_gm-pad-halo s_gm-pad-newage s_gm-synthvox'],
+  ['Chor & Flächen', 'pad glass choir darkpad shimmer vox s_gm-choir s_gm-oohs s_gm-pad-warm s_gm-pad-halo s_gm-pad-newage s_gm-synthvox s_gm-polysynth s_gm-pad-bowed s_gm-pad-metal s_gm-pad-sweep s_gm-atmosphere s_gm-brightness s_gm-echoes s_gm-scifi'],
   ['Weltmusik', 'sitar koto steeldrum panflute kalimba s_kalimba s_kalimba-tz s_mbira s_nyunga s_dan-tranh s_gm-steeldrum s_gm-sitar s_gm-koto s_gm-shamisen s_gm-shakuhachi s_gm-panflute s_gm-bagpipe s_gm-fiddle s_gm-shanai'],
-  ['Lead & Synth', 'lead square supersaw pluck arp chip hoover sweep riser s_gm-orchhit']
+  ['Lead & Synth', 'lead square supersaw pluck arp chip hoover sweep riser s_gm-orchhit s_gm-lead-square s_gm-lead-saw s_gm-calliope s_gm-chiff s_gm-charang s_gm-lead-voice s_gm-fifths']
 ];
 const FAM_OF = Object.fromEntries(FAMS.flatMap(([f, ids]) => ids.split(' ').map(k => [k, f])));
 const famOf = k => FAM_OF[k] || PRESETS[k]?.cat || 'Weitere';
@@ -1765,6 +1777,7 @@ function playDrum(id, dest, t, vel = 1, kit = 'standard', pitch = 0) {
   }
 }
 function click(t, accent) {
+  t += (ctx.sgPdc || 0) / ctx.sampleRate; // Latenzausgleich der VST-Plugins: Klick bleibt auf dem Schlag
   const o = ctx.createOscillator(), g = ctx.createGain();
   o.type = 'square'; o.frequency.value = accent ? 1600 : 1050;
   o.connect(g).connect(master); decay(g, t, accent ? .22 : .14, .04); o.start(t); o.stop(t + .06);
@@ -1939,7 +1952,8 @@ function save() {
 // Laufendes Speichern im Browser: das Projekt und ob es seit dem letzten Speichern als Datei verändert wurde
 function persist() {
   clearTimeout(saveT);
-  try { localStorage.setItem('klangwerk.project', JSON.stringify(P)); localStorage.setItem('klangwerk.state', JSON.stringify({ dirty, t: Date.now() })); } catch (e) { }
+  try { localStorage.setItem('klangwerk.project', JSON.stringify(P)); localStorage.setItem('klangwerk.state', JSON.stringify({ dirty, t: Date.now() })); }
+  catch (e) { if (!persist.warned && e?.name === 'QuotaExceededError') { persist.warned = true; toast('Das Projekt ist zu groß für den Zwischenspeicher (z. B. wegen großer Plugin-Zustände). Bitte als Datei speichern.', 6000); } }
 }
 function updateTitle() {
   const n = P.name || 'Mein Song', el = $('#pname');
@@ -2146,14 +2160,23 @@ async function renderSong() {
     await pluginsReady();
     session = { gains: new Map(), sources: [] };
     wamMarks = new Set();
+    vstTransport({ time: 0, beat: 0 });
     schedule(0, end, 0);
     // Manche Plugins spielen ihre Noten im Haupt-Thread. Damit sie das auch beim schnellen Offline-Rendern rechtzeitig tun,
     // hält das Rendern direkt nach jeder Note kurz an und gibt dem Plugin ein paar Millisekunden.
     const ks = new Set([...wamMarks].map(t => Math.ceil(t * sr / 128) + 1));
-    for (const k of ks) if (k * 128 < off.length) off.suspend(k * 128 / sr).then(() => setTimeout(() => off.resume(), 4));
-    return await off.startRendering();
+    // VST3: alle VST_OFF Samples anhalten, bis die Plugin-Prozesse alles bisher Geschickte zurückgegeben haben
+    const vs = new Set(vstNodes(off).length ? Array.from({ length: Math.floor(off.length / VST_OFF) }, (_, i) => (i + 1) * VST_OFF / 128) : []);
+    for (const k of new Set([...ks, ...vs])) if (k * 128 < off.length) off.suspend(k * 128 / sr).then(async () => {
+      if (vs.has(k)) await vstBarrier(off, k);
+      if (ks.has(k)) await new Promise(r => setTimeout(r, 4));
+      off.resume();
+    });
+    const out = await off.startRendering();
+    // Mit Latenzausgleich ist alles um sgPdc Samples verzögert: vorn abschneiden
+    return off.sgPdc ? trimStart(out, off.sgPdc) : out;
   } finally {
-    wamMarks = null;
+    wamMarks = null; vstTp = null;
     chans.forEach(dropPlugins);
     ctx = live.ctx; master = live.master; analyser = live.analyser; noiseBuf = live.noiseBuf; buses = live.buses; P.metro = live.metro; session = null;
     chans.clear(); live.chans.forEach((v, k) => chans.set(k, v));
@@ -2199,15 +2222,15 @@ const GM_PROG = ('s_piano s_grand-kawai s_upright-piano s_gm-honky s_gm-epiano s
   + 's_gm-celesta s_glockenspiel s_gm-musicbox s_vibraphone s_marimba s_xylophone s_tubular-bells s_gm-dulcimer '
   + 's_gm-drawbar s_gm-percorgan s_gm-rockorgan s_pipe-organ s_harmonium s_gm-accordion s_harmonica s_gm-bandoneon '
   + 's_guitar-nylon s_guitar-acoustic s_guitar-electric s_gm-guitar-clean s_gm-guitar-muted s_gm-overdrive s_gm-distortion s_gm-harmonics '
-  + 's_gm-acbass s_bass-electric s_gm-pickbass s_gm-fretless s_gm-slap s_gm-slap s_gm-synthbass moog '
+  + 's_gm-acbass s_bass-electric s_gm-pickbass s_gm-fretless s_gm-slap s_gm-slap s_gm-synthbass s_gm-synthbass2 '
   + 's_violin s_gm-viola s_cello s_contrabass s_gm-tremolo s_gm-pizz s_harp s_gm-timpani '
   + 's_gm-strings s_gm-strings s_gm-synthstrings s_gm-synthstrings s_gm-choir s_gm-oohs s_gm-synthvox s_gm-orchhit '
-  + 's_trumpet s_trombone s_tuba s_gm-mutedtpt s_french-horn s_gm-brass synbrass synbrass '
+  + 's_trumpet s_trombone s_tuba s_gm-mutedtpt s_french-horn s_gm-brass s_gm-synthbrass synbrass '
   + 's_saxello s_gm-altosax s_tenor-sax s_gm-barisax s_gm-oboe s_gm-englhorn s_bassoon s_clarinet '
   + 's_gm-piccolo s_flute s_recorder s_gm-panflute s_gm-bottle s_gm-shakuhachi whistle s_ocarina '
-  + 'square lead lead lead lead vox lead supersaw '
-  + 's_gm-pad-newage s_gm-pad-warm pad s_gm-choir s_psaltery glass s_gm-pad-halo sweep '
-  + 's_gm-crystal darkpad s_gm-crystal shimmer shimmer darkpad shimmer sweep '
+  + 's_gm-lead-square s_gm-lead-saw s_gm-calliope s_gm-chiff s_gm-charang s_gm-lead-voice s_gm-fifths s_gm-basslead '
+  + 's_gm-pad-newage s_gm-pad-warm s_gm-polysynth s_gm-choir s_gm-pad-bowed s_gm-pad-metal s_gm-pad-halo s_gm-pad-sweep '
+  + 's_gm-crystal darkpad s_gm-crystal s_gm-atmosphere s_gm-brightness darkpad s_gm-echoes s_gm-scifi '
   + 's_gm-sitar s_gm-banjo s_gm-shamisen s_gm-koto s_kalimba s_gm-bagpipe s_gm-fiddle s_gm-shanai '
   + 's_gm-tinkle s_gm-agogo s_gm-steeldrum s_gm-woodblock s_gm-taiko s_gm-taiko b808 riser '
   + 'riser riser riser riser riser riser riser riser').split(' ');
@@ -2445,6 +2468,7 @@ function play() {
   segs = [{ ...cur }];
   recMark(cur);
   startAudioAt(playPos, t0);
+  vstTransport(cur);
   timer = setInterval(tick, 25);
   tick();
   updateTransport();
@@ -2461,6 +2485,7 @@ function stop() {
   for (const g of session.gains.values()) { g.gain.setTargetAtTime(0, now, .02); setTimeout(() => g.disconnect(), 600); }
   for (const s of session.sources) { try { s.stop(now + .08); } catch (e) { } }
   for (const c of chans.values()) wamPanic(c);
+  vstTransport(null);
   session = null; padHits.length = 0;
   applyAutoStatic();
   updateTransport();
@@ -2489,6 +2514,7 @@ function tick() {
       segs.push({ ...cur });
       recMark(cur);
       startAudioAt(L.start, cur.time);
+      vstTransport(cur);
     } else {
       schedule(cur.beat, b1, cur.time);
       cur = { time: target, beat: b1 };
@@ -2742,7 +2768,7 @@ async function loopToAudio(id, trackId) {
 const recPrefs = (() => { try { return JSON.parse(localStorage.getItem('klangwerk.rec') || '{}'); } catch (e) { return {}; } })();
 const saveRecPrefs = () => { try { localStorage.setItem('klangwerk.rec', JSON.stringify(recPrefs)); } catch (e) { } };
 // Was man hört, kommt um die Ausgabelatenz später aus dem Lautsprecher; das Mikrofon braucht noch etwas dazu
-const outLatency = () => ctx ? (ctx.outputLatency || 0) + (ctx.baseLatency || 0) : 0;
+const outLatency = () => ctx ? (ctx.outputLatency || 0) + (ctx.baseLatency || 0) + (ctx.sgPdc || 0) / ctx.sampleRate : 0;
 const autoLatency = () => outLatency() + .012;
 const recLatency = () => recPrefs.lat != null ? recPrefs.lat / 1000 : autoLatency();
 const micConstraints = () => ({ audio: { deviceId: inputDevice ? { exact: inputDevice } : undefined, echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
@@ -4176,7 +4202,7 @@ const WAM_BUILTIN = [
 // Eigene Plugins per Link werden pro Gerät gemerkt, im Projekt steht nur der Link
 const wamOwn = (() => { try { return JSON.parse(localStorage.getItem('klangwerk.plugins') || '[]'); } catch (e) { return []; } })();
 const saveWamOwn = () => { try { localStorage.setItem('klangwerk.plugins', JSON.stringify(wamOwn)); } catch (e) { } };
-const wamList = () => [...WAM_BUILTIN, ...wamOwn];
+const wamList = () => [...WAM_BUILTIN, ...wamOwn, ...vstList()];
 const wamModules = new Map(), wamHosts = new WeakMap(), wamFailed = new Set();
 const absUrl = url => new URL(url, location.href).href;
 function wamModule(url) {
@@ -4194,6 +4220,7 @@ function wamHost(c) {
   return h;
 }
 async function wamCreate(c, url, state) {
+  if (isVst(url)) return vstCreate(c, url, state);
   const [W, g] = await Promise.all([wamModule(url), wamHost(c)]);
   const inst = await W.createInstance(g, c);
   if (state) try { await inst.audioNode.setState(state); } catch (e) { }
@@ -4206,7 +4233,10 @@ function wamKill(inst) {
 }
 function wamFail(name, url, e) {
   console.warn('Plugin', url, e);
-  if (!wamFailed.has(url)) { wamFailed.add(url); toast(`Plugin „${name}“ konnte nicht geladen werden${/^https?:/.test(url) ? '. Ist das Gerät online und der Link richtig?' : '.'}`, 4500); }
+  if (wamFailed.has(url)) return;
+  wamFailed.add(url);
+  if (isVst(url)) toast(sgvst ? `VST3-Plugin „${name}“ konnte nicht geladen werden: ${e?.message || e}` : `„${name}“ ist ein VST3-Plugin und läuft nur in der Windows-App.`, 5000);
+  else toast(`Plugin „${name}“ konnte nicht geladen werden${/^https?:/.test(url) ? '. Ist das Gerät online und der Link richtig?' : '.'}`, 4500);
 }
 // Inserts und Instrument einer Spur an die Liste anpassen. Läuft nacheinander pro Kanalzug, damit sich Änderungen nicht überholen.
 function syncPlugins(tr) {
@@ -4232,6 +4262,7 @@ async function wirePlugins(tr, c) {
   let n = c.insIn;
   for (const s of slots) { const inst = c.plugs.get(s.id); if (s.on && inst) { n.connect(inst.audioNode); n = inst.audioNode; } }
   n.connect(c.insOut);
+  applyPdc(c.ctx);
   const url = tr.type === 'synth' && tr.wam ? tr.wam.url : null;
   if (c.instUrl !== url) {
     wamKill(c.inst); c.inst = null; c.instUrl = url;
@@ -4281,6 +4312,228 @@ async function wamSaveStates() {
 }
 setInterval(() => { if (P?.tracks.some(t => t.ins?.length || t.wam)) wamSaveStates(); }, 2000);
 
+// ================= VST3-Plugins (nur in der Windows-App) =================
+// Jedes VST3-Plugin läuft in einem eigenen Programm (sg-vst3host.exe), das der Hauptprozess startet (main.js, window.sgvst).
+// Der Klang geht blockweise (128 Samples) vom AudioWorklet „sg-vst“ über einen Worker und einen lokalen WebSocket zum Plugin
+// und zurück. Damit das ohne Aussetzer klappt, hat der Weg einen festen Puffer (vstLat). Instrumente bekommen ihre Noten
+// um genau diesen Puffer früher. Bei Effekten verzögert der Latenzausgleich (applyPdc) alle anderen Spuren um denselben Wert.
+// Im Projekt steht pro Plugin url = "vst3:<Klassen-ID>|<Pfad>" und state = { vst3: <Base64> }; die Liste der gefundenen
+// Plugins merkt sich der Hauptprozess (vst3.json im Benutzerordner).
+const sgvst = window.sgvst || null;
+const VST_OFF = 4096; // Puffer beim Export (Offline-Rendern): Anhalten nur alle 4096 Samples
+let vstPlugs = [], vstInfo = null, vstBusy = false, vstSaveT = 0;
+const vstById = new Map(), vstLoad = new WeakMap();
+let vstMul = (() => { try { return clamp(+localStorage.getItem('klangwerk.vstbuf') || 1, 1, 4); } catch (e) { return 1; } })();
+const isVst = url => typeof url === 'string' && url.startsWith('vst3:');
+const vstParse = url => { const i = url.indexOf('|'); return { cid: url.slice(5, i), path: url.slice(i + 1) }; };
+const vstList = () => vstPlugs.map(p => ({ url: `vst3:${p.cid}|${p.path}`, name: p.name, vendor: p.vendor, inst: p.inst, vst: true }));
+const vstNodes = c => [...vstById.values()].filter(i => i.ctx === c);
+// Puffer live: mindestens das Doppelte des Audio-Puffers des Systems plus Reserve, auf 128 gerundet (meist 10–25 ms)
+function vstLat(c) {
+  if (c instanceof OfflineAudioContext) return VST_OFF;
+  return clamp(Math.ceil(((c.baseLatency || .01) * c.sampleRate * 2 + 256) * vstMul / 128) * 128, 512, 8192);
+}
+const VST_WORKLET = `
+class SgVst extends AudioWorkletProcessor {
+  constructor(o) {
+    super(); const p = o.processorOptions;
+    this.lat = p.lat; this.inst = p.inst; this.off = p.off; this.seq = 0; this.r = 0; this.got = new Map(); this.ev = [];
+    this.tp = [{ play: 0, bpm: 120, time: 0, beat: 0, num: 4, den: 4 }]; this.clear = 0; this.late = 0; this.lateSent = 0; this.alive = true;
+    this.port.onmessage = e => {
+      const d = e.data;
+      if (d.link) { this.link = d.link; this.warm = this.seq + Math.ceil(sampleRate / 128); this.link.onmessage = m => this.reply(m.data); }
+      if (d.ev) for (const x of d.ev) this.ev.push(x);
+      if (d.clear) { this.ev.length = 0; this.clear = 1; }
+      if (d.tp) { this.tp.push(d.tp); if (this.tp.length > 4) this.tp.shift(); }
+      if (d.lat) this.lat = d.lat;
+      if (d.end) { this.alive = false; if (this.link) this.link.close(); }
+    };
+  }
+  reply(b) {
+    const seq = new DataView(b).getUint32(0, true);
+    this.got.set(seq, b);
+    if (seq + 1 > this.r) { this.r = seq + 1; if (this.off) this.port.postMessage({ r: this.r }); }
+  }
+  process(inputs, outputs) {
+    const out = outputs[0], n = out[0].length, f0 = currentFrame, inp = inputs[0], nIn = this.inst ? 0 : Math.min(2, inp.length);
+    const sh = this.inst ? this.lat : 0, evs = [];
+    if (this.ev.length) {
+      const keep = [];
+      for (const e of this.ev) { const f = e[0] - sh; if (f < f0 + n) evs.push([Math.max(0, f - f0), e[1], e[2], e[3]]); else keep.push(e); }
+      this.ev = keep; evs.sort((a, b) => a[0] - b[0]);
+    }
+    if (this.link) {
+      const b = new ArrayBuffer(40 + evs.length * 8 + nIn * n * 4), v = new DataView(b);
+      const t = (f0 + sh) / sampleRate; let tp = this.tp[0]; for (const x of this.tp) if (x.time <= t) tp = x;
+      const beat = tp.beat + (tp.play ? Math.max(0, t - tp.time) * tp.bpm / 60 : 0);
+      v.setUint32(0, this.seq, true); v.setUint16(4, n, true); v.setUint8(6, nIn); v.setUint8(7, (tp.play ? 1 : 0) | (this.clear ? 2 : 0));
+      v.setFloat64(8, tp.bpm, true); v.setFloat64(16, beat, true); v.setFloat64(24, Math.round(beat * 60 / tp.bpm * sampleRate), true);
+      v.setUint16(32, evs.length, true); v.setUint8(34, tp.num); v.setUint8(35, tp.den);
+      evs.forEach((e, i) => { const o = 40 + i * 8; v.setUint16(o, e[0], true); v.setUint8(o + 2, e[1]); v.setUint8(o + 3, e[2]); v.setUint8(o + 4, e[3]); });
+      if (nIn) { const a = new Float32Array(b, 40 + evs.length * 8); for (let c = 0; c < nIn; c++) a.set(inp[c], c * n); }
+      this.link.postMessage(b, [b]); this.clear = 0;
+    }
+    const want = this.seq - this.lat / n, r = this.got.get(want); this.seq++;
+    if (r) { const a = new Float32Array(r, 8); out[0].set(a.subarray(0, n)); (out[1] || out[0]).set(a.subarray(n, 2 * n)); }
+    else if (this.link && want >= this.warm) this.late++;
+    for (const k of this.got.keys()) if (k <= want) this.got.delete(k);
+    if (!this.off && this.late !== this.lateSent && this.seq % 64 === 0) { this.port.postMessage({ late: this.late - this.lateSent }); this.lateSent = this.late; }
+    return this.alive;
+  }
+}
+registerProcessor('sg-vst', SgVst);`;
+// Ein Worker für alle Plugins: hält die WebSockets, damit der Haupt-Thread (Zeichnen, Bedienung) den Klang nicht aufhält
+const VST_WORKER = `
+const socks = new Map();
+onmessage = e => {
+  const d = e.data;
+  if (d.open) {
+    const s = { ws: new WebSocket(d.url), port: d.port, q: [] }; socks.set(d.open, s);
+    s.ws.binaryType = 'arraybuffer';
+    s.ws.onopen = () => { for (const b of s.q) s.ws.send(b); s.q = null; };
+    s.ws.onmessage = m => s.port.postMessage(m.data, [m.data]);
+    s.port.onmessage = m => { if (s.ws.readyState === 1) s.ws.send(m.data); else if (s.q && s.q.length < 512) s.q.push(m.data); };
+  }
+  if (d.close) { const s = socks.get(d.close); if (s) { s.ws.close(); s.port.close(); socks.delete(d.close); } }
+};`;
+let vstWk = null;
+const vstWorker = () => vstWk ||= new Worker(URL.createObjectURL(new Blob([VST_WORKER], { type: 'text/javascript' })));
+function vstModule(c) {
+  let p = vstLoad.get(c);
+  if (!p) { p = c.audioWorklet.addModule(URL.createObjectURL(new Blob([VST_WORKLET], { type: 'text/javascript' }))); p.catch(() => vstLoad.delete(c)); vstLoad.set(c, p); }
+  return p;
+}
+async function vstCreate(c, url, state) {
+  if (!sgvst) throw new Error('VST3 gibt es nur in der Windows-App');
+  const { cid, path } = vstParse(url), known = vstPlugs.find(p => p.cid === cid && p.path === path) || vstPlugs.find(p => p.cid === cid);
+  await vstModule(c);
+  // Auf einem anderen PC kann dasselbe Plugin woanders liegen: dann über die Klassen-ID finden
+  const h = await sgvst.open({ path: known?.path || path, cid, sr: c.sampleRate, title: (known?.name || 'Plugin') + ' – Sound Groot' });
+  const base = vstLat(c), off = c instanceof OfflineAudioContext;
+  const node = new AudioWorkletNode(c, 'sg-vst', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [2], channelCount: 2, channelCountMode: 'explicit', processorOptions: { lat: base, inst: !!h.inst, off } });
+  const inst = { vst: h, ctx: c, base, lat: base + (h.latency || 0), audioNode: node, descriptor: { name: h.name, vendor: h.vendor, isInstrument: !!h.inst }, dirty: true, st: null, r: 0, wait: null };
+  node.port.onmessage = e => {
+    if (e.data.r) { inst.r = e.data.r; if (inst.wait && inst.r >= inst.wait.k) { inst.wait.res(); inst.wait = null; } }
+    if (e.data.late) vstLate(inst);
+  };
+  const ch = new MessageChannel();
+  node.port.postMessage({ link: ch.port1 }, [ch.port1]);
+  vstWorker().postMessage({ open: h.id, url: `ws://127.0.0.1:${h.port}/${h.token}`, port: ch.port2 }, [ch.port2]);
+  // Die WAM-Schnittstelle nachbilden, damit Inserts, Instrument-Spuren, Speichern und Export unverändert funktionieren
+  node.scheduleEvents = (...evs) => node.port.postMessage({ ev: evs.filter(x => x.type === 'wam-midi').map(x => [Math.round(x.time * c.sampleRate), ...x.data.bytes]) });
+  node.clearEvents = () => node.port.postMessage({ clear: 1 });
+  node.getState = async () => {
+    if (inst.dirty || !inst.st) { inst.st = { vst3: await sgvst.cmd(h.id, 'getstate') }; inst.dirty = false; }
+    return inst.st;
+  };
+  node.setState = async st => { if (st?.vst3) { await sgvst.cmd(h.id, 'setstate', st.vst3); inst.st = st; inst.dirty = false; } };
+  node.destroy = () => {
+    if (inst.dead) return; inst.dead = true; vstById.delete(h.id);
+    node.port.postMessage({ end: 1 }); vstWorker().postMessage({ close: h.id }); sgvst.close(h.id);
+  };
+  vstById.set(h.id, inst);
+  if (state?.vst3) await node.setState(state).catch(e => toast(`Gespeicherte Einstellungen von „${h.name}“ ließen sich nicht laden.`));
+  if (c.state === 'running' && !off) vstTransportTo(inst);
+  return inst;
+}
+// Abspielposition und Tempo an die Plugins (für Tempo-synchrone Delays, Arpeggiatoren usw.)
+let vstTp = null;
+function vstTransportTo(inst) {
+  const [num, den] = sigOf();
+  inst.audioNode.port.postMessage({ tp: vstTp ? { play: 1, bpm: P.bpm, num, den, ...vstTp } : { play: 0, bpm: P.bpm, num, den, time: 0, beat: playPos } });
+}
+function vstTransport(seg) {
+  vstTp = seg ? { time: seg.time, beat: seg.beat } : null;
+  if (ctx) for (const i of vstNodes(ctx)) vstTransportTo(i);
+}
+// Export: warten, bis jedes Plugin alle Blöcke bis Sample k*128 verarbeitet hat
+function vstBarrier(c, k) {
+  return Promise.all(vstNodes(c).map(i => i.r >= k ? null : new Promise(res => {
+    const t = setTimeout(() => { i.wait = null; console.warn('VST3: keine Antwort von', i.vst.name); res(); }, 10000);
+    i.wait = { k, res: () => { clearTimeout(t); res(); } };
+  })));
+}
+function trimStart(buf, n) {
+  const out = new AudioBuffer({ length: Math.max(1, buf.length - n), numberOfChannels: buf.numberOfChannels, sampleRate: buf.sampleRate });
+  for (let c = 0; c < buf.numberOfChannels; c++) out.copyToChannel(buf.getChannelData(c).subarray(n), c);
+  return out;
+}
+// Latenzausgleich: jede Spur wird so verzögert, dass alle so spät klingen wie die Spur mit den meisten VST-Effekten
+function applyPdc(c0) {
+  if (!c0) return;
+  let M = 0; const L = new Map();
+  for (const t of P.tracks) {
+    const c = chans.get(t.id); if (!c || c.ctx !== c0) continue;
+    let l = 0; for (const s of t.ins || []) { const i = s.on && c.plugs.get(s.id); if (i?.vst) l += i.lat; }
+    L.set(c, l); M = Math.max(M, l);
+  }
+  for (const [c, l] of L) c.pdc.delayTime.value = Math.min(1, (M - l) / c0.sampleRate);
+  c0.sgPdc = M;
+}
+// Puffergröße geändert: allen laufenden Plugins mitteilen und den Ausgleich neu rechnen
+function vstRelat() {
+  for (const i of vstNodes(ctx)) { i.base = vstLat(ctx); i.lat = i.base + (i.vst.latency || 0); i.audioNode.port.postMessage({ lat: i.base }); }
+  applyPdc(ctx);
+}
+// Aussetzer live: Puffer verdoppeln (höchstens 4×) und merken
+function vstLate(inst) {
+  if (inst.ctx !== ctx || vstMul >= 4 || Date.now() - (vstLate.t || 0) < 3000) return;
+  vstLate.t = Date.now(); vstMul *= 2;
+  try { localStorage.setItem('klangwerk.vstbuf', vstMul); } catch (e) { }
+  vstRelat();
+  toast(`VST-Puffer vergrößert (${Math.round(vstLat(ctx) / ctx.sampleRate * 1000)} ms), damit es nicht knackt.`, 3500);
+}
+function vstEditor(inst, title) {
+  sgvst.cmd(inst.vst.id, 'title', title).then(() => sgvst.cmd(inst.vst.id, 'edit')).catch(e => toast(`„${inst.vst.name}“: ${e.message.replace(/^.*Error: /, '')}`, 4000));
+}
+// Abgestürztes Plugin: aus der Kette nehmen, Rest läuft weiter. Ein Klick auf den Namen startet es neu.
+function vstCrash(inst, code) {
+  inst.dead = true; vstById.delete(inst.vst.id);
+  try { inst.audioNode.port.postMessage({ end: 1 }); inst.audioNode.disconnect(); } catch (e) { }
+  vstWorker().postMessage({ close: inst.vst.id });
+  for (const t of P.tracks) {
+    const c = chans.get(t.id); if (!c || c.ctx !== inst.ctx) continue;
+    for (const [id, i] of c.plugs) if (i === inst) { c.plugs.set(id, null); c.sig = ''; syncPlugins(t); }
+    if (c.inst === inst) c.inst = null;
+  }
+  toast(`VST3-Plugin „${inst.vst.name}“ ist abgestürzt${code ? ` (Code ${code})` : ''}. Sound Groot läuft weiter, das Plugin ist überbrückt. Klick auf den Namen startet es neu.`, 6500);
+  if (edTab === 'fx') renderEditor();
+}
+function vstRetry(tr, key) {
+  const c = chan(tr), url = key === 'inst' ? tr.wam.url : tr.ins.find(s => s.id === key)?.url;
+  wamFailed.delete(url);
+  if (key === 'inst') c.instUrl = null; else c.plugs.delete(key);
+  c.sig = ''; toast('Plugin wird neu gestartet …');
+  syncPlugins(tr).then(() => renderEditor());
+}
+async function vstRefresh(force) {
+  if (!sgvst || vstBusy) return;
+  vstBusy = true; if (edTab === 'fx') renderEditor();
+  try { vstInfo = await sgvst.list(force); vstPlugs = vstInfo.plugs; }
+  catch (e) { console.warn(e); toast('VST3-Plugins konnten nicht gesucht werden.'); }
+  vstBusy = false; if (edTab === 'fx') renderEditor();
+}
+if (sgvst) {
+  sgvst.available().then(ok => { if (ok) vstRefresh(false); });
+  sgvst.onEvent((id, msg) => {
+    const inst = vstById.get(id); if (!inst) return;
+    if (msg === 'edited' || msg === 'closed') { inst.dirty = true; clearTimeout(vstSaveT); vstSaveT = setTimeout(wamSaveStates, msg === 'closed' ? 0 : 800); }
+    if (msg.startsWith('latency ')) { inst.vst.latency = +msg.slice(8) || 0; inst.lat = inst.base + inst.vst.latency; applyPdc(inst.ctx); }
+  });
+  sgvst.onExit((id, code) => { const inst = vstById.get(id); if (inst) vstCrash(inst, code); });
+  sgvst.onProgress(p => { if (p.total > 1 || p.done === 0) toast(`VST3-Plugins werden gesucht … ${p.done + 1}/${p.total}: ${p.name}`, 4000); });
+}
+function vstCard() {
+  if (!sgvst) return '';
+  const n = vstPlugs.length, failed = vstInfo?.failed || [];
+  return `<details class="pl-url pl-vst"${vstBusy || !n ? ' open' : ''}><summary>VST3-Plugins auf diesem PC${n ? ` <small>${n}</small>` : ''}</summary>
+    <p class="hint">${vstBusy ? 'Suche läuft …' : n ? `${n} gefunden, in den Listen unter „VST3“. Jedes läuft abgeschirmt: stürzt eins ab, läuft Sound Groot weiter.` : 'Noch keine gefunden. Gesucht wird in „Programme\\Gemeinsame Dateien\\VST3“ und in eigenen Ordnern.'}</p>
+    <div><button class="sbtn" data-pl="vscan" ${vstBusy ? 'disabled' : ''}>Neu suchen</button><button class="sbtn" data-pl="vdir" ${vstBusy ? 'disabled' : ''}>Ordner hinzufügen …</button>${vstMul > 1 ? '<button class="sbtn" data-pl="vbuf" title="Nach Aussetzern wurde der Puffer vergrößert. Kleiner heißt weniger Verzögerung, aber eher Knackser.">Puffer verkleinern</button>' : ''}</div>
+    ${ctx && n ? `<p class="hint">Puffer für VST3: ${Math.round(vstLat(ctx) / ctx.sampleRate * 1000)} ms (wird ausgeglichen, alle Spuren bleiben synchron).</p>` : ''}
+    ${vstInfo?.own?.length ? `<div class="pl-own">${vstInfo.own.map(d => `<span title="${esc(d)}">${esc(d.split(/[\\/]/).pop())}<button data-pl="vrm" data-dir="${esc(d)}" title="Ordner entfernen">×</button></span>`).join('')}</div>` : ''}
+    ${failed.length ? `<p class="hint">Nicht ladbar (${failed.length}): ${failed.map(f => `<span title="${esc(f.error)}">${esc(f.path.split(/[\\/]/).pop())}</span>`).join(', ')}</p>` : ''}</details>`;
+}
+
 function addInsert(tr, p) {
   pushUndo(); (tr.ins ||= []).push({ id: uid(), url: p.url, name: p.name, on: true });
   save(); syncPlugins(tr); renderEditor(); renderArrange();
@@ -4316,9 +4569,11 @@ async function openPlugin(tr, key) {
   ensureCtx();
   const c = chan(tr); await syncPlugins(tr);
   const inst = key === 'inst' ? c.inst : c.plugs.get(key);
-  if (!inst) { toast('Das Plugin ist nicht geladen.'); return; }
-  closePlugin(true);
   const name = key === 'inst' ? tr.wam.name : tr.ins.find(s => s.id === key)?.name;
+  if (!inst && isVst(key === 'inst' ? tr.wam.url : tr.ins.find(s => s.id === key)?.url)) { vstRetry(tr, key); return; }
+  if (!inst) { toast('Das Plugin ist nicht geladen.'); return; }
+  if (inst.vst) { vstEditor(inst, `${name} · ${tr.name} – Sound Groot`); return; }
+  closePlugin(true);
   pwEl.querySelector('.pw-t').innerHTML = `<b style="color:${tr.color}">${esc(tr.name)}</b> · ${esc(name)}`;
   const body = pwEl.querySelector('.pw-body'); body.innerHTML = '<p class="pw-load">Lädt …</p>';
   pwEl.hidden = false;
@@ -4357,19 +4612,22 @@ pwEl.addEventListener('keydown', e => { if (e.code !== 'Space') e.stopPropagatio
 // Karten im Tab „Klang & Effekte“
 function pluginCards(tr) {
   const fx = wamList().filter(p => !p.inst), insts = wamList().filter(p => p.inst), c = chans.get(tr.id);
-  const opt = p => `<option value="${esc(p.url)}">${esc(p.name)}${p.vendor ? ' · ' + esc(p.vendor) : ''}</option>`;
+  const opt = (p, sel) => `<option value="${esc(p.url)}" ${sel ? 'selected' : ''}>${esc(p.name)}${p.vendor ? ' · ' + esc(p.vendor) : ''}</option>`;
+  // Web-Plugins und VST3 getrennt gruppieren
+  const opts = (list, sel) => { const w = list.filter(p => !p.vst), v = list.filter(p => p.vst), o = l => l.map(p => opt(p, p.url === sel)).join(''); return v.length ? `<optgroup label="Web-Plugins (WAM)">${o(w)}</optgroup><optgroup label="VST3 auf diesem PC">${o(v)}</optgroup>` : o(w); };
   const status = inst => inst === undefined ? '<small>lädt</small>' : inst === null ? '<small class="bad">fehlt</small>' : '';
   const rows = (tr.ins || []).map((s, i, a) => `<div class="pl-row ${s.on ? '' : 'off'}" data-slot="${s.id}">
       <input type="checkbox" data-pl="on" ${s.on ? 'checked' : ''} title="Ein/Aus" aria-label="${esc(s.name)} ein/aus">
-      <button class="pl-name" data-pl="open" title="Oberfläche öffnen">${esc(s.name)}${status(c?.plugs.get(s.id))}</button>
+      <button class="pl-name" data-pl="open" title="${isVst(s.url) && c?.plugs.get(s.id) === null ? 'Neu starten' : 'Oberfläche öffnen'}">${esc(s.name)}${isVst(s.url) ? '<small>VST3</small>' : ''}${status(c?.plugs.get(s.id))}</button>
       <button data-pl="up" ${i ? '' : 'disabled'} title="Weiter nach vorn in der Kette">↑</button><button data-pl="down" ${i < a.length - 1 ? '' : 'disabled'} title="Weiter nach hinten">↓</button><button data-pl="del" title="Entfernen">×</button></div>`).join('');
   const own = wamOwn.length ? `<div class="pl-own">${wamOwn.map((p, i) => `<span>${esc(p.name)}${p.inst ? ' <small>Instrument</small>' : ''}<button data-pl="forget" data-i="${i}" title="Aus der Liste entfernen">×</button></span>`).join('')}</div>` : '';
   return `${tr.type === 'synth' ? `<section class="card plug"><h3>Instrument-Plugin</h3>
-      <label class="knob"><span>Klangquelle</span><select id="plInst"><option value="">Eingebaut</option>${insts.map(p => opt(p).replace('<option', `<option ${tr.wam?.url === p.url ? 'selected' : ''}`)).join('')}${tr.wam && !insts.some(p => p.url === tr.wam.url) ? `<option selected value="${esc(tr.wam.url)}">${esc(tr.wam.name)}</option>` : ''}</select></label>
+      <label class="knob"><span>Klangquelle</span><select id="plInst"><option value="">Eingebaut</option>${opts(insts, tr.wam?.url)}${tr.wam && !insts.some(p => p.url === tr.wam.url) ? `<option selected value="${esc(tr.wam.url)}">${esc(tr.wam.name)}</option>` : ''}</select></label>
       ${tr.wam ? `<button class="sbtn" data-pl="iopen">Oberfläche öffnen${status(c && c.instUrl === tr.wam.url ? c.inst : undefined)}</button>` : '<p class="hint">Statt der eingebauten Sounds spielt ein Plugin die Noten dieser Spur.</p>'}</section>` : ''}
     <section class="card plug"><h3>Plugins <small>Inserts</small></h3>
       ${rows || '<p class="hint">Effekt-Plugins laufen nach dem Kompressor, vor dem Lautstärkeregler. Reihenfolge von oben nach unten.</p>'}
-      <label class="knob"><span>Einfügen</span><select id="plAdd"><option value="">Effekt wählen …</option>${fx.map(opt).join('')}</select></label>
+      <label class="knob"><span>Einfügen</span><select id="plAdd"><option value="">Effekt wählen …</option>${opts(fx)}</select></label>
+      ${vstCard()}
       <details class="pl-url"><summary>Eigenes Plugin per Link</summary>
         <div><input type="url" id="plUrl" placeholder="https://…/index.js" aria-label="Link zum Plugin"><button class="sbtn" data-pl="url">Laden</button></div>
         <p class="hint">Jedes Plugin im Format Web Audio Modules 2.0 (WAM), z. B. aus der Sammlung auf webaudiomodules.com. Braucht Internet.</p>${own}</details></section>`;
@@ -4391,6 +4649,10 @@ function pluginEvents(tr, box) {
     if (act === 'iopen') openPlugin(tr, 'inst');
     if (act === 'url') addPluginUrl(tr, $('#plUrl').value);
     if (act === 'forget') { wamOwn.splice(+b.dataset.i, 1); saveWamOwn(); renderEditor(); }
+    if (act === 'vscan') vstRefresh(true);
+    if (act === 'vbuf') { vstMul = 1; try { localStorage.removeItem('klangwerk.vstbuf'); } catch (e) { } if (ctx) vstRelat(); renderEditor(); }
+    if (act === 'vdir') sgvst.addDir().then(r => { if (r) { vstInfo = r; vstPlugs = r.plugs; renderEditor(); } });
+    if (act === 'vrm') sgvst.removeDir(b.dataset.dir).then(r => { vstInfo = r; vstPlugs = r.plugs; renderEditor(); });
     if (act === 'del' || act === 'up' || act === 'down') {
       pushUndo();
       if (act === 'del') tr.ins.splice(i, 1);

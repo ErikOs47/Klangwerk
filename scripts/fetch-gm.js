@@ -25,7 +25,14 @@ const GM = {
   // Neu in v1.3
   egrand: ['electric_grand_piano', 36, 96, 3], percorgan: ['percussive_organ', 36, 90, 2.5], harmonics: ['guitar_harmonics', 48, 84, 2.5],
   bottle: ['blown_bottle', 60, 90, 2.5], tinkle: ['tinkle_bell', 60, 96, 2.5], agogo: ['agogo', 52, 84, 1.5], taiko: ['taiko_drum', 36, 60, 2],
-  woodblock: ['woodblock', 48, 84, 1], synthvox: ['synth_choir', 48, 84, 3]
+  woodblock: ['woodblock', 48, 84, 1], synthvox: ['synth_choir', 48, 84, 3],
+  // Neu in v1.4: Synth-Leads, Flächen und Effektklänge
+  'lead-square': ['lead_1_square', 48, 96, 2.5], 'lead-saw': ['lead_2_sawtooth', 48, 96, 2.5], calliope: ['lead_3_calliope', 48, 96, 2.5],
+  chiff: ['lead_4_chiff', 48, 96, 2.5], charang: ['lead_5_charang', 40, 88, 2.5], 'lead-voice': ['lead_6_voice', 48, 90, 2.5],
+  fifths: ['lead_7_fifths', 40, 88, 2.5], basslead: ['lead_8_bass__lead', 28, 72, 2.5], synthbass2: ['synth_bass_2', 28, 64, 2],
+  synthbrass: ['synth_brass_1', 41, 84, 2.5], epiano2: ['electric_piano_2', 36, 96, 3],
+  polysynth: ['pad_3_polysynth', 36, 90, 3], 'pad-bowed': ['pad_5_bowed', 36, 90, 3], 'pad-metal': ['pad_6_metallic', 36, 90, 3], 'pad-sweep': ['pad_8_sweep', 36, 90, 3],
+  atmosphere: ['fx_4_atmosphere', 36, 90, 3], brightness: ['fx_5_brightness', 36, 90, 3], echoes: ['fx_7_echoes', 36, 90, 3], scifi: ['fx_8_scifi', 36, 90, 3]
 };
 const run = (cmd, args) => new Promise((res, rej) => execFile(cmd, args, { maxBuffer: 1 << 26 }, (e, so) => e ? rej(e) : res(so)));
 async function pool(items, n, fn) { let i = 0; await Promise.all(Array.from({ length: n }, async () => { while (i < items.length) await fn(items[i++]); })); }

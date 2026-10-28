@@ -181,18 +181,32 @@ Bekannte Grenzen:
 - Neue Sounds: 9 echte Instrumente aus dem FluidR3-GM-Soundfont (CC-BY 3.0): E-Flügel, Perkussive Orgel, Gitarren-Flageolett, Flasche (geblasen), Glöckchen, Agogo, Taiko-Trommel, Holzblock, Synth-Chor. Damit hat jedes General-MIDI-Programm einen passenden Klang
 - Nicht möglich: MPC Beats direkt fernsteuern oder seine eingebauten AIR-Plugins nutzen. MPC-Sounds bleiben auf deinem PC und werden nicht in Sound Groot eingebaut (Lizenz)
 
+## Version 1.4 (fertig): VST3-Plugins in der Windows-App
+
+- **VST3-Plugins** (Effekte und Instrumente) laufen in der Windows-App in denselben Plätzen wie die Web-Plugins: Spur wählen → „Klang & Effekte“ → „Einfügen“ (Effekte) bzw. „Instrument-Plugin“. In den Listen stehen sie unter „VST3 auf diesem PC“
+- **Suche**: beim Start werden `C:\Programme\Gemeinsame Dateien\VST3` und `%LOCALAPPDATA%\Programs\Common\VST3` durchsucht, weitere Ordner per „Ordner hinzufügen …“. Nur neue oder geänderte Plugins werden neu geprüft; was sich nicht laden lässt, steht mit Grund in der Liste
+- **Eigene Fenster**: „Oberfläche öffnen“ zeigt die Original-Oberfläche des Plugins in einem eigenen Windows-Fenster (mit Größenänderung und hoher Auflösung, wenn das Plugin das kann)
+- **Abgeschirmt**: jedes Plugin läuft in einem eigenen Prozess (`sg-vst3host.exe`). Stürzt eins ab, läuft Sound Groot weiter, das Plugin wird überbrückt und lässt sich per Klick neu starten
+- **Zustand** (alle Einstellungen und Presets im Plugin) wird im Projekt gespeichert und beim Öffnen und beim Export wiederhergestellt. Liegt ein Plugin auf einem anderen PC woanders, wird es über seine Kennung trotzdem gefunden
+- **Latenzausgleich**: Der Weg zum Plugin hat einen kleinen Puffer (meist 10–30 ms). Instrument-Plugins bekommen ihre Noten um genau diesen Puffer früher, bei Effekt-Plugins werden alle anderen Spuren (und das Metronom) gleich verzögert, so bleibt alles sample-genau zusammen. Bei Aussetzern wird der Puffer automatisch größer („Puffer verkleinern“ setzt ihn zurück)
+- **Export** (WAV/MP3) rendert mit allen VST3-Plugins schneller als Echtzeit, sample-genau wie beim Abspielen
+- Tempo, Taktart und Abspielposition gehen an die Plugins (für Tempo-synchrone Delays, Arpeggiatoren usw.)
+- **MPC Beats als Plugin**: ist MPC Beats als VST3 installiert, steht es in der Instrument-Liste und spielt die Noten einer Spur
+- Grenzen: nur 64-Bit-VST3 (kein VST2, keine 32-Bit-Plugins), nur der Haupt-Stereo-Ein- und -Ausgang (kein Sidechain-Eingang, keine Mehrfach-Ausgänge), im Browser und auf dem iPhone gibt es kein VST3
+- Technik: Host in C++ mit dem Steinberg VST3 SDK (seit Version 3.8 MIT-Lizenz), Quelle in `native/vst3host`, gebaut mit `npm run build:vst3host` (MinGW) oder per GitHub-Action unter Windows (MSVC, mit Tests)
+- Neue Sounds: **19 Synth-Klänge** aus dem FluidR3-GM-Soundfont (CC-BY 3.0): Lead Square, Lead Sägezahn, Calliope, Chiff-Lead, Charang, Voice-Lead, Quinten-Lead, Bass-Lead, Synth-Bass 2, Synth-Bläser, E-Piano DX, Polysynth, Pad gestrichen, Pad metallisch, Pad Sweep, Atmosphäre, Brightness, Echoes, Sci-Fi. Damit klingen auch die Lead-, Pad- und Effekt-Programme aus MIDI-Dateien echt
+
 ## Grundsatz
 
 Jedes Update bringt auch neue Sounds mit.
 
 ## Fahrplan
 
-1. **Als Nächstes**: VST3-Plug-ins in der Windows-Version (natives Add-on für Electron, eigener Prozess, damit ein abstürzendes Plugin die App nicht mitreißt). Damit lässt sich auch MPC Beats selbst als Plugin in einer Spur laden. Die Plugin-Slots aus v0.95 sind dafür schon da
-2. **Danach**: Taktartwechsel mitten im Song, Drums live über Pads einspielen, Touch-Gesten im Piano Roll (langes Drücken für Menüs), Feinschliff nach Tests auf dem iPhone
+1. **Als Nächstes**: Taktartwechsel mitten im Song, Drums live über Pads einspielen, Touch-Gesten im Piano Roll (langes Drücken für Menüs), Feinschliff nach Tests auf dem iPhone
 
 ## Starten
 
-- Windows: `SoundGroot-1.3.0-win.zip` entpacken, `Sound Groot.exe` starten
+- Windows: `SoundGroot-1.4.0-win.zip` entpacken, `Sound Groot.exe` starten
 - iPhone/Browser: https://erikos47.github.io/Klangwerk/ öffnen, dann „Zum Home-Bildschirm“
 - Entwicklung: `npm install`, dann `npm start`
 - Windows-Build: `npm run dist:win`

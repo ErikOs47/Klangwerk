@@ -1,0 +1,34 @@
+# Baut den VST3-Host (native/vst3host) unter Windows mit MSVC und testet ihn mit den Test-Plugins.
+# Die fertige sg-vst3host.exe liegt danach als Artefakt am Lauf.
+name: VST3-Host
+on:
+  push:
+    paths: ['native/**', '.github/workflows/vst3host.yml']
+  pull_request:
+    paths: ['native/**', '.github/workflows/vst3host.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: VST3 SDK holen (MIT-Lizenz)
+        shell: bash
+        run: |
+          git clone -q --depth 1 --branch v3.8.1_build_84 https://github.com/steinbergmedia/vst3sdk.git native/vst3host/.sdk
+          git -C native/vst3host/.sdk submodule -q update --init --depth 1 base pluginterfaces public.sdk
+      - name: Bauen
+        run: |
+          cmake -S native/vst3host -B build -A x64 -DVST3_SDK_DIR="${{ github.workspace }}/native/vst3host/.sdk" -DSG_TESTPLUG=ON
+          cmake --build build --config Release
+      - name: Testen
+        run: node native/vst3host/test/host-test.js build/Release/sg-vst3host.exe "${{ github.workspace }}\build\Release\sg-testplug.vst3"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sg-vst3host
+          path: build/Release/sg-vst3host.exe
