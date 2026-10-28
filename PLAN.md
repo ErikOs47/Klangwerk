@@ -170,18 +170,29 @@ Bekannte Grenzen:
 - Drumkits getrennt in „Synth-Kits“ und „Echte Kits (Samples)“
 - Neue Sounds: **49 echte Instrumente** aus dem FluidR3-GM-Soundfont (CC-BY 3.0): E-Piano (Rhodes-Art), Honky-Tonk, Clavinet, Celesta, Spieluhr, Hackbrett, Hammond- und Rock-Orgel, Akkordeon, Bandoneon, E-Gitarre clean/gedämpft/Crunch/verzerrt, Banjo, Akustik-, Fretless-, Slap-, Plektrum- und Synth-Bass, Bratsche, Streicher-Ensemble, Tremolo, Pizzicato, Synth-Streicher, Chor Aah/Ooh, Bläsersatz, gedämpfte Trompete, Alt- und Baritonsax, Oboe, Englischhorn, Piccolo, Panflöte, Shakuhachi, Pauken, Orchester-Hit, Steel Drum, Sitar, Koto, Shamisen, Dudelsack, Fiddle, Shehnai, drei Pads und Kristall; 2 neue Drumcomputer-Kits: Sequential Circuits Drumtraks und 808 Mini (gemeinfrei)
 
+## Version 1.3 (fertig): MPC Beats und andere DAWs anbinden
+
+- **MIDI-Dateien importieren**: .mid ins Arrangement ziehen oder unter Datei → „MIDI-Datei importieren …“. Jede MIDI-Spur wird eine eigene Spur, Kanal 10 wird ein Drum-Pattern, Instrumente bekommen über das General-MIDI-Programm einen passenden Klang. Auf eine bestehende Spur gezogen kommen die passenden Noten dorthin (Drums auf Drum- und Sampler-Spuren), der Rest auf neue Spuren. Triolen und der Swing aus MPC Beats werden erkannt (Swing-Regler der Region). Hat die Datei ein anderes Tempo oder eine andere Taktart, fragt Sound Groot, ob der Song sie übernehmen soll
+- **MIDI-Dateien exportieren**: Datei → „Song als MIDI exportieren“ (alle Instrument-, Drum- und Sampler-Spuren) und „Als MIDI“ oben im Editor für eine einzelne Region. Drums und Pads liegen auf Kanal 10 mit General-MIDI-Noten, so dass MPC Beats und andere DAWs sie richtig zuordnen
+- **Ordner-Browser** in der Bibliothek (Filter „Ordner“): Sample-Ordner durchblättern, ▶ vorhören, per Klick laden oder auf eine Spur ziehen, Suche über alle Unterordner. In der Windows-App werden die installierten MPC-Expansions (C:\ProgramData\Akai\MPC\Expansions) automatisch gefunden, weitere Ordner per „Ordner hinzufügen …“. Im Browser (Chrome/Edge) über „Ordner wählen …“
+- **MPC-Programme (.xpm)**: Drum-Programme werden zur Sampler-Spur mit allen 16 Pads (Stimmung, Lautstärke, Rückwärts, One-Shot, MIDI-Notenbelegung der MPC), jede belegte Bank wird eine eigene Spur. Keygroup-Programme werden zum spielbaren Instrument mit allen Samples über die Tastatur verteilt (inkl. Schleifen)
+- Sampler: kurze Einzelklänge (unter 1,5 s) landen ungeschnitten auf einem Pad; MIDI-Pads folgen der Notenbelegung eines MPC-Kits
+- Mehr General-MIDI-Drumnoten werden erkannt (Bongos, Timbales, Agogo, Claves, Woodblock, Guiro, Tamburin)
+- Neue Sounds: 9 echte Instrumente aus dem FluidR3-GM-Soundfont (CC-BY 3.0): E-Flügel, Perkussive Orgel, Gitarren-Flageolett, Flasche (geblasen), Glöckchen, Agogo, Taiko-Trommel, Holzblock, Synth-Chor. Damit hat jedes General-MIDI-Programm einen passenden Klang
+- Nicht möglich: MPC Beats direkt fernsteuern oder seine eingebauten AIR-Plugins nutzen. MPC-Sounds bleiben auf deinem PC und werden nicht in Sound Groot eingebaut (Lizenz)
+
 ## Grundsatz
 
 Jedes Update bringt auch neue Sounds mit.
 
 ## Fahrplan
 
-1. **v1.3**: Taktartwechsel mitten im Song, Drums live über Pads einspielen, Touch-Gesten im Piano Roll (langes Drücken für Menüs), Feinschliff nach Tests auf dem iPhone
-2. **Später**: VST3-Plug-ins zusätzlich in der Windows-Version (natives Add-on für Electron, eigener Prozess, damit ein abstürzendes Plugin die App nicht mitreißt). Die Plugin-Slots aus v0.95 sind dafür schon da
+1. **Als Nächstes**: VST3-Plug-ins in der Windows-Version (natives Add-on für Electron, eigener Prozess, damit ein abstürzendes Plugin die App nicht mitreißt). Damit lässt sich auch MPC Beats selbst als Plugin in einer Spur laden. Die Plugin-Slots aus v0.95 sind dafür schon da
+2. **Danach**: Taktartwechsel mitten im Song, Drums live über Pads einspielen, Touch-Gesten im Piano Roll (langes Drücken für Menüs), Feinschliff nach Tests auf dem iPhone
 
 ## Starten
 
-- Windows: `SoundGroot-1.2.0-win.zip` entpacken, `Sound Groot.exe` starten
+- Windows: `SoundGroot-1.3.0-win.zip` entpacken, `Sound Groot.exe` starten
 - iPhone/Browser: https://erikos47.github.io/Klangwerk/ öffnen, dann „Zum Home-Bildschirm“
 - Entwicklung: `npm install`, dann `npm start`
 - Windows-Build: `npm run dist:win`

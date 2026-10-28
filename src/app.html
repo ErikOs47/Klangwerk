@@ -220,6 +220,18 @@ input[type=checkbox] { accent-color: var(--accent); }
 .lib-item .pv.on { color: var(--c, var(--accent)); }
 .lib-item .fv.on { color: var(--accent); }
 @media (hover: none) { .lib-item .pv, .lib-item .fv { opacity: .55; width: 30px; height: 30px; } }
+/* Datei-Browser (Ordner, MPC-Bibliothek) */
+.lib-item.fs-dir i { width: 12px; height: 9px; border-radius: 2px 2px 2px 2px; background: #c9a86a; box-shadow: none; position: relative; }
+.lib-item.fs-dir i::before { content: ""; position: absolute; left: 0; top: -2px; width: 5px; height: 3px; border-radius: 1px 1px 0 0; background: #c9a86a; }
+.lib-item.fs-file { cursor: grab; }
+.lib-item.fs-file:active { cursor: grabbing; }
+.lib-item .fs-x { flex: none; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 6px; color: var(--faint); opacity: 0; }
+.lib-item:hover .fs-x { opacity: 1; }
+.lib-item .fs-x:hover { background: #ffffff14; color: var(--fg); }
+.fs-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; padding: 4px 6px 8px; font-size: 12px; color: var(--faint); }
+.fs-crumbs button { border: 0; background: transparent; color: #b9bdc8; padding: 3px 6px; border-radius: 6px; font-size: 12px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fs-crumbs button:hover { background: var(--hover); color: var(--fg); }
+.fs-crumbs button:last-child { color: var(--fg); font-weight: 600; }
 .lib-chips { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
 .lib-chip { height: 24px; padding: 0 9px; border-radius: 12px; border: 1px solid var(--line); background: transparent; color: var(--muted); font-size: 11.5px; font-weight: 600; transition: background .12s, color .12s, border-color .12s; }
 .lib-chip:hover { color: var(--fg); border-color: #ffffff30; }
@@ -708,6 +720,8 @@ button { touch-action: manipulation; }
           <hr>
           <button data-file="wav">Song als WAV exportieren</button>
           <button data-file="mp3">Song als MP3 exportieren</button>
+          <button data-file="mid">Song als MIDI exportieren</button>
+          <button data-file="midiin">MIDI-Datei importieren …</button>
           <hr>
           <button data-file="demo">Demo-Song laden</button>
           <hr data-pwa hidden>
@@ -715,7 +729,7 @@ button { touch-action: manipulation; }
           <button data-file="offline" data-pwa hidden>Alle Sounds offline speichern</button>
         </div>
       </div>
-      <input type="file" id="projIn" accept=".soundgroot,.klangwerk,.json,application/json" hidden>
+      <input type="file" id="projIn" accept=".soundgroot,.klangwerk,.json,application/json" hidden><input type="file" id="midiIn" accept=".mid,.midi,.smf,audio/midi,audio/x-midi" hidden>
       <span class="pname" id="pname" title="Projektname"></span>
     </div>
     <div class="spacer"></div>
@@ -1460,22 +1474,26 @@ const SAMPLED = {
   'gm-bagpipe': ['Dudelsack', { hold: 1, a: .03, r: .2, prev: 67 }], 'gm-fiddle': ['Fiddle (Folk-Geige)', { hold: 1, a: .04, r: .25, prev: 69 }],
   'gm-shanai': ['Shehnai', { hold: 1, a: .03, r: .2, prev: 72 }],
   'gm-pad-warm': ['Pad Warm (Sample)', { hold: 1, a: .3, r: 1 }], 'gm-pad-halo': ['Pad Halo', { hold: 1, a: .3, r: 1.2 }],
-  'gm-pad-newage': ['Pad New Age', { hold: 1, a: .05, r: 1.2 }], 'gm-crystal': ['Kristall', { r: 1.2, prev: 72 }]
+  'gm-pad-newage': ['Pad New Age', { hold: 1, a: .05, r: 1.2 }], 'gm-crystal': ['Kristall', { r: 1.2, prev: 72 }],
+  // Neu in v1.3: weitere FluidR3-GM-Instrumente (auch damit MIDI-Dateien mit diesen Programmen passend klingen)
+  'gm-egrand': ['E-Flügel (CP-Art)', { r: .5 }], 'gm-percorgan': ['Perkussive Orgel', { hold: 1, a: .005, r: .1 }], 'gm-harmonics': ['Gitarren-Flageolett', { r: .8, prev: 67 }],
+  'gm-bottle': ['Flasche (geblasen)', { hold: 1, a: .05, r: .2, prev: 72 }], 'gm-tinkle': ['Glöckchen', { r: 1, prev: 79 }], 'gm-agogo': ['Agogo (gestimmt)', { r: .3, prev: 67 }],
+  'gm-taiko': ['Taiko-Trommel', { r: .6, prev: 45 }], 'gm-woodblock': ['Holzblock (gestimmt)', { r: .2, prev: 67 }], 'gm-synthvox': ['Synth-Chor', { hold: 1, a: .15, r: .8 }]
 };
 for (const [id, [name, o]] of Object.entries(SAMPLED))
   PRESETS['s_' + id] = { cat: 'Echte Instrumente', name, smp: id, hold: !!o.hold, prev: o.prev, env: { a: o.a || .002, d: 1, s: 1, r: o.r }, cut: 20000, level: o.level || (o.hold ? .38 : .48) };
 PRESETS.user = { cat: 'Eigene Samples', name: 'Eigenes Sample', smp: 'user', env: { a: .002, d: 1, s: 1, r: .25 }, cut: 20000, level: .9 };
 // Bibliothek: Synth-Klänge und Aufnahmen stehen gemeinsam nach Instrumentenfamilie sortiert (Reihenfolge = Anzeige)
 const FAMS = [
-  ['Klavier & Tasten', 'piano epiano tines honky wurli toypiano lofikeys clav harpsi s_piano s_upright-piano s_grand-kawai s_upright-knight s_fm-piano s_tx-piano s_harpsichord s_harpsichord-lute s_clavisynth s_gm-epiano s_gm-honky s_gm-clavinet'],
-  ['Orgel & Akkordeon', 'organ church accordion s_organ s_harmonium s_renaissance-organ s_pipe-organ s_gm-drawbar s_gm-rockorgan s_gm-accordion s_gm-bandoneon'],
-  ['Gitarre & Zupfinstrumente', 'guitar harp acgtr nylon egtr dist banjo twelve ukulele mandolin s_guitar-acoustic s_guitar-nylon s_guitar-electric s_harp s_folk-harp s_strumstick s_psaltery-pluck s_gm-guitar-clean s_gm-guitar-muted s_gm-overdrive s_gm-distortion s_gm-banjo s_gm-dulcimer'],
+  ['Klavier & Tasten', 'piano epiano tines honky wurli toypiano lofikeys clav harpsi s_piano s_upright-piano s_grand-kawai s_upright-knight s_fm-piano s_tx-piano s_harpsichord s_harpsichord-lute s_clavisynth s_gm-epiano s_gm-honky s_gm-clavinet s_gm-egrand'],
+  ['Orgel & Akkordeon', 'organ church accordion s_organ s_harmonium s_renaissance-organ s_pipe-organ s_gm-drawbar s_gm-rockorgan s_gm-accordion s_gm-bandoneon s_gm-percorgan'],
+  ['Gitarre & Zupfinstrumente', 'guitar harp acgtr nylon egtr dist banjo twelve ukulele mandolin s_guitar-acoustic s_guitar-nylon s_guitar-electric s_harp s_folk-harp s_strumstick s_psaltery-pluck s_gm-guitar-clean s_gm-guitar-muted s_gm-overdrive s_gm-distortion s_gm-banjo s_gm-dulcimer s_gm-harmonics'],
   ['Bass', 'bass ebass sub b808 acid reese upright slap wobble fmbass moog s_bass-electric s_contrabass s_gm-acbass s_gm-fretless s_gm-slap s_gm-pickbass s_gm-synthbass'],
   ['Streicher', 'strings pizz cello violin tutti s_cello s_violin s_psaltery s_gm-viola s_gm-strings s_gm-tremolo s_gm-pizz s_gm-synthstrings'],
   ['Blechbläser', 'brass trumpet synbrass s_trumpet s_trombone s_french-horn s_tuba s_gm-brass s_gm-mutedtpt'],
-  ['Holzbläser & Flöten', 'flute sax clarinet oboe harmonica whistle s_flute s_clarinet s_saxophone s_bassoon s_tenor-sax s_saxello s_harmonica s_harmonica-chrom s_ocarina s_recorder s_bass-recorder s_gm-altosax s_gm-barisax s_gm-oboe s_gm-englhorn s_gm-piccolo'],
-  ['Mallets, Glocken & Pauken', 'celesta marimba vibes musicbox bell glock tubular s_xylophone s_vibraphone s_vibes-soft s_marimba s_balafon s_glockenspiel s_tubular-glock s_tubular-bells s_hand-chimes s_gm-celesta s_gm-musicbox s_gm-crystal s_gm-timpani'],
-  ['Chor & Flächen', 'pad glass choir darkpad shimmer vox s_gm-choir s_gm-oohs s_gm-pad-warm s_gm-pad-halo s_gm-pad-newage'],
+  ['Holzbläser & Flöten', 'flute sax clarinet oboe harmonica whistle s_flute s_clarinet s_saxophone s_bassoon s_tenor-sax s_saxello s_harmonica s_harmonica-chrom s_ocarina s_recorder s_bass-recorder s_gm-altosax s_gm-barisax s_gm-oboe s_gm-englhorn s_gm-piccolo s_gm-bottle'],
+  ['Mallets, Glocken & Pauken', 'celesta marimba vibes musicbox bell glock tubular s_xylophone s_vibraphone s_vibes-soft s_marimba s_balafon s_glockenspiel s_tubular-glock s_tubular-bells s_hand-chimes s_gm-celesta s_gm-musicbox s_gm-crystal s_gm-timpani s_gm-tinkle s_gm-agogo s_gm-woodblock s_gm-taiko'],
+  ['Chor & Flächen', 'pad glass choir darkpad shimmer vox s_gm-choir s_gm-oohs s_gm-pad-warm s_gm-pad-halo s_gm-pad-newage s_gm-synthvox'],
   ['Weltmusik', 'sitar koto steeldrum panflute kalimba s_kalimba s_kalimba-tz s_mbira s_nyunga s_dan-tranh s_gm-steeldrum s_gm-sitar s_gm-koto s_gm-shamisen s_gm-shakuhachi s_gm-panflute s_gm-bagpipe s_gm-fiddle s_gm-shanai'],
   ['Lead & Synth', 'lead square supersaw pluck arp chip hoover sweep riser s_gm-orchhit']
 ];
@@ -1526,7 +1544,13 @@ const samplesReady = () => Promise.all([...usedSamples().map(id => loadSamples(i
 // Eigenes Sample einer Spur: eine Zone mit dem Grundton, bei Bedarf als Schleife (Kopie, das Original bleibt unverändert)
 const userZoneCache = new Map();
 function userZones(tr) {
-  const u = tr.usmp, buf = u && audioBuffers.get(u.buf); if (!buf) return null;
+  const u = tr.usmp;
+  if (u?.zones) return u.zones.map(z => {
+    const buf = audioBuffers.get(z.buf); if (!buf) return null;
+    let c = userZoneCache.get(z.buf); if (!c || c.src !== buf) userZoneCache.set(z.buf, c = { src: buf, off: z.ls ? 0 : leadIn(buf) });
+    return { buf, off: c.off, m: z.m, lo: z.lo, hi: z.hi, ls: z.ls, le: z.le };
+  }).filter(Boolean);
+  const buf = u && audioBuffers.get(u.buf); if (!buf) return null;
   const key = u.buf + (u.loop ? '|loop' : '');
   let z = userZoneCache.get(key);
   if (!z || z.src !== buf) {
@@ -1551,7 +1575,9 @@ function detectRoot(buf) {
 function samplerOn(tr, P_, dest, midi, time, vel, tw) {
   const zones = P_.smp === 'user' ? userZones(tr) : smpSets.get(P_.smp)?.zones;
   if (!zones?.length) { if (P_.smp !== 'user') loadSamples(P_.smp).catch(() => { }); return { release() { } }; }
-  let z = zones[0]; for (const x of zones) if (Math.abs(x.m - midi) < Math.abs(z.m - midi)) z = x;
+  // Zonen mit Tastenbereich (MPC-Keygroups) zuerst, sonst das Sample mit dem nächsten Grundton
+  const inR = zones.filter(x => x.lo != null && x.lo <= midi && midi <= x.hi), cand = inR.length ? inR : zones;
+  let z = cand[0]; for (const x of cand) if (Math.abs(x.m - midi) < Math.abs(z.m - midi)) z = x;
   const am = Math.pow(4, tw.attack || 0), rm = Math.pow(4, tw.release || 0), cm = Math.pow(4, tw.bright || 0);
   const a = P_.env.a * am, r = P_.env.r * rm, src = ctx.createBufferSource(), filt = ctx.createBiquadFilter(), g = ctx.createGain();
   src.buffer = z.buf; src.playbackRate.value = Math.pow(2, (midi - z.m) / 12);
@@ -1930,8 +1956,8 @@ function load() {
 const idb = (() => {
   let dbp = null;
   const open = () => dbp ||= new Promise((res, rej) => {
-    const r = indexedDB.open('klangwerk', 2);
-    r.onupgradeneeded = () => { for (const n of ['audio', 'snaps']) if (!r.result.objectStoreNames.contains(n)) r.result.createObjectStore(n); };
+    const r = indexedDB.open('klangwerk', 3);
+    r.onupgradeneeded = () => { for (const n of ['audio', 'snaps', 'dirs']) if (!r.result.objectStoreNames.contains(n)) r.result.createObjectStore(n); };
     r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
   });
   const run = async (st, mode, fn) => {
@@ -1939,7 +1965,7 @@ const idb = (() => {
     return new Promise((res, rej) => { const t = db.transaction(st, mode), rq = fn(t.objectStore(st)); t.oncomplete = () => res(rq.result); t.onerror = () => rej(t.error); });
   };
   const api = st => ({ put: (k, v) => run(st, 'readwrite', s => s.put(v, k)), get: k => run(st, 'readonly', s => s.get(k)), del: k => run(st, 'readwrite', s => s.delete(k)), keys: () => run(st, 'readonly', s => s.getAllKeys()), all: () => run(st, 'readonly', s => s.getAll()) });
-  return { ...api('audio'), snaps: api('snaps') };
+  return { ...api('audio'), snaps: api('snaps'), dirs: api('dirs') }; // dirs: im Browser gewählte Sample-Ordner
 })();
 function addBuffer(buf, id = uid()) {
   audioBuffers.set(id, buf);
@@ -1947,7 +1973,7 @@ function addBuffer(buf, id = uid()) {
   idb.put(id, { sr: buf.sampleRate, ch }).catch(() => { });
   return id;
 }
-const bufferIds = () => [...new Set(P.tracks.flatMap(t => t.type === 'audio' ? t.regions.flatMap(r => [r.buf, ...(r.takes || []).map(k => k.buf)]) : t.type === 'sampler' ? [...t.srcs.map(x => x.buf), ...t.chops.map(c => c.buf)] : t.usmp ? [t.usmp.buf] : []))];
+const bufferIds = () => [...new Set(P.tracks.flatMap(t => t.type === 'audio' ? t.regions.flatMap(r => [r.buf, ...(r.takes || []).map(k => k.buf)]) : t.type === 'sampler' ? [...t.srcs.map(x => x.buf), ...t.chops.map(c => c.buf)] : t.usmp ? [t.usmp.buf, ...(t.usmp.zones || []).map(z => z.buf)] : []))];
 function makeBuffer(sr, ch) {
   const b = new AudioBuffer({ length: ch[0].length, sampleRate: sr, numberOfChannels: ch.length });
   ch.forEach((d, i) => b.copyToChannel(d, i)); return b;
@@ -2164,6 +2190,238 @@ async function exportSong(fmt) {
     if (ok) toast(`„${name}“ exportiert (${(buf.duration).toFixed(1).replace('.', ',')} s${lu > -70 ? ', Lautheit ' + fmtLu(lu) + ' LUFS' : ''}).`, 4500);
   } catch (e) { console.error(e); toast('Export fehlgeschlagen: ' + (e.message || e)); }
 }
+
+// ================= MIDI-Dateien (.mid) =================
+// Standard-MIDI-Dateien lesen und schreiben: Patterns aus MPC Beats („Export MIDI“) oder anderen DAWs holen
+// und eigene Spuren als Noten weitergeben. Die Zeit zählt wie im Projekt in Vierteln, das Tempo spielt dafür keine Rolle.
+// General-MIDI-Programm 0…127 → passender Klang aus der Bibliothek
+const GM_PROG = ('s_piano s_grand-kawai s_upright-piano s_gm-honky s_gm-epiano s_fm-piano s_harpsichord s_gm-clavinet '
+  + 's_gm-celesta s_glockenspiel s_gm-musicbox s_vibraphone s_marimba s_xylophone s_tubular-bells s_gm-dulcimer '
+  + 's_gm-drawbar s_gm-percorgan s_gm-rockorgan s_pipe-organ s_harmonium s_gm-accordion s_harmonica s_gm-bandoneon '
+  + 's_guitar-nylon s_guitar-acoustic s_guitar-electric s_gm-guitar-clean s_gm-guitar-muted s_gm-overdrive s_gm-distortion s_gm-harmonics '
+  + 's_gm-acbass s_bass-electric s_gm-pickbass s_gm-fretless s_gm-slap s_gm-slap s_gm-synthbass moog '
+  + 's_violin s_gm-viola s_cello s_contrabass s_gm-tremolo s_gm-pizz s_harp s_gm-timpani '
+  + 's_gm-strings s_gm-strings s_gm-synthstrings s_gm-synthstrings s_gm-choir s_gm-oohs s_gm-synthvox s_gm-orchhit '
+  + 's_trumpet s_trombone s_tuba s_gm-mutedtpt s_french-horn s_gm-brass synbrass synbrass '
+  + 's_saxello s_gm-altosax s_tenor-sax s_gm-barisax s_gm-oboe s_gm-englhorn s_bassoon s_clarinet '
+  + 's_gm-piccolo s_flute s_recorder s_gm-panflute s_gm-bottle s_gm-shakuhachi whistle s_ocarina '
+  + 'square lead lead lead lead vox lead supersaw '
+  + 's_gm-pad-newage s_gm-pad-warm pad s_gm-choir s_psaltery glass s_gm-pad-halo sweep '
+  + 's_gm-crystal darkpad s_gm-crystal shimmer shimmer darkpad shimmer sweep '
+  + 's_gm-sitar s_gm-banjo s_gm-shamisen s_gm-koto s_kalimba s_gm-bagpipe s_gm-fiddle s_gm-shanai '
+  + 's_gm-tinkle s_gm-agogo s_gm-steeldrum s_gm-woodblock s_gm-taiko s_gm-taiko b808 riser '
+  + 'riser riser riser riser riser riser riser riser').split(' ');
+// Drum-Sounds als General-MIDI-Noten (für den Export, MPC Beats und andere DAWs verstehen das)
+const DRUM_GM = { kick: 36, snare: 38, clap: 39, hat: 42, ohat: 46, tom: 45, rim: 37, cow: 56, crash: 49, ride: 51, shaker: 70, conga: 63 };
+// Pads einer Sampler-Spur: eigene Notenbelegung (aus einem MPC-Kit) oder wie bei der MPC ab C1 (36)
+const padNote = (tr, pad) => tr.padNotes?.[pad] ?? 36 + pad;
+function padOfNote(tr, midi) {
+  const i = tr.padNotes ? tr.padNotes.indexOf(midi) : -1;
+  return i >= 0 ? i : (((midi - 36) % 16) + 16) % 16;
+}
+// Liest eine MIDI-Datei. Ergebnis: { tempo, sig, parts: [{ name, ch, prog, notes: [{ s, l, p, v }] }] }
+function parseMidi(ab) {
+  const d = new Uint8Array(ab), dv = new DataView(ab);
+  const str = (o, n) => String.fromCharCode(...d.subarray(o, o + n));
+  if (d.length < 14 || str(0, 4) !== 'MThd') throw new Error('keine MIDI-Datei');
+  const ntr = dv.getUint16(10), div = dv.getUint16(12);
+  if (div & 0x8000) throw new Error('MIDI-Dateien mit SMPTE-Zeit werden nicht unterstützt');
+  const ppq = div || 480, parts = [];
+  let tempo = 0, sig = null, o = 8 + dv.getUint32(4);
+  for (let ti = 0; ti < ntr && o + 8 <= d.length; ti++) {
+    const len = dv.getUint32(o + 4), isTrk = str(o, 4) === 'MTrk', end = Math.min(d.length, o + 8 + len);
+    let p = o + 8; o = end;
+    if (!isTrk) continue;
+    const vlq = () => { let v = 0, b; do { b = d[p++]; v = (v << 7) | (b & 0x7f); } while (b & 0x80 && p < end); return v; };
+    const open = new Map(), byCh = new Map(), prog = Array(16).fill(-1);
+    let t = 0, run = 0, name = '';
+    const part = ch => { let x = byCh.get(ch); if (!x) byCh.set(ch, x = { ch, prog: -1, notes: [] }); return x; };
+    const close = (ch, n, at) => {
+      const q = open.get(ch * 128 + n); if (!q?.length) return;
+      const s = q.shift(), x = part(ch);
+      if (x.prog < 0) x.prog = s.prog;
+      x.notes.push({ s: s.t / ppq, l: Math.max(1, at - s.t) / ppq, p: n, v: s.v });
+    };
+    while (p < end) {
+      t += vlq();
+      let st = d[p];
+      if (st & 0x80) p++; else st = run;
+      if (st === 0xff) {
+        const type = d[p++], l = vlq(), m = p; p += l;
+        if (type === 0x03 && !name) name = new TextDecoder('latin1').decode(d.subarray(m, m + l)).trim();
+        else if (type === 0x51 && !tempo && l >= 3) tempo = 60000000 / ((d[m] << 16) | (d[m + 1] << 8) | d[m + 2]);
+        else if (type === 0x58 && !sig && l >= 2) sig = [d[m], 2 ** d[m + 1]];
+        else if (type === 0x2f) break;
+        continue;
+      }
+      if (st === 0xf0 || st === 0xf7) { p += vlq(); continue; }
+      run = st;
+      const cmd = st & 0xf0, ch = st & 15;
+      if (cmd === 0xc0 || cmd === 0xd0) { if (cmd === 0xc0) prog[ch] = d[p]; p += 1; continue; }
+      const n = d[p], v = d[p + 1]; p += 2;
+      if (cmd === 0x90 && v > 0) { const k = ch * 128 + n; if (!open.has(k)) open.set(k, []); open.get(k).push({ t, v: v / 127, prog: prog[ch] }); }
+      else if (cmd === 0x80 || cmd === 0x90) close(ch, n, t);
+    }
+    // Noten ohne Ende klingen bis zum Ende der Spur
+    for (const k of [...open.keys()]) while (open.get(k).length) close(k >> 7, k & 127, Math.max(t, open.get(k)[0].t + ppq / 4));
+    for (const x of byCh.values()) if (x.notes.length) { x.notes.sort((a, b) => a.s - b.s || a.p - b.p); parts.push({ name, ...x }); }
+  }
+  return { tempo: tempo ? Math.round(tempo * 100) / 100 : 0, sig, parts };
+}
+// Drum-Noten auf das Raster eines Drum-Patterns legen. Pro Zählzeit wird entschieden, ob es Triolen sind;
+// gleichmäßig nach hinten geschobene Off-Beats werden als Swing der Region erkannt (so bleibt der MPC-Swing erhalten).
+function notesToDrums(notes, start, bars, name) {
+  const BL0 = BL(), bt = BT(), sub = bt < 1 ? 2 : 4, out = [];
+  let skipped = 0;
+  for (let b0 = 0; b0 < bars;) {
+    const rest = bars - b0, pb = rest >= 16 ? 16 : PBS.find(x => x >= rest), nb = Math.min(16, rest);
+    const r = drumRegion('Leer', start + b0 * BL0, nb * BL0, pb);
+    r.name = name;
+    const from = b0 * BL0, to = (b0 + nb) * BL0, hits = notes.filter(n => n.s >= from - 1e-6 && n.s < to - 1e-6);
+    // Swing: Verschiebung der zweiten 16tel jeder Achtel
+    const st = 1 / 4, offs = [];
+    for (const n of hits) { const x = (n.s - from) / st, k = Math.round(x); if (Math.abs(x - k) < .5 && k % 2) offs.push(n.s - from - k * st); }
+    const shift = offs.length >= 4 ? offs.reduce((a, b) => a + b, 0) / offs.length : 0;
+    if (sub === 4 && shift > .02) r.swing = clamp(Math.round(50 + shift / .25 * 50), 51, 75);
+    const sw = drumSwing(r), nbeats = drumBeats(r);
+    for (let b = 0; b < nbeats; b++) {
+      const bh = hits.filter(n => { const x = (n.s - from) / bt - b; return x > -.12 && x < .88; });
+      const fr = bh.map(n => (n.s - from) / bt - b);
+      const near = v => fr.some(f => Math.abs(f - v) < .05);
+      r.trip[b] = sub === 4 && near(2 / 3) && !near(.5) && !near(.25);
+      // Mögliche Plätze dieser Zählzeit (mit Swing auf jeder zweiten 16tel), der nächste gewinnt
+      const n3 = r.trip[b] ? 3 : sub, pos = Array.from({ length: n3 }, (_, i) => i / n3 + (n3 === 4 && i % 2 ? sw / bt : 0));
+      for (let i = 0; i < bh.length; i++) {
+        const d = GM_DRUMS[bh[i].p]; if (!d) { skipped++; continue; }
+        let slot = 0;
+        pos.forEach((x, j) => { if (Math.abs(fr[i] - x) < Math.abs(fr[i] - pos[slot])) slot = j; });
+        const k = b * 4 + slot;
+        if (bh[i].v > r.steps[d][k]) r.steps[d][k] = Math.round(bh[i].v * 100) / 100;
+      }
+    }
+    out.push(r); b0 += nb;
+  }
+  return { regions: out, skipped };
+}
+// MIDI-Datei ins Projekt holen: auf eine bestimmte Spur (alle Noten zusammen) oder als neue Spuren (eine pro MIDI-Spur)
+async function importMidi(file, trackId, beat) {
+  let m;
+  try { m = parseMidi(await file.arrayBuffer()); }
+  catch (e) { toast(`„${file.name}“ ließ sich nicht lesen (${e.message}).`); return; }
+  if (!m.parts.length) { toast(`In „${file.name}“ sind keine Noten.`); return; }
+  const go = () => placeMidi(m, file.name.replace(/\.(mid|midi|smf)$/i, ''), trackId, beat);
+  const tempoDiff = m.tempo && clamp(Math.round(m.tempo), 40, 240) !== P.bpm, sigDiff = m.sig && String(m.sig) !== String(sigOf()) && SIGS.some(s => String(s) === String(m.sig));
+  if (!tempoDiff && !sigDiff) { go(); return; }
+  const what = [tempoDiff && fmtBpm(m.tempo) + ' BPM', sigDiff && m.sig.join('/')].filter(Boolean).join(' und ');
+  const adopt = () => { if (sigDiff) setSig(m.sig); if (tempoDiff) setBpm(m.tempo); };
+  // Leeres Projekt: Tempo und Taktart einfach übernehmen
+  if (!P.tracks.some(t => t.regions.length)) { adopt(); go(); toast(`Tempo und Taktart der Datei übernommen (${what}).`); return; }
+  banner(`„${file.name}“ hat ${what}. Für den Song übernehmen?`, [['Übernehmen', () => { adopt(); go(); }, true], ['Song so lassen', go]]);
+}
+function placeMidi(m, name, trackId, beat) {
+  pushUndo();
+  const start = snapBar(Math.max(0, beat ?? playPos)), target = trackId && findTrack(trackId);
+  const lenOf = notes => Math.max(BL(), ceilBar(Math.max(...notes.map(n => n.s + n.l)) - 1e-6));
+  const made = [];
+  let skipped = 0, first = null;
+  const fill = (tr, notes, nm) => {
+    if (tr.type === 'drums') {
+      // Bei Drums zählt nur der Anschlag: ein Schlag auf der letzten 16tel verlängert nicht um einen Takt
+      const res = notesToDrums(notes, start, Math.round(lenOf(notes.map(n => ({ s: n.s, l: .01 }))) / BL()), nm);
+      tr.regions.push(...res.regions); skipped += res.skipped; first ||= res.regions[0];
+    } else {
+      const r = { id: uid(), name: nm, start, len: lenOf(notes), notes: notes.map(n => ({ s: n.s, l: n.l, p: tr.type === 'sampler' ? padOfNote(tr, n.p) : n.p, v: Math.round(n.v * 100) / 100 })) };
+      tr.regions.push(r); first ||= r;
+    }
+  };
+  // Auf eine Spur gezogen: Drums (Kanal 10) auf Drum- und Sampler-Spuren, alles andere auf Instrument-Spuren.
+  // Was nicht passt, kommt wie gewohnt auf neue Spuren.
+  let rest = m.parts;
+  if (target && target.type !== 'audio') {
+    const want = x => (x.ch === 9) === (target.type !== 'synth'), mine = m.parts.some(want) ? m.parts.filter(want) : m.parts;
+    rest = m.parts.filter(x => !mine.includes(x));
+    fill(target, mine.flatMap(x => x.notes).sort((a, b) => a.s - b.s), name);
+    made.push(target);
+  }
+  if (rest.length) {
+    rest.forEach((x, i) => {
+      const nm = x.name || (rest.length > 1 ? `${name} ${i + 1}` : name);
+      const tr = x.ch === 9 ? newTrack('drums', { name: nm.slice(0, 24), color: COLORS[P.tracks.length % COLORS.length] })
+        : newTrack('synth', { name: nm.slice(0, 24), preset: PRESETS[GM_PROG[x.prog]] ? GM_PROG[x.prog] : 's_piano' });
+      P.tracks.push(tr); fill(tr, x.notes, nm); made.push(tr);
+    });
+    applyMix();
+  }
+  selTrack = made[0].id; selRegion = first?.id || null; edTab = 'region';
+  save(); render();
+  const n = m.parts.reduce((a, x) => a + x.notes.length, 0);
+  toast(`${n} Noten aus „${name}“ importiert${made.length > 1 ? `, ${made.length} Spuren` : ` auf „${made[0].name}“`}${skipped ? `. ${skipped} Drum-Noten ohne passenden Sound ausgelassen` : ''}.`, 4500);
+}
+// Noten einer Spur (oder nur einer Region) als [{ t, l, p, v }] in Vierteln ab Songanfang, so wie sie klingen
+function trackNotes(tr, only) {
+  const out = [];
+  for (const r of tr.regions) {
+    if (only && r !== only) continue;
+    if (tr.type === 'drums') {
+      const slots = drumSlots(r), PL = drumLen(r), base = r.start - phaseOf(r);
+      for (let bar = 0; base + bar * PL < r.start + r.len; bar++) for (const sl of slots) {
+        const t = base + bar * PL + sl.off + slotSwing(r, sl);
+        if (t < r.start - 1e-9 || t >= r.start + r.len - 1e-9) continue;
+        for (const d of DRUMS) { const v = r.steps[d.id]?.[sl.k]; if (v) out.push({ t, l: .25, p: DRUM_GM[d.id], v }); }
+      }
+    } else if (r.notes) {
+      const oct = tr.type === 'synth' ? 12 * (tweakOf(tr).oct || 0) : 0;
+      for (const n of r.notes) if (n.s >= 0 && n.s < r.len) out.push({ t: r.start + n.s, l: Math.min(n.l, r.len - n.s), p: tr.type === 'sampler' ? padNote(tr, n.p) : clamp(n.p + oct, 0, 127), v: n.v ?? .8 });
+    }
+  }
+  if (only) for (const n of out) n.t -= only.start;
+  return out;
+}
+// Schreibt eine MIDI-Datei (Format 1, 480 Ticks pro Viertel). tracks: [{ name, ch, prog, notes }]
+function writeMidi(tracks, bpm, sig) {
+  const PPQ = 480, chunks = [];
+  const vlq = v => { const b = [v & 0x7f]; while ((v >>= 7)) b.unshift((v & 0x7f) | 0x80); return b; };
+  const text = s => [...new TextEncoder().encode(s)].slice(0, 120);
+  const chunk = evs => {
+    evs.sort((a, b) => a.t - b.t || a.o - b.o);
+    const bytes = []; let last = 0;
+    for (const e of evs) { bytes.push(...vlq(e.t - last), ...e.b); last = e.t; }
+    bytes.push(0, 0xff, 0x2f, 0);
+    const h = [0x4d, 0x54, 0x72, 0x6b, (bytes.length >>> 24) & 255, (bytes.length >>> 16) & 255, (bytes.length >>> 8) & 255, bytes.length & 255];
+    chunks.push(new Uint8Array([...h, ...bytes]));
+  };
+  const us = Math.round(60000000 / bpm), dd = Math.log2(sig[1]);
+  chunk([{ t: 0, o: 0, b: [0xff, 0x03, ...vlq(text(P.name || 'Sound Groot').length), ...text(P.name || 'Sound Groot')] },
+    { t: 0, o: 1, b: [0xff, 0x51, 3, (us >> 16) & 255, (us >> 8) & 255, us & 255] },
+    { t: 0, o: 2, b: [0xff, 0x58, 4, sig[0], dd, 24, 8] }]);
+  for (const x of tracks) {
+    const nm = text(x.name), evs = [{ t: 0, o: 0, b: [0xff, 0x03, ...vlq(nm.length), ...nm] }];
+    if (x.prog >= 0) evs.push({ t: 0, o: 1, b: [0xc0 | x.ch, x.prog] });
+    for (const n of x.notes) {
+      const t = Math.max(0, Math.round(n.t * PPQ)), e = t + Math.max(1, Math.round(n.l * PPQ) - 1);
+      evs.push({ t, o: 3, b: [0x90 | x.ch, n.p, clamp(Math.round(n.v * 127), 1, 127)] }, { t: e, o: 2, b: [0x80 | x.ch, n.p, 0] });
+    }
+    chunk(evs);
+  }
+  const head = new Uint8Array([0x4d, 0x54, 0x68, 0x64, 0, 0, 0, 6, 0, 1, 0, chunks.length, PPQ >> 8, PPQ & 255]);
+  return new Blob([head, ...chunks], { type: 'audio/midi' });
+}
+// Song oder eine Region als .mid speichern. Drums und Sampler-Pads liegen auf Kanal 10 (General MIDI), Instrumente auf eigenen Kanälen.
+async function exportMidi(region) {
+  const [rt, rr] = region ? findRegion(region) : [];
+  const src = region ? (rt ? [rt] : []) : P.tracks.filter(t => t.type !== 'audio');
+  let ch = 0;
+  const nextCh = () => { const c = ch++ % 15; return c >= 9 ? c + 1 : c; }; // Kanal 10 (Index 9) bleibt den Drums
+  const tracks = src.map(tr => {
+    const drum = tr.type === 'drums' || tr.type === 'sampler';
+    return { name: tr.name, ch: drum ? 9 : nextCh(), prog: tr.type === 'synth' ? GM_PROG.indexOf(tr.preset) : -1, notes: trackNotes(tr, rr) };
+  }).filter(x => x.notes.length);
+  if (!tracks.length) { toast(region ? 'Diese Region hat keine Noten.' : 'Im Song gibt es keine Noten zum Exportieren. Audio-Spuren stecken nicht in MIDI-Dateien.'); return; }
+  const name = (region ? rr.name : P.name || 'Mein Song').replace(/[\\/:*?"<>|]/g, '_') + '.mid';
+  const ok = await saveFile(writeMidi(tracks, P.bpm, sigOf()), name, 'MIDI-Datei', 'mid', 'audio/midi');
+  if (ok) toast(`„${name}“ gespeichert (${tracks.length} ${tracks.length === 1 ? 'Spur' : 'Spuren'}). In MPC Beats ziehst du die Datei einfach auf eine Spur.`, 4500);
+}
+const isMidiFile = f => /\.(mid|midi|smf)$/i.test(f.name) || f.type === 'audio/midi' || f.type === 'audio/x-midi';
 
 // ================= Transport / Scheduler =================
 let playing = false, playPos = 0, timer = 0, cur = null, segs = [], session = null;
@@ -2879,6 +3137,7 @@ function renderEditor() {
 eHead.addEventListener('click', e => {
   const z = e.target.closest('[data-ez]'); if (z) { edZoom(+z.dataset.ez); return; }
   if (e.target.closest('[data-takeonly]')) { const [, r] = findRegion(selRegion); if (r?.takes) { pushUndo(); useTake(r, r.take); delete r.takes; delete r.take; save(); render(); toast('Die anderen Takes wurden verworfen.'); } return; }
+  if (e.target.closest('[data-rmidi]')) { exportMidi(selRegion); return; }
   if (e.target.closest('[data-rdel]')) { focusArea = 'arr'; deleteSelection(); toast('Region gelöscht. Strg+Z holt sie zurück.'); return; }
   const b = e.target.closest('[data-tab]'); if (b && !b.disabled) { edTab = b.dataset.tab; renderEditor(); }
 });
@@ -2896,6 +3155,7 @@ function renderRegionEditor() {
         <p>Mit „A“ im Spurkopf öffnest du die Automation: Lautstärke, Panorama, Filter, Hall und Delay als Kurve über die Zeit. Marker für Intro, Strophe, Refrain setzt du mit „+ Marker“ oder per Doppelklick in die Marker-Leiste.</p>
         <p>In der Bibliothek (I) sind alle Klänge nach Instrumentenfamilie sortiert. „Echt“ zeigt nur aufgenommene Instrumente, ▶ spielt einen Sound vor, ohne ihn auszuwählen, und mit dem Stern landet er unter „Favoriten“. Mit „Eigenes Sample laden …“ machst du aus einer beliebigen Audiodatei ein spielbares Instrument.</p>
         <p>Sampler wie eine MPC: Zieh eine Audiodatei ins Arrangement (rechte Hälfte) oder lege mit „+ Spur“ einen Sampler an. Sound Groot schneidet sie in Chops und legt sie auf 16 Pads. Jeden Chop kannst du stimmen, ein- und ausblenden, umdrehen und filtern. Gespielt wird mit Maus, Tasten oder Pad-Controller; R (auf der Sampler-Spur Umschalt+R) nimmt auf.</p>
+        <p>MPC Beats und andere DAWs: MIDI-Dateien (.mid) ziehst du ins Arrangement oder öffnest sie unter Datei. Noten werden zu Regionen, Drums zu Drum-Patterns, der MPC-Swing bleibt erhalten. „Als MIDI“ oben im Editor und „Song als MIDI exportieren“ gehen den Weg zurück. In der Bibliothek zeigt „Ordner“ deine Sample-Ordner; in der Windows-App findet Sound Groot die installierten MPC-Expansions selbst. MPC-Drumkits (.xpm) werden zur Sampler-Spur mit allen Pads, Keygroup-Programme zum spielbaren Instrument.</p>
         <p>Groove: Im Piano Roll zieht „Quantisieren“ die Noten aufs Raster, unter „Groove“ stellst du Stärke, Swing und Humanize ein. Im Drum-Pattern gibt es Swing und Humanize pro Region. Audio-Regionen folgen auf Wunsch dem Songtempo, ohne dass sich die Tonhöhe ändert. Loops dafür liegen in der Bibliothek einer Audio-Spur.</p>
         <p>Im Mixer (M) fasst du Spuren zu Gruppen zusammen, rechts zeigt der Master die Lautheit in LUFS. Unter Klang & Effekte kann der Kompressor per Sidechain von einer anderen Spur gesteuert werden, etwa damit die Kick den Bass kurz wegdrückt.</p>
         <p>Aufnahme (R) startet mit einem Takt Vorzähler. Ist der Cycle an, entsteht pro Durchgang ein eigener Take, den besten wählst du im Editor. Vorzähler und Latenzausgleich stellst du unter Geräte ein.</p>
@@ -2934,7 +3194,7 @@ function renderRegionEditor() {
   else if (tr.type === 'drums') { normProject({ tracks: [tr], sig: sigOf() }); edState.piece ? renderDrumRoll(tr, r, edState.piece) : renderSteps(tr, r, bars); }
   else renderAudioEditor(tr, r);
   const rn = $('#rname'); if (rn) rn.onchange = e => { pushUndo(); r.name = e.target.value || r.name; save(); renderArrange(); };
-  const del = `<button class="sbtn rdel" data-rdel title="Ganze Region aus der Spur löschen (Entf)">Region löschen</button>`;
+  const del = (tr.type !== 'audio' ? `<button class="sbtn" data-rmidi title="Diese Region als MIDI-Datei speichern, etwa für MPC Beats">Als MIDI</button>` : '') + `<button class="sbtn rdel" data-rdel title="Ganze Region aus der Spur löschen (Entf)">Region löschen</button>`;
   const takes = r.takes?.length > 1 ? `<select class="tsel" id="takeSel" title="Take auswählen">${r.takes.map((_, i) => `<option value="${i}" ${i === r.take ? 'selected' : ''}>Take ${i + 1}</option>`).join('')}</select><button class="sbtn" data-takeonly title="Alle anderen Takes verwerfen">Nur diesen Take</button>` : '';
   rn ? rn.insertAdjacentHTML('afterend', takes + del) : eHead.insertAdjacentHTML('beforeend', takes + del);
   const ts = $('#takeSel'); if (ts) ts.onchange = e => { pushUndo(); useTake(r, +e.target.value); save(); renderArrange(); renderEditor(); };
@@ -3163,7 +3423,8 @@ function addSamplerSource(buf, name, trackId, extra = {}) {
   let tr = findTrack(trackId);
   if (!tr || tr.type !== 'sampler') { tr = newTrack('sampler', { name: name.slice(0, 24) || 'Sampler' }); P.tracks.push(tr); applyMix(); }
   tr.srcs.push({ buf: addBuffer(buf), name, ...extra }); tr.src = tr.srcs.length - 1;
-  const n = autoChop(tr, extra.bpm ? 'hits1' : 'hits2'); // fertige Loops gröber schneiden, damit die Hauptschläge auf den Pads landen
+  // Fertige Loops gröber schneiden, damit die Hauptschläge auf den Pads landen; kurze Einzelklänge (Kick, Snare …) bleiben ganz
+  const n = autoChop(tr, extra.bpm ? 'hits1' : buf.duration < 1.5 ? 'one' : 'hits2');
   selTrack = tr.id; selRegion = null; edTab = 'smp'; libKey = '';
   save(); render();
   const onPads = tr.pads.filter(id => tr.chops.find(c => c.id === id)?.buf === tr.srcs[tr.src].buf).length;
@@ -3840,8 +4101,8 @@ function renderFx(tr) {
   eHead.innerHTML = `<span class="note" style="color:${tr.color};font-weight:600">${esc(tr.name)}</span><span class="note hint">Hall und Delay sind gemeinsame Effekte. Jede Spur schickt über ihren Regler unterschiedlich viel Signal hinein.</span>`;
   eBody.innerHTML = `<div class="fx">
     ${tr.preset === 'user' && tr.type === 'synth' && !tr.wam ? `<section class="card"><h3>Sample · ${esc(tr.usmp.name)}</h3>
-      <label class="knob"><span>Grundton</span><select id="usRoot">${Array.from({ length: 73 }, (_, i) => i + 24).map(m => `<option value="${m}" ${m === tr.usmp.root ? 'selected' : ''}>${noteName(m)}</option>`).join('')}</select></label>
-      <label class="knob chk"><input type="checkbox" id="usLoop" ${tr.usmp.loop ? 'checked' : ''}><span>Ton halten (Schleife)</span></label>
+      ${tr.usmp.zones ? `<p class="note">MPC-Instrument mit ${tr.usmp.zones.length} Samples, verteilt über die Tastatur.</p>` : `<label class="knob"><span>Grundton</span><select id="usRoot">${Array.from({ length: 73 }, (_, i) => i + 24).map(m => `<option value="${m}" ${m === tr.usmp.root ? 'selected' : ''}>${noteName(m)}</option>`).join('')}</select></label>
+      <label class="knob chk"><input type="checkbox" id="usLoop" ${tr.usmp.loop ? 'checked' : ''}><span>Ton halten (Schleife)</span></label>`}
       <button class="sbtn" data-us="load">Anderes Sample …</button></section>` : ''}
     ${tr.type === 'synth' && !tr.wam ? `<section class="card"><h3>Klang · ${esc(presetName(tr))}${PRESETS[tr.preset].smp && tr.preset !== 'user' ? ' <small>Sample</small>' : ''}</h3>
       ${sl('tw.bright', 'Helligkeit', -1, 1, .05, FMT['tw.bright'])}${sl('tw.attack', 'Einschwingen', -1, 1, .05, FMT['tw.attack'])}
@@ -4915,9 +5176,13 @@ fileMenu.onclick = e => {
   if (act === 'save') saveProject(false);
   if (act === 'saveas') saveProject(true);
   if (act === 'wav' || act === 'mp3') exportSong(act);
+  if (act === 'mid') exportMidi(null);
+  if (act === 'midiin') { midiTarget = null; $('#midiIn').click(); }
   if (act === 'install' || act === 'offline') pwaAction(act);
 };
 $('#projIn').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) loadProjectFile(f); };
+let midiTarget = null;
+$('#midiIn').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) importMidi(f, midiTarget, null); };
 const addMenu = $('#addMenu');
 $('#bAdd').onclick = e => { e.stopPropagation(); addMenu.hidden = !addMenu.hidden; };
 document.addEventListener('click', () => { addMenu.hidden = true; devMenu.hidden = true; fileMenu.hidden = true; histMenu.hidden = true; });
@@ -4975,40 +5240,54 @@ async function importFile(file, trackId, beat) {
 // Datei ins Arrangement ziehen: auf eine Audio- oder Sampler-Spur, sonst links = neue Audio-Spur, rechts = neuer Sampler
 const arrangeEl = $('#arrange');
 let dropLane = null;
-function dropTarget(e) {
+function dropTarget(e, midi) {
   const lane = document.elementsFromPoint(e.clientX, e.clientY).find(n => n.classList?.contains('lane') && n.dataset.track);
   const tr = lane && findTrack(lane.dataset.track);
-  if (tr && (tr.type === 'audio' || tr.type === 'sampler')) return { lane, tr };
+  if (tr && (midi ? tr.type !== 'audio' : tr.type === 'audio' || tr.type === 'sampler')) return { lane, tr };
   const r = arrangeEl.getBoundingClientRect();
   return { zone: e.clientX < r.left + r.width / 2 ? 'audio' : 'sampler' };
 }
+// MIDI-Dateien erkennt man beim Ziehen am Dateityp (Windows meldet audio/mid oder audio/midi)
+const dragIsMidi = e => [...e.dataTransfer.types].includes(FS_DRAG_MIDI) || [...e.dataTransfer.items].some(i => i.kind === 'file' && /midi?$/i.test(i.type));
 arrangeEl.addEventListener('dragover', e => {
-  if (![...e.dataTransfer.types].includes('Files')) return;
+  const types = [...e.dataTransfer.types];
+  if (!types.includes('Files') && !types.includes(FS_DRAG)) return;
   e.preventDefault(); arrangeEl.classList.add('dragging');
-  const d = dropTarget(e);
+  const midi = dragIsMidi(e), d = dropTarget(e, midi);
   if (dropLane && dropLane !== d.lane) dropLane.classList.remove('drop');
   dropLane = d.lane || null; dropLane?.classList.add('drop');
   arrangeEl.dataset.dz = d.lane ? 'lane' : d.zone;
   arrangeEl.querySelectorAll('.dz').forEach(z => z.classList.toggle('on', z.dataset.dz === d.zone));
-  if (d.lane) arrangeEl.querySelector('.dz-lane').textContent = d.tr.type === 'sampler' ? `In den Sampler „${d.tr.name}“ laden und choppen` : `Als Region auf „${d.tr.name}“`;
+  if (d.lane) arrangeEl.querySelector('.dz-lane').textContent = midi ? `Noten auf „${d.tr.name}“` : d.tr.type === 'sampler' ? `In den Sampler „${d.tr.name}“ laden und choppen` : `Als Region auf „${d.tr.name}“`;
 });
 const endDropHint = () => { arrangeEl.classList.remove('dragging'); dropLane?.classList.remove('drop'); dropLane = null; delete arrangeEl.dataset.dz; };
 arrangeEl.addEventListener('dragleave', e => { if (e.target === arrangeEl || !arrangeEl.contains(e.relatedTarget)) endDropHint(); });
-arrangeEl.addEventListener('drop', e => {
+arrangeEl.addEventListener('drop', async e => {
   e.preventDefault(); endDropHint();
-  const fs = [...e.dataTransfer.files]; if (!fs.length) return;
+  // Aus dem Datei-Browser der Bibliothek gezogen
+  const fsKey = e.dataTransfer.getData(FS_DRAG);
+  if (fsKey && XPM_EXT.test(fsNodes.get(fsKey)?.name || '')) { const l = dropTarget(e, true); importXpm(fsKey, l.tr || null); return; }
+  const fs = fsKey ? [await fsFile(fsKey)].filter(Boolean) : [...e.dataTransfer.files]; if (!fs.length) return;
+  const midi = fs.filter(isMidiFile), audio = fs.filter(f => !isMidiFile(f));
+  const beatAt = lane => lane ? Math.max(0, Math.round((e.clientX - lane.getBoundingClientRect().left) / ppb)) : null;
+  if (midi.length) { const d = dropTarget(e, true); importMidi(midi[0], d.tr?.id || null, beatAt(d.lane)); }
+  if (!audio.length) return;
   const d = dropTarget(e);
-  if (d.tr?.type === 'sampler' || d.zone === 'sampler') { loadSamplerFiles(fs, d.tr?.id || null); return; }
-  const beat = d.lane ? Math.max(0, Math.round((e.clientX - d.lane.getBoundingClientRect().left) / ppb)) : null;
-  importFile(fs[0], d.tr?.id || '__new', beat);
+  if (d.tr?.type === 'sampler' || d.zone === 'sampler') { loadSamplerFiles(audio, d.tr?.id || null); return; }
+  importFile(audio[0], d.tr?.id || '__new', beatAt(d.lane));
 });
 // Datei auf den offenen Sampler im Editor ziehen
 editorElDrop();
 function editorElDrop() {
   const ed = $('#editor');
-  ed.addEventListener('dragover', e => { if (edTab === 'smp' && smpView && [...e.dataTransfer.types].includes('Files')) { e.preventDefault(); ed.classList.add('dropping'); } });
+  ed.addEventListener('dragover', e => { if (edTab === 'smp' && smpView && ['Files', FS_DRAG].some(t => [...e.dataTransfer.types].includes(t))) { e.preventDefault(); ed.classList.add('dropping'); } });
   ed.addEventListener('dragleave', e => { if (!ed.contains(e.relatedTarget)) ed.classList.remove('dropping'); });
-  ed.addEventListener('drop', e => { ed.classList.remove('dropping'); if (edTab !== 'smp' || !smpView) return; e.preventDefault(); const fs = [...e.dataTransfer.files]; if (fs.length) loadSamplerFiles(fs, smpView.tr.id); });
+  ed.addEventListener('drop', async e => {
+    ed.classList.remove('dropping'); if (edTab !== 'smp' || !smpView) return; e.preventDefault();
+    const tr = smpView.tr, k = e.dataTransfer.getData(FS_DRAG), fs = k ? [await fsFile(k)].filter(Boolean) : [...e.dataTransfer.files];
+    const mid = fs.find(isMidiFile); if (mid) importMidi(mid, tr.id, null);
+    const au = fs.filter(f => !isMidiFile(f)); if (au.length) loadSamplerFiles(au, tr.id);
+  });
 }
 
 // Tastatur: Shortcuts und Musical Typing (physische Tastenpositionen, funktioniert auch mit QWERTZ)
@@ -5055,7 +5334,7 @@ window.addEventListener('blur', () => { [...held.keys()].forEach(liveNoteOff); }
 
 // Live spielen: Computertastatur und MIDI-Keyboard teilen sich diesen Weg.
 // Auf Drum-Spuren steuern die Noten ab C1 (MIDI 36) die Kit-Sounds an (General-MIDI-ähnlich).
-const GM_DRUMS = { 35: 'kick', 36: 'kick', 37: 'rim', 38: 'snare', 39: 'clap', 40: 'snare', 41: 'tom', 42: 'hat', 43: 'tom', 44: 'hat', 45: 'tom', 46: 'ohat', 47: 'tom', 48: 'tom', 49: 'crash', 50: 'tom', 51: 'ride', 52: 'crash', 53: 'ride', 55: 'crash', 56: 'cow', 57: 'crash', 59: 'ride', 62: 'conga', 63: 'conga', 64: 'conga', 69: 'shaker', 70: 'shaker', 82: 'shaker' };
+const GM_DRUMS = { 35: 'kick', 36: 'kick', 37: 'rim', 38: 'snare', 39: 'clap', 40: 'snare', 41: 'tom', 42: 'hat', 43: 'tom', 44: 'hat', 45: 'tom', 46: 'ohat', 47: 'tom', 48: 'tom', 49: 'crash', 50: 'tom', 51: 'ride', 52: 'crash', 53: 'ride', 55: 'crash', 56: 'cow', 57: 'crash', 59: 'ride', 54: 'shaker', 58: 'cow', 60: 'conga', 61: 'conga', 62: 'conga', 63: 'conga', 64: 'conga', 65: 'tom', 66: 'tom', 67: 'cow', 68: 'cow', 69: 'shaker', 70: 'shaker', 73: 'shaker', 74: 'shaker', 75: 'rim', 76: 'rim', 77: 'rim', 82: 'shaker' };
 function liveNoteOn(id, midi, vel) {
   const tr = findTrack(selTrack); if (!tr || held.has(id)) return;
   ensureCtx();
@@ -5065,7 +5344,7 @@ function liveNoteOn(id, midi, vel) {
     eBody.querySelector(`.key[data-p="${midi}"]`)?.classList.add('down');
   } else if (tr.type === 'sampler') {
     // MIDI-Pads ab C1 (36) wie bei der MPC, jede weitere Oktave wiederholt die 16 Pads
-    const pad = id.startsWith('midi') ? (((midi - 36) % 16) + 16) % 16 : midi;
+    const pad = id.startsWith('midi') ? padOfNote(tr, midi) : midi;
     const v = padPlay(tr, chan(tr).input, pad, ctx.currentTime, vel, liveMono);
     held.set(id, { v: v || { release() { } }, midi: pad });
     eBody.querySelector(`.pad[data-pad="${pad}"]`)?.classList.add('down');
@@ -5449,9 +5728,9 @@ function toggleFav(key) { libFavs.has(key) ? libFavs.delete(key) : libFavs.add(k
 function addRecent(key) { libRecent = [key, ...libRecent.filter(x => x !== key)].slice(0, 15); libPut('recent', libRecent); }
 // Filter-Leiste je Spurtyp
 const LIB_CHIPS = {
-  synth: [['all', 'Alle'], ['fav', '★ Favoriten'], ['recent', 'Zuletzt'], ['real', 'Echt'], ['synth', 'Synth']],
-  drums: [['all', 'Alle'], ['fav', '★ Favoriten'], ['real', 'Echt'], ['synth', 'Synth']],
-  loops: [['all', 'Alle'], ['fav', '★ Favoriten'], ['recent', 'Zuletzt']]
+  synth: [['all', 'Alle'], ['fav', '★ Favoriten'], ['recent', 'Zuletzt'], ['real', 'Echt'], ['synth', 'Synth'], ['files', 'Ordner']],
+  drums: [['all', 'Alle'], ['fav', '★ Favoriten'], ['real', 'Echt'], ['synth', 'Synth'], ['files', 'Ordner']],
+  loops: [['all', 'Alle'], ['fav', '★ Favoriten'], ['recent', 'Zuletzt'], ['files', 'Ordner']]
 };
 const chipSet = tr => LIB_CHIPS[tr.type === 'synth' || tr.type === 'drums' ? tr.type : 'loops'];
 const libF = tr => chipSet(tr).some(([k]) => k === libFilter) ? libFilter : 'all';
@@ -5496,6 +5775,7 @@ function libBody(tr) {
   const group = (name, items, count, defOpen = true) => { const open = libIsOpen(name, defOpen); return `<button class="lib-cat ${open ? '' : 'shut'}" data-cat="${esc(name)}" data-def="${defOpen ? 1 : 0}">${esc(name)}<span>${count}</span></button><div class="lib-items ${open ? '' : 'shut'}"><div>${items}</div></div>`; };
   const flat = items => `<div class="lib-items"><div>${items.join('')}</div></div>`;
   const empty = msg => `<p class="lib-note">${msg}</p>`;
+  if (tr && f === 'files') return fsBody(tr);
   if (!tr) return `<p class="lib-note">Wähle links eine Spur aus oder lege eine neue an.</p><div class="lib-btns"><button data-lib-add="synth">+ Software-Instrument</button><button data-lib-add="drums">+ Drummer</button><button data-lib-add="audio">+ Audio-Spur</button><button data-lib-add="sampler">+ Sampler (MPC-Pads)</button></div>`;
   if (tr.type === 'synth') {
     const pItem = (k, sub) => { const v = PRESETS[k]; return item(`data-preset="${k}"`, k === tr.preset && !tr.wam, v.name, sub ? `<small>${esc(sub)}</small>` : v.smp ? '<small class="real">Echt</small>' : '', 'p:' + k); };
@@ -5576,14 +5856,14 @@ function renderLib() {
   libEl.classList.toggle('closed', !libOpen); $('#bLib').classList.toggle('on', libOpen);
   if (!libOpen) return;
   const tr = findTrack(selTrack);
-  const key = [tr?.id, tr?.type, tr?.preset, tr?.kit, JSON.stringify(tr?.pieces || {}), tr?.usmp?.buf, tr?.usmp?.name, tr?.wam?.url, tr?.color, tr?.name, selRegion, tr?.srcs?.length, tr?.src, tr?.chops?.length].join('|');
+  const key = [tr?.id, tr?.type, tr?.preset, tr?.kit, JSON.stringify(tr?.pieces || {}), tr?.usmp?.buf, tr?.usmp?.name, tr?.wam?.url, tr?.color, tr?.name, selRegion, tr?.srcs?.length, tr?.src, tr?.chops?.length, fsPath.join('/'), fsRoots?.length, tr?.usmp?.zones?.length].join('|');
   if (key === libKey) return;
   libKey = key;
   const top = libEl.querySelector('.lib-list')?.scrollTop || 0, same = libEl.dataset.track === (tr?.id || '');
   // Beim Wechsel der Spur die Familie des aktuellen Klangs aufklappen
   if (!same && tr?.type === 'synth' && !tr.wam && PRESETS[tr.preset]) libFold[tr.preset === 'user' ? 'Eigene Samples' : famOf(tr.preset)] = true;
   libEl.dataset.track = tr?.id || '';
-  const ph = tr?.type === 'drums' ? `${libCount(tr)} Kits, Kick, Snare … suchen` : tr?.type === 'sampler' || tr?.type === 'audio' ? `${libCount(tr)} Loops durchsuchen …` : tr ? `${libCount(tr)} Sounds durchsuchen …` : '';
+  const ph = tr && libF(tr) === 'files' ? (fsPath.length ? 'In diesem Ordner und darunter suchen …' : 'Ordner durchsuchen …') : tr?.type === 'drums' ? `${libCount(tr)} Kits, Kick, Snare … suchen` : tr?.type === 'sampler' || tr?.type === 'audio' ? `${libCount(tr)} Loops durchsuchen …` : tr ? `${libCount(tr)} Sounds durchsuchen …` : '';
   libEl.innerHTML = `<div class="lib-in" style="--c:${tr?.color || 'var(--accent)'}"><div class="lib-head"><div class="lib-title">Bibliothek${tr ? `<b>${esc(tr.name)}</b><button class="lib-fold" data-fold title="Alle Gruppen auf- oder zuklappen">⇕</button>` : ''}<button class="x" data-lib-close title="Schließen (I)">×</button></div>
     ${tr ? `<input class="lib-search" type="search" placeholder="${ph}" value="${esc(libQuery)}" aria-label="Sound suchen">${libChips(tr)}` : ''}</div><div class="lib-list">${libBody(tr)}</div></div>`;
   const list = libEl.querySelector('.lib-list');
@@ -5604,7 +5884,16 @@ libEl.addEventListener('click', e => {
     else { libEl.querySelectorAll(`[data-fav="${CSS.escape(fv.dataset.fav)}"]`).forEach(x => x.classList.toggle('on', libFavs.has(fv.dataset.fav))); libEl.querySelector('.lib-chips').outerHTML = libChips(tr); }
     return;
   }
-  if (e.target.closest('[data-pv]')) { libPreview(b, tr); return; }
+  const rm = e.target.closest('[data-fs-rm]'); if (rm) { fsRemoveRoot(rm.dataset.fsRm); return; }
+  if (e.target.closest('[data-pv]')) { if (b.dataset.fsk) fsPreview(b.dataset.fsk, b.querySelector('.pv')); else libPreview(b, tr); return; }
+  if ('fsAdd' in b.dataset) { fsAddFolder(); return; }
+  if (b.dataset.fsTo) { fsPath = +b.dataset.fsTo < 0 ? [] : fsPath.slice(0, +b.dataset.fsTo + 1); fsRefresh(); libEl.querySelector('.lib-list').scrollTop = 0; return; }
+  if (b.dataset.fsk) {
+    const n = fsNodes.get(b.dataset.fsk); if (!n) return;
+    if (n.dir) { fsPath.push(b.dataset.fsk); libQuery = ''; const se = libEl.querySelector('.lib-search'); if (se) se.value = ''; fsRefresh(); libEl.querySelector('.lib-list').scrollTop = 0; }
+    else { stopLoopPreview(); fsUse(b.dataset.fsk, tr); }
+    return;
+  }
   if (b.dataset.filter) { libFilter = b.dataset.filter; libKey = ''; renderLib(); libEl.querySelector('.lib-list').scrollTop = 0; return; }
   if ('fold' in b.dataset) {
     // Sind gerade Gruppen offen, alle zuklappen, sonst alle aufklappen
@@ -5654,6 +5943,14 @@ libEl.addEventListener('click', e => {
     edTab = 'region'; save(); render();
   }
 });
+// Dateien aus dem Ordner-Browser auf eine Spur oder in den Sampler ziehen
+libEl.addEventListener('dragstart', e => {
+  const b = e.target.closest?.('[data-fsk]'), n = b && fsNodes.get(b.dataset.fsk);
+  if (!n || n.dir) { if (b) e.preventDefault(); return; }
+  e.dataTransfer.setData(FS_DRAG, b.dataset.fsk); e.dataTransfer.setData('text/plain', n.name);
+  if (MIDI_EXT.test(n.name)) e.dataTransfer.setData(FS_DRAG_MIDI, '1');
+  e.dataTransfer.effectAllowed = 'copy';
+});
 libEl.addEventListener('keydown', e => {
   if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
   const items = [...libEl.querySelectorAll('.lib-items:not(.shut) .lib-item[data-preset], .lib-items:not(.shut) .lib-item[data-kit], .lib-items:not(.shut) .lib-item[data-pk]')];
@@ -5673,6 +5970,257 @@ $('#bMix').onclick = () => {
   if (edTab === 'mix' && editorEl.offsetHeight < 390 && !narrow() && window.innerHeight > 760) editorEl.style.setProperty('--edh', '400px');
   renderEditor();
 };
+
+// ================= Datei-Browser: MPC-Bibliothek und eigene Sample-Ordner =================
+// In der Windows-App liest Sound Groot Ordner direkt (preload.js) und findet die installierten MPC-Expansions von selbst.
+// Im Browser (Chrome/Edge am PC) wählt man Ordner über den Ordner-Dialog, der Zugriff wird für das nächste Mal gemerkt.
+// Die Dateien bleiben, wo sie sind: Erst was du in einen Song holst, wird (wie jede Aufnahme) im Projekt gespeichert.
+const FS_DRAG = 'application/x-soundgroot-file', FS_DRAG_MIDI = 'application/x-soundgroot-midi';
+const AUDIO_EXT = /\.(wav|aif|aiff|mp3|flac|ogg|m4a)$/i, MIDI_EXT = /\.(mid|midi)$/i, XPM_EXT = /\.xpm$/i;
+const sgfs = window.sgfs || null;
+const fsOk = () => !!sgfs || ('showDirectoryPicker' in window && window.top === window);
+// Jeder angezeigte Ordner und jede Datei bekommt einen Schlüssel: { name, ref (Pfad oder Handle), dir, parent }
+const fsNodes = new Map(), fsLists = new Map();
+let fsN = 0, fsPath = [], fsRoots = null, fsBusy = false, fsSearch = null;
+function fsNode(name, ref, dir, parent) { const k = 'n' + (++fsN); fsNodes.set(k, { name, ref, dir, parent }); return k; }
+const fsFolders = () => libStore('folders', []);
+async function fsLoadRoots() {
+  const out = [];
+  if (sgfs) {
+    for (const r of await sgfs.roots().catch(() => [])) out.push({ k: fsNode(r.name, r.path, true, null), mpc: true });
+    for (const p of fsFolders()) out.push({ k: fsNode(p.split(/[\\/]/).filter(Boolean).pop() || p, p, true, null) });
+  } else if (fsOk()) {
+    for (const h of await idb.dirs.all().catch(() => [])) out.push({ k: fsNode(h.name, h, true, null) });
+  }
+  fsRoots = out;
+}
+async function fsList(k) {
+  if (fsLists.has(k)) return fsLists.get(k);
+  const n = fsNodes.get(k), items = [];
+  if (sgfs) for (const e of await sgfs.list(n.ref)) items.push([e.name, e.path, e.dir]);
+  else {
+    if (n.parent === null && await n.ref.queryPermission({ mode: 'read' }) !== 'granted' && await n.ref.requestPermission({ mode: 'read' }) !== 'granted') throw new Error('kein Zugriff');
+    for await (const [name, h] of n.ref.entries()) items.push([name, h, h.kind === 'directory']);
+  }
+  const keep = ([name, , dir]) => !name.startsWith('.') && (dir || AUDIO_EXT.test(name) || MIDI_EXT.test(name) || XPM_EXT.test(name));
+  const list = items.filter(keep).sort((a, b) => (b[2] - a[2]) || a[0].localeCompare(b[0], 'de', { numeric: true, sensitivity: 'base' })).map(([name, ref, dir]) => fsNode(name, ref, dir, k));
+  fsLists.set(k, list); return list;
+}
+async function fsRead(k) {
+  const n = fsNodes.get(k);
+  if (sgfs) { const u = await sgfs.read(n.ref); return u.buffer.slice(u.byteOffset, u.byteOffset + u.byteLength); }
+  return (await n.ref.getFile()).arrayBuffer();
+}
+// Als File-Objekt, damit die bisherigen Import-Wege (Sampler, Audio-Spur, eigenes Sample, MIDI) einfach weiterarbeiten
+async function fsFile(k) {
+  const n = fsNodes.get(k); if (!n || n.dir) return null;
+  try { return new File([await fsRead(k)], n.name, { type: MIDI_EXT.test(n.name) ? 'audio/midi' : '' }); }
+  catch (e) { toast(`„${n.name}“ ließ sich nicht lesen.`); return null; }
+}
+// Alle Dateien unter einem Ordner durchsuchen (begrenzt, damit riesige Ordner die App nicht blockieren)
+async function fsFind(k, q, max = 150) {
+  const out = [], queue = [k]; let dirs = 0;
+  while (queue.length && out.length < max && dirs < 600) {
+    const d = queue.shift(); dirs++;
+    let list; try { list = await fsList(d); } catch (e) { continue; }
+    for (const c of list) { const n = fsNodes.get(c); if (n.dir) queue.push(c); else if (n.name.toLowerCase().includes(q)) out.push(c); if (out.length >= max) break; }
+  }
+  return out;
+}
+const fsPathKey = () => fsPath.at(-1) || '';
+const fsRefresh = () => { libKey = ''; renderLib(); };
+async function fsAddFolder() {
+  if (sgfs) {
+    const p = await sgfs.pick(); if (!p) return;
+    const all = fsFolders(); if (!all.includes(p)) libPut('folders', [...all, p]);
+  } else {
+    let h; try { h = await showDirectoryPicker({ mode: 'read', id: 'soundgroot-samples' }); } catch (e) { return; }
+    await idb.dirs.put(h.name + ':' + Date.now(), h).catch(() => { });
+  }
+  fsRoots = null; fsPath = []; fsRefresh();
+}
+async function fsRemoveRoot(k) {
+  const n = fsNodes.get(k); if (!n) return;
+  if (sgfs) libPut('folders', fsFolders().filter(p => p !== n.ref));
+  else for (const key of await idb.dirs.keys().catch(() => [])) { const h = await idb.dirs.get(key); if (h && await h.isSameEntry(n.ref)) await idb.dirs.del(key); }
+  fsRoots = null; fsRefresh();
+}
+function fsBody(tr) {
+  const q = libQuery.trim().toLowerCase();
+  if (!fsOk()) return `<p class="lib-note">Ordner durchsuchen geht in der Windows-App und in Chrome oder Edge am PC. Hier lädst du einzelne Dateien über „Audiodatei laden …“ oder ziehst sie auf eine Spur.</p>`;
+  const what = tr.type === 'synth' ? 'Ein Sample wird zum spielbaren Instrument, ein MPC-Keygroup-Programm (.xpm) zum Instrument mit allen Zonen.'
+    : tr.type === 'sampler' ? 'Ein Sample landet auf dem nächsten freien Pad, ein MPC-Drumkit (.xpm) wird mit allen Pads als Sampler geladen.'
+    : tr.type === 'drums' ? 'Eine MIDI-Datei kommt als Drum-Pattern auf diese Spur. Samples und MPC-Drumkits (.xpm) landen in einer Sampler-Spur mit Pads.'
+    : 'Ein Sample kommt als Region an die Abspielposition. Du kannst es auch direkt auf eine Spur ziehen.';
+  if (!fsRoots) { if (!fsBusy) { fsBusy = true; fsLoadRoots().finally(() => { fsBusy = false; fsRefresh(); }); } return `<p class="lib-note">Ordner werden gesucht …</p>`; }
+  const add = `<div class="lib-btns"><button data-fs-add>${sgfs ? 'Ordner hinzufügen …' : 'Ordner wählen …'}</button></div>`;
+  if (!fsPath.length) {
+    const its = fsRoots.map(r => { const n = fsNodes.get(r.k); return `<button class="lib-item fs-dir" data-fsk="${r.k}"><i></i><span class="nm">${esc(n.name)}</span>${r.mpc ? '<small>MPC</small>' : `<span class="fs-x" data-fs-rm="${r.k}" title="Ordner aus der Liste nehmen">×</span>`}</button>`; }).join('');
+    const mpcNote = sgfs ? (fsRoots.some(r => r.mpc) ? 'Deine installierten MPC-Expansions wurden gefunden.' : 'Keine MPC-Expansions gefunden (gesucht in C:\\ProgramData\\Akai). Mit „Ordner hinzufügen“ wählst du jeden Sample-Ordner selbst.')
+      : 'Die MPC-Expansions liegen unter C:\\ProgramData\\Akai\\MPC\\Expansions (versteckter Ordner: im Dialog den Pfad oben eintippen).';
+    return add + (its ? `<div class="lib-items"><div>${its}</div></div>` : '') + `<p class="lib-note">${mpcNote} ${what}</p>`;
+  }
+  const k = fsPathKey(), crumbs = fsPath.map((c, i) => `<button data-fs-to="${i}">${esc(fsNodes.get(c).name)}</button>`).join('<span>›</span>');
+  const head = `<div class="fs-crumbs"><button data-fs-to="-1" title="Zur Ordnerliste">⌂</button><span>›</span>${crumbs}</div>`;
+  const row = c => {
+    const n = fsNodes.get(c);
+    if (n.dir) return `<button class="lib-item fs-dir" data-fsk="${c}"><i></i><span class="nm">${esc(n.name)}</span></button>`;
+    const xpm = XPM_EXT.test(n.name), mid = MIDI_EXT.test(n.name), nm = n.name.replace(/\.[^.]+$/, '');
+    const tag = xpm ? '<small class="real">MPC-Programm</small>' : mid ? '<small>MIDI</small>' : '';
+    return `<button class="lib-item fs-file" data-fsk="${c}" draggable="true" title="${xpm ? 'Programm laden' : 'Klicken zum Laden, auf eine Spur ziehen zum Platzieren'}"><i></i><span class="nm">${esc(nm)}</span>${tag}${!xpm && !mid ? '<span class="pv" data-pv title="Vorhören"></span>' : ''}</button>`;
+  };
+  // Suche: ab zwei Zeichen auch in allen Unterordnern
+  if (q.length >= 2) {
+    if (fsSearch?.k !== k || fsSearch.q !== q) {
+      const s = fsSearch = { k, q, res: null };
+      fsFind(k, q).then(r => { if (fsSearch === s) { s.res = r; const l = libEl.querySelector('.lib-list'); if (l && libF(findTrack(selTrack)) === 'files') l.innerHTML = libBody(findTrack(selTrack)); } });
+    }
+    const res = fsSearch.res;
+    return head + (res ? (res.length ? `<div class="lib-items"><div>${res.map(row).join('')}</div></div>` : `<p class="lib-note">Nichts gefunden.</p>`) : `<p class="lib-note">Suche in allen Unterordnern …</p>`);
+  }
+  const list = fsLists.get(k);
+  if (!list) { fsList(k).then(fsRefresh, () => { toast('Auf diesen Ordner gibt es keinen Zugriff.'); fsPath.pop(); fsRefresh(); }); return head + `<p class="lib-note">Lade …</p>`; }
+  const vis = q ? list.filter(c => fsNodes.get(c).name.toLowerCase().includes(q)) : list;
+  return head + (vis.length ? `<div class="lib-items"><div>${vis.map(row).join('')}</div></div>` : `<p class="lib-note">${q ? 'Nichts gefunden.' : 'Hier liegen keine Samples, MIDI-Dateien oder MPC-Programme.'}</p>`) + `<p class="lib-note">${what}</p>`;
+}
+// Datei aus dem Browser verwenden, passend zur ausgewählten Spur
+async function fsUse(k, tr) {
+  const n = fsNodes.get(k); if (!n) return;
+  if (XPM_EXT.test(n.name)) { importXpm(k, tr); return; }
+  const f = await fsFile(k); if (!f) return;
+  if (MIDI_EXT.test(n.name)) { importMidi(f, tr && tr.type !== 'audio' ? tr.id : null, null); return; }
+  if (tr?.type === 'synth') loadUserSample(f, tr.id);
+  else if (tr?.type === 'sampler') loadSamplerFiles([f], tr.id);
+  else if (tr?.type === 'drums') loadSamplerFiles([f], P.tracks.find(t => t.type === 'sampler')?.id || null); // in den ersten Sampler, sonst einen neuen
+  else importFile(f, tr?.type === 'audio' ? tr.id : '__new', null);
+}
+const fsBufs = new Map();
+async function fsPreview(k, el) {
+  const was = loopPrev?.id; stopLoopPreview(); if (was === k) return;
+  ensureCtx(); el?.classList.add('on'); loopPrev = { id: k, src: { stop() { } } };
+  let buf = fsBufs.get(k);
+  if (!buf) { try { buf = await ctx.decodeAudioData(await fsRead(k)); fsBufs.set(k, buf); } catch (e) { toast('Diese Datei lässt sich nicht abspielen.'); stopLoopPreview(); return; } }
+  if (loopPrev?.id !== k) return;
+  const src = ctx.createBufferSource(), g = ctx.createGain(); src.buffer = buf; g.gain.value = .9;
+  src.connect(g).connect(master); src.start(); src.stop(ctx.currentTime + Math.min(buf.duration, 20));
+  src.onended = () => { if (loopPrev?.src === src) { loopPrev = null; el?.classList.remove('on'); } };
+  loopPrev = { id: k, src };
+}
+
+// ================= MPC-Programme (.xpm) =================
+// Ein MPC-Programm ist eine XML-Datei, die auf WAV-Dateien daneben verweist.
+// Drum-Programme werden zu Sampler-Spuren (16 Pads pro Bank, mit Stimmung, Lautstärke und MIDI-Notenbelegung),
+// Keygroup-Programme zu Instrumenten mit mehreren Samples über die Tastatur verteilt.
+const xv = (el, tag) => el?.querySelector(':scope > ' + tag)?.textContent?.trim() ?? '';
+const xn = (el, tag, d = 0) => { const v = parseFloat(xv(el, tag)); return isFinite(v) ? v : d; };
+// Dateinamen (klein geschrieben) → Schlüssel, im Ordner des Programms und bis zu zwei Ebenen darunter
+async function fsIndex(k, depth = 2, idx = new Map()) {
+  let list; try { list = await fsList(k); } catch (e) { return idx; }
+  for (const c of list) { const n = fsNodes.get(c); if (n.dir) { if (depth) await fsIndex(c, depth - 1, idx); } else if (!idx.has(n.name.toLowerCase())) idx.set(n.name.toLowerCase(), c); }
+  return idx;
+}
+async function xpmSampleFinder(k) {
+  const dir = fsNodes.get(k).parent, idx = await fsIndex(dir);
+  let up = null;
+  return async (name, file) => {
+    const base = (file || '').split(/[\\/]/).pop(), cands = [base, ...['wav', 'WAV', 'aif', 'aiff', 'flac', 'mp3'].map(x => name + '.' + x)].filter(Boolean).map(x => x.toLowerCase());
+    for (const c of cands) if (idx.has(c)) return idx.get(c);
+    // Manche Expansions legen die Samples in einen Nachbarordner
+    const pp = fsNodes.get(dir)?.parent;
+    if (pp) { up ||= await fsIndex(pp, 2); for (const c of cands) if (up.has(c)) return up.get(c); }
+    return null;
+  };
+}
+// Lauteste aktive Ebene (Velocity-Layer) eines Pads oder einer Keygroup
+function xpmLayer(inst, vel = 127) {
+  const ls = [...inst.querySelectorAll(':scope > Layers > Layer')].filter(l => xv(l, 'SampleName') && xv(l, 'Active') !== 'False' && xv(l, 'Mute') !== 'True');
+  return ls.find(l => xn(l, 'VelStart', 0) <= vel && vel <= xn(l, 'VelEnd', 127)) || ls.at(-1) || null;
+}
+async function importXpm(k, tr) {
+  const node = fsNodes.get(k), pname0 = node.name.replace(XPM_EXT, '');
+  let doc;
+  try { doc = new DOMParser().parseFromString(new TextDecoder().decode(await fsRead(k)), 'application/xml'); } catch (e) { }
+  const prog = doc?.querySelector('Program');
+  if (!prog || doc.querySelector('parsererror')) { toast(`„${node.name}“ ist kein lesbares MPC-Programm.`); return; }
+  const type = prog.getAttribute('type') || '', pname = xv(prog, 'ProgramName') || pname0;
+  if (type !== 'Drum' && type !== 'Keygroup') { toast(`„${pname}“ ist ein MPC-${type || 'Programm'}. Laden kann Sound Groot Drum- und Keygroup-Programme.`, 4500); return; }
+  toast(`„${pname}“ wird geladen …`, 8000);
+  ensureCtx();
+  const find = await xpmSampleFinder(k), bufs = new Map();
+  let missing = 0;
+  const load = async (layer) => {
+    const sk = await find(xv(layer, 'SampleName'), xv(layer, 'SampleFile'));
+    if (!sk) { missing++; return null; }
+    if (!bufs.has(sk)) bufs.set(sk, fsRead(sk).then(ab => ctx.decodeAudioData(ab)).then(b => ({ buf: b, id: addBuffer(b), name: fsNodes.get(sk).name.replace(/\.[^.]+$/, '') })).catch(() => null));
+    const r = await bufs.get(sk); if (!r) missing++;
+    return r;
+  };
+  const insts = [...prog.querySelectorAll(':scope > Instruments > Instrument')].sort((a, b) => (+a.getAttribute('number') || 0) - (+b.getAttribute('number') || 0));
+  const msg = type === 'Drum' ? await xpmDrum(prog, insts, pname, load, tr) : await xpmKeygroup(prog, insts, pname, load, tr);
+  if (msg) toast(msg + (missing ? ` ${missing === 1 ? 'Ein Sample wurde' : missing + ' Samples wurden'} nicht gefunden (die WAV-Dateien müssen neben dem Programm oder in einem Unterordner liegen).` : ''), missing ? 7000 : 5000);
+}
+async function xpmDrum(prog, insts, pname, load, cur) {
+  const notes = [...prog.querySelectorAll('PadNoteMap > PadNote')].sort((a, b) => (+a.getAttribute('number')) - (+b.getAttribute('number'))).map(p => xn(p, 'Note', -1));
+  const pads = await Promise.all(insts.slice(0, 128).map(async inst => { const l = xpmLayer(inst); return l ? { inst, l, s: await load(l) } : null; }));
+  const banks = [];
+  for (let b = 0; b < 8; b++) if (pads.slice(b * 16, b * 16 + 16).some(p => p?.s)) banks.push(b);
+  if (!banks.length) { toast(`In „${pname}“ wurden keine Samples gefunden.`); return null; }
+  pushUndo();
+  let first = null;
+  for (const b of banks) {
+    const name = (pname + (banks.length > 1 ? ' · ' + 'ABCDEFGH'[b] : '')).slice(0, 32);
+    let tr = !first && cur?.type === 'sampler' && !cur.srcs.length ? cur : null;
+    if (tr) tr.name = name; else { tr = newTrack('sampler', { name }); P.tracks.push(tr); }
+    tr.mono = false; // Drum-Kits spielen mehrstimmig, die Becken klingen also aus
+    const pn = notes.slice(b * 16, b * 16 + 16);
+    if (pn.length === 16 && pn.every(n => n >= 0 && n < 128) && new Set(pn).size === 16) tr.padNotes = pn; else delete tr.padNotes;
+    for (let i = 0; i < 16; i++) {
+      const p = pads[b * 16 + i]; if (!p?.s) continue;
+      const { inst, l, s } = p, sr = s.buf.sampleRate;
+      if (!tr.srcs.some(x => x.buf === s.id)) tr.srcs.push({ buf: s.id, name: s.name });
+      const a = xn(l, 'SliceStart') / sr, e = xn(l, 'SliceEnd') / sr, ok = e > a + .005 && e <= s.buf.duration + .001;
+      const vol = Math.max(.001, xn(inst, 'Volume', .707946) / .707946 * xn(l, 'Volume', 1));
+      const c = newChop(tr, s.id, ok ? a : 0, ok ? e : s.buf.duration, {
+        name: xv(l, 'SampleName').slice(0, 24) || 'Pad ' + (i + 1),
+        pitch: clamp(Math.round(xn(inst, 'TuneCoarse') + xn(l, 'TuneCoarse')), -24, 24), fine: clamp(Math.round(xn(inst, 'TuneFine') + xn(l, 'TuneFine')), -100, 100),
+        gain: clamp(Math.round(20 * Math.log10(vol) * 10) / 10, -24, 6), rev: xn(l, 'Direction') === 1,
+        mode: xv(inst, 'OneShot') === 'False' ? 'gate' : 'one'
+      });
+      tr.pads[i] = c.id;
+    }
+    tr.src = 0; normSampler(tr); first ||= tr;
+  }
+  applyMix();
+  selTrack = first.id; selRegion = null; edTab = 'smp'; libKey = '';
+  save(); render();
+  return `MPC-Kit „${pname}“ geladen${banks.length > 1 ? ` (${banks.length} Bänke als eigene Spuren)` : ''}. Pads mit Maus, Tasten 1–4, Q–R, A–F, ${padKey(0)}–V oder MIDI-Pads spielen.`;
+}
+async function xpmKeygroup(prog, insts, pname, load, cur) {
+  const zones = [];
+  for (const inst of insts) {
+    const l = xpmLayer(inst, 100); if (!l) continue;
+    const s = await load(l); if (!s) continue;
+    const lo = clamp(xn(inst, 'LowNote', 0), 0, 127), hi = clamp(xn(inst, 'HighNote', 127), lo, 127);
+    // RootNote zählt in der Datei ab 1 (0 = nicht gesetzt), Stimmung verschiebt den Grundton
+    const rn = xn(l, 'RootNote', 0), tune = xn(inst, 'TuneCoarse') + xn(l, 'TuneCoarse') + (xn(inst, 'TuneFine') + xn(l, 'TuneFine')) / 100;
+    let root = rn > 0 ? rn - 1 : detectRoot(s.buf);
+    if (root < lo - 36 || root > hi + 36) root = detectRoot(s.buf);
+    const z = { buf: s.id, m: root - tune, lo, hi }, sr = s.buf.sampleRate;
+    if (xv(l, 'Loop') === 'True' && xn(l, 'LoopEnd') > xn(l, 'LoopStart') + 64) { z.ls = xn(l, 'LoopStart') / sr; z.le = xn(l, 'LoopEnd') / sr; }
+    zones.push(z);
+  }
+  if (!zones.length) { toast(`In „${pname}“ wurden keine Samples gefunden.`); return null; }
+  pushUndo();
+  let tr = cur?.type === 'synth' ? cur : null;
+  if (!tr) { tr = newTrack('synth', { name: pname.slice(0, 24) }); P.tracks.push(tr); applyMix(); }
+  zones.sort((a, b) => a.lo - b.lo || a.m - b.m);
+  const mid = zones[Math.floor(zones.length / 2)];
+  tr.usmp = { buf: mid.buf, root: Math.round(mid.m), name: pname.slice(0, 32), loop: false, zones };
+  tr.preset = 'user'; delete tr.wam; syncPlugins(tr);
+  selTrack = tr.id; libKey = ''; save(); render();
+  previewNote(tr, clamp(Math.round(mid.m), 36, 84));
+  return `MPC-Instrument „${pname}“ geladen (${zones.length} Sample${zones.length === 1 ? '' : 's'} über die Tastatur verteilt).`;
+}
 
 // ================= Bildschirm-Keyboard =================
 // Zum Spielen ohne MIDI-Keyboard, vor allem auf iPhone und iPad: mehrere Finger gleichzeitig, über die Tasten gleiten,
