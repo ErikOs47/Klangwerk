@@ -197,6 +197,13 @@ app.on('web-contents-created', (e, wc) => {
 });
 app.on('will-quit', () => vstDropAll());
 
+// CPU-Anzeige: Rechenlast des Fensters, in dem die Audio-Engine läuft (Prozent eines Kerns seit der letzten Abfrage)
+ipcMain.handle('sys:cpu', e => {
+  const pid = e.sender.getOSProcessId(), m = app.getAppMetrics().find(x => x.pid === pid);
+  let vst = 0; for (const h of vstHosts.values()) if (h.wc === e.sender && !h.dead) vst++;
+  return { renderer: m ? m.cpu.percentCPUUsage : 0, vst };
+});
+
 app.whenReady().then(() => {
   // Mikrofon und MIDI-Geräte ohne Rückfrage erlauben, es ist eine lokale App.
   session.defaultSession.setPermissionRequestHandler((wc, perm, cb) => cb(['media', 'midi', 'midiSysex'].includes(perm)));

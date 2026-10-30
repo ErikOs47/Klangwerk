@@ -6,7 +6,8 @@
 // Im Modus --run gilt:
 //   - Die erste Zeile auf stdout ist {"ready":true,"port":…,…} oder {"error":"…"}.
 //   - Steuerbefehle kommen zeilenweise über stdin: "<nr> <befehl> [argument]", Antwort "<nr> ok [daten]" oder "<nr> err <text>".
-//     Befehle: getstate, setstate <base64>, edit, close, quit. Ungefragte Meldungen beginnen mit "- " (z. B. "- edited").
+//     Befehle: getstate, setstate <base64>, params, edit, close, quit. Ungefragte Meldungen beginnen mit "- " (z. B. "- edited").
+//     params liefert die automatisierbaren Parameter als JSON: [{"id":…,"n":Name,"u":Einheit,"d":Standard,"v":Wert,"s":Stufen}], Werte normiert 0…1.
 //   - Audio läuft über einen WebSocket auf 127.0.0.1:<port>/<token>, ein Binärpaket pro Block (Aufbau siehe processPacket).
 //   - Endet stdin (Sound Groot beendet oder abgestürzt), beendet sich auch der Host.
 
@@ -42,6 +43,7 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
+#include <map>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -169,6 +171,8 @@ static HWND gMsgWnd = nullptr, gEditWnd = nullptr;
 static IPtr<IPlugView> gView;
 static std::string gTitle = "Plugin";
 static std::atomic<bool> gEditNote{false};
+static std::mutex gAutoMx;                // Automation aus Sound Groot: letzte Werte, damit die Plugin-Oberfläche mitläuft
+static std::map<ParamID, double> gAutoVals;
 
 // Antworten des Plugins an den Host: Regleränderungen aus seiner Oberfläche gehen an den Audio-Thread weiter
 class ComponentHandler : public U::ImplementsNonDestroyable<U::Directly<IComponentHandler>> {
@@ -251,6 +255,7 @@ static inline double rdf64(const uint8_t* p) { double v; memcpy(&v, p, 8); retur
 //   8 f64 Tempo   16 f64 Position in Vierteln   24 f64 Position in Samples
 //  32 u16 Anzahl MIDI-Ereignisse   34 u8 Taktzähler   35 u8 Taktnenner   36 u32 frei
 //  40 je Ereignis 8 Bytes: u16 Versatz im Block, Status, Daten 1, Daten 2, 3 frei
+//     Status 0x01 = Parameter-Automation: belegt zwei Plätze, im zweiten stehen u32 Parameter-ID und f32 Wert (normiert)
 //  danach float32-Samples, Kanal für Kanal
 // Antwort: u32 Blocknummer, u16 Frames, u8 Ausgangskanäle, u8 frei, dann float32-Samples Kanal für Kanal.
 static bool processPacket(const uint8_t* p, size_t n, std::vector<uint8_t>& out) {
@@ -280,7 +285,17 @@ static bool processPacket(const uint8_t* p, size_t n, std::vector<uint8_t>& out)
     }
   };
   if (flags & 2) for (int m = 0; m < 128; m++) event(0, 0x80, m, 0);
-  for (int i = 0; i < nEv; i++) { const uint8_t* e = p + 40 + i * 8; event(std::min<int>(rd16(e), frames - 1), e[2], e[3], e[4]); }
+  for (int i = 0; i < nEv; i++) {
+    const uint8_t* e = p + 40 + i * 8; int off = std::min<int>(rd16(e), frames - 1);
+    if (e[2] == 0x01) {
+      if (++i >= nEv) break;
+      ParamID id = rd32(e + 8); float v; memcpy(&v, e + 12, 4); v = std::min(1.f, std::max(0.f, v));
+      int32 qi; if (auto q = gParamsIn.addParameterData(id, qi)) { int32 pi; q->addPoint(off, v, pi); }
+      std::lock_guard<std::mutex> al(gAutoMx); gAutoVals[id] = v;
+      continue;
+    }
+    event(off, e[2], e[3], e[4]);
+  }
 
   ProcessContext pc{};
   double tempo = rdf64(p + 8), ppq = rdf64(p + 16), num = p[34] ? p[34] : 4, den = p[35] ? p[35] : 4;
@@ -461,12 +476,25 @@ static std::string openEditor() {
   return "";
 }
 
+// Automatisierbare Parameter für die Automation in Sound Groot (höchstens 1024, ohne versteckte und nur lesbare)
+static std::string paramList() {
+  std::string o = "[";
+  if (gCtrl) for (int32 i = 0, n = 0; i < gCtrl->getParameterCount() && n < 1024; i++) {
+    ParameterInfo pi{}; if (gCtrl->getParameterInfo(i, pi) != kResultOk) continue;
+    if (!(pi.flags & ParameterInfo::kCanAutomate) || (pi.flags & (ParameterInfo::kIsReadOnly | ParameterInfo::kIsHidden | ParameterInfo::kIsBypass))) continue;
+    char num[96]; snprintf(num, sizeof num, "%u,\"d\":%.6g,\"v\":%.6g,\"s\":%d", (unsigned)pi.id, pi.defaultNormalizedValue, gCtrl->getParamNormalized(pi.id), (int)pi.stepCount);
+    o += std::string(n++ ? "," : "") + "{\"id\":" + num + ",\"n\":" + jsonStr(VST3::StringConvert::convert(pi.title)) + ",\"u\":" + jsonStr(VST3::StringConvert::convert(pi.units)) + "}";
+  }
+  return o + "]";
+}
+
 // ---------------------------------------------------------------- Steuerung über stdin
 enum { WM_CMD = WM_APP + 1, WM_EOF = WM_APP + 2 };
 static void handleCommand(const std::string& line) {
   size_t a = line.find(' '); std::string id = line.substr(0, a), rest = a == std::string::npos ? "" : line.substr(a + 1);
   size_t b = rest.find(' '); std::string cmd = rest.substr(0, b), arg = b == std::string::npos ? "" : rest.substr(b + 1);
   if (cmd == "getstate") sendLine(id + " ok " + getState());
+  else if (cmd == "params") sendLine(id + " ok " + paramList());
   else if (cmd == "setstate") sendLine(id + (setState(arg) ? " ok" : " err Zustand ungültig"));
   else if (cmd == "edit") { auto e = openEditor(); sendLine(id + (e.empty() ? " ok" : " err " + e)); }
   else if (cmd == "close") { closeEditor(); sendLine(id + " ok"); }
@@ -477,7 +505,13 @@ static void handleCommand(const std::string& line) {
 static LRESULT CALLBACK msgProc(HWND w, UINT m, WPARAM wp, LPARAM lp) {
   if (m == WM_CMD) { std::string* s = (std::string*)lp; handleCommand(*s); delete s; return 0; }
   if (m == WM_EOF) { PostQuitMessage(0); return 0; }
-  if (m == WM_TIMER) { if (gEditNote.exchange(false)) sendLine("- edited"); return 0; }
+  if (m == WM_TIMER) {
+    if (gEditNote.exchange(false)) sendLine("- edited");
+    // Automatisierte Werte auch in der Plugin-Oberfläche zeigen
+    std::map<ParamID, double> av; { std::lock_guard<std::mutex> al(gAutoMx); av.swap(gAutoVals); }
+    if (gCtrl) for (auto& [id, v] : av) gCtrl->setParamNormalized(id, v);
+    return 0;
+  }
   return DefWindowProcW(w, m, wp, lp);
 }
 
@@ -520,7 +554,7 @@ static int run(const std::string& path, const std::string& cid, const std::strin
     }
     PostMessageW(gMsgWnd, WM_EOF, 0, 0);
   }).detach();
-  SetTimer(gMsgWnd, 1, 400, nullptr);
+  SetTimer(gMsgWnd, 1, 100, nullptr);
 
   MSG m;
   while (GetMessageW(&m, nullptr, 0, 0) > 0) { TranslateMessage(&m); DispatchMessageW(&m); }

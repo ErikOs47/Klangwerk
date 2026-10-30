@@ -32,7 +32,13 @@ const GM = {
   fifths: ['lead_7_fifths', 40, 88, 2.5], basslead: ['lead_8_bass__lead', 28, 72, 2.5], synthbass2: ['synth_bass_2', 28, 64, 2],
   synthbrass: ['synth_brass_1', 41, 84, 2.5], epiano2: ['electric_piano_2', 36, 96, 3],
   polysynth: ['pad_3_polysynth', 36, 90, 3], 'pad-bowed': ['pad_5_bowed', 36, 90, 3], 'pad-metal': ['pad_6_metallic', 36, 90, 3], 'pad-sweep': ['pad_8_sweep', 36, 90, 3],
-  atmosphere: ['fx_4_atmosphere', 36, 90, 3], brightness: ['fx_5_brightness', 36, 90, 3], echoes: ['fx_7_echoes', 36, 90, 3], scifi: ['fx_8_scifi', 36, 90, 3]
+  atmosphere: ['fx_4_atmosphere', 36, 90, 3], brightness: ['fx_5_brightness', 36, 90, 3], echoes: ['fx_7_echoes', 36, 90, 3], scifi: ['fx_8_scifi', 36, 90, 3],
+  // Neu in v1.5
+  'guitar-jazz': ['electric_guitar_jazz', 40, 84, 2.5],
+  fingerbass: ['electric_bass_finger', 28, 60, 2], 'slap2': ['slap_bass_2', 28, 60, 2], sopsax: ['soprano_sax', 56, 88, 2.5],
+  whistle: ['whistle', 60, 96, 2.5], strings2: ['string_ensemble_2', 36, 96, 3],
+  synthstrings2: ['synth_strings_2', 36, 96, 3], synthbrass2: ['synth_brass_2', 41, 84, 2.5], 'pad-choir': ['pad_4_choir', 36, 90, 3],
+  rain: ['fx_1_rain', 36, 90, 3], soundtrack: ['fx_2_soundtrack', 36, 90, 3], goblins: ['fx_6_goblins', 36, 90, 3], 'melodic-tom': ['melodic_tom', 36, 72, 1.5]
 };
 const run = (cmd, args) => new Promise((res, rej) => execFile(cmd, args, { maxBuffer: 1 << 26 }, (e, so) => e ? rej(e) : res(so)));
 async function pool(items, n, fn) { let i = 0; await Promise.all(Array.from({ length: n }, async () => { while (i < items.length) await fn(items[i++]); })); }

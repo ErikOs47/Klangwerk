@@ -1,4 +1,4 @@
-// Prüft sg-vst3host mit den Test-Plugins: Laden, Noten -> Klang, Effekt, Zustand, Editor, Absturzschutz.
+// Prüft sg-vst3host mit den Test-Plugins: Laden, Noten -> Klang, Effekt, Zustand, Parameter-Automation, Editor, Absturzschutz.
 // Aufruf (Linux mit Wine): node native/vst3host/test/host-test.js <host.exe> <testplug.vst3 als Windows-Pfad>
 // Unter Windows läuft der Host direkt (so in der GitHub-Action).
 const { spawn } = require('child_process');
@@ -19,13 +19,19 @@ function start(cid) {
   const cmd = async (c) => { const id = ++n; p.stdin.write(`${id} ${c}\n`); return line(); };
   return { p, line, cmd, events };
 }
+// Ereignisse: [Versatz, Status, Daten 1, Daten 2]; Status 1 = Automation [Versatz, 1, Parameter-ID, Wert] belegt zwei Plätze
 function packet(seq, nIn, input, evs, flags = 1) {
-  const b = new ArrayBuffer(40 + evs.length * 8 + nIn * N * 4), v = new DataView(b);
+  const slots = evs.reduce((n, e) => n + (e[1] === 1 ? 2 : 1), 0);
+  const b = new ArrayBuffer(40 + slots * 8 + nIn * N * 4), v = new DataView(b);
   v.setUint32(0, seq, true); v.setUint16(4, N, true); v.setUint8(6, nIn); v.setUint8(7, flags);
   v.setFloat64(8, 120, true); v.setFloat64(16, seq * N / SR * 2, true); v.setFloat64(24, seq * N, true);
-  v.setUint16(32, evs.length, true); v.setUint8(34, 4); v.setUint8(35, 4);
-  evs.forEach(([o, s, d1, d2], i) => { v.setUint16(40 + i * 8, o, true); v.setUint8(42 + i * 8, s); v.setUint8(43 + i * 8, d1); v.setUint8(44 + i * 8, d2); });
-  if (nIn) new Float32Array(b, 40 + evs.length * 8).set(input);
+  v.setUint16(32, slots, true); v.setUint8(34, 4); v.setUint8(35, 4);
+  let o = 40;
+  for (const [off, s, d1, d2] of evs) {
+    v.setUint16(o, off, true); v.setUint8(o + 2, s);
+    if (s === 1) { v.setUint32(o + 8, d1, true); v.setFloat32(o + 12, d2, true); o += 16; } else { v.setUint8(o + 3, d1); v.setUint8(o + 4, d2); o += 8; }
+  }
+  if (nIn) new Float32Array(b, 40 + slots * 8).set(input);
   return b;
 }
 const rms = a => Math.sqrt(a.reduce((s, x) => s + x * x, 0) / a.length);
@@ -81,6 +87,16 @@ const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); if (!c) process
   const inp = new Float32Array(2 * N).fill(0.25);
   r = await gc.send(packet(0, 2, inp, []));
   ok(Math.abs(new Float32Array(r, 8)[5] - 0.25) < 1e-6, 'Gain 0,5 -> Signal unverändert (×1)');
+  // Parameter für die Automation
+  const pl = await g.cmd('params'), params = JSON.parse(pl.slice(pl.indexOf('[')));
+  ok(params.length === 1 && params[0].id === 0 && params[0].n === 'Gain' && Math.abs(params[0].v - 0.5) < 1e-6, 'Parameterliste: ' + JSON.stringify(params));
+  r = await gc.send(packet(1, 2, inp, [[0, 1, 0, 1.0], [0, 0x90, 60, 100]]));
+  ok(Math.abs(new Float32Array(r, 8)[5] - 0.5) < 1e-6, 'Automation Gain 1,0 -> Signal ×2 (mit Note dahinter im selben Block)');
+  r = await gc.send(packet(2, 2, inp, [[0, 1, 0, 0.25]]));
+  ok(Math.abs(new Float32Array(r, 8)[5] - 0.125) < 1e-6, 'Automation Gain 0,25 -> Signal ×0,5');
+  await new Promise(r => setTimeout(r, 300));
+  const pl2 = await g.cmd('params');
+  ok(Math.abs(JSON.parse(pl2.slice(pl2.indexOf('[')))[0].v - 0.25) < 1e-6, 'Oberfläche (Controller) folgt der Automation');
   // Falscher Token wird abgewiesen
   const bad = await new Promise(res => { const w = new WebSocket(`ws://127.0.0.1:${gr.port}/falsch`); w.onopen = () => res(false); w.onerror = () => res(true); });
   ok(bad, 'Falscher Token abgewiesen');
