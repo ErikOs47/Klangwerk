@@ -23,4 +23,6 @@ node native/vst3host/test/host-test.js native/bin/sg-vst3host.exe <Test-Plugin> 
 
 `npm run dist:win` packt die exe mit ein. Die GitHub-Action „VST3-Host“ baut und testet sie unter Windows mit MSVC.
 
+Export: WAV 16/24/32 Bit, FLAC, MP3, Stems als ZIP, Normalisieren auf Spitze oder −14 LUFS (Datei → Exportieren, Strg+E). Alle Tastenkürzel stehen in den Einstellungen (Zahnrad, F1).
+
 Die ganze App steckt in `src/app.html`. Plan und nächste Schritte: siehe [PLAN.md](PLAN.md).

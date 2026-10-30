@@ -754,8 +754,9 @@ kbd.k { font-family: var(--font-mono); font-size: 11.5px; background: var(--rais
 .sm.fz.on { background: #6fb7ff33; color: #9fd0ff; border-color: #6fb7ff66; }
 .lane.frozen { background-color: #6fb7ff0d; }
 .lane.frozen .region { filter: saturate(.35) brightness(.9); }
-.lane.frozen::after { content: '❄ eingefroren'; position: sticky; left: 8px; top: 4px; float: left; font-size: 10.5px; color: #9fd0ff; background: #0d1a28cc; padding: 1px 7px; border-radius: 9px; pointer-events: none; z-index: 3; margin: 3px 0 0 8px; }
-.lane.frozen.stale::after { content: '❄ veraltet: neu einfrieren'; color: #ffcf7a; }
+.sm.fz.on.stale { background: #f2b84b2e; color: #ffcf7a; border-color: #f2b84b80; }
+.lane.frozen.stale { background-color: #f2b84b0a; }
+.lane.frozen.stale .region { filter: none; }
 
 /* Take-Ordner und Comping im Editor */
 .takes { position: absolute; left: 0; right: 0; top: 0; height: var(--tkh); box-sizing: border-box; border-bottom: 1px solid var(--line); background: var(--bg-deep); padding: 6px var(--gut-r) 8px var(--gut-l); display: flex; flex-direction: column; gap: 4px; overflow-y: auto; z-index: 2; }
@@ -1936,6 +1937,7 @@ function changeLabel(a, b) {
     if (ch('regions')) {
       const r = t.regions.find((r, i) => J(r) !== J(o.regions[i])), q = o.regions.find(x => x.id === r?.id);
       if (r && q) {
+        if (J(r.comp) !== J(q.comp) || r.take !== q.take) return `Take-Auswahl in ${nm(r)}`;
         if (J(r.notes) !== J(q.notes)) return `Noten in ${nm(t)}`;
         if (J(r.steps) !== J(q.steps) || J(r.pitch) !== J(q.pitch) || J(r.trip) !== J(q.trip)) return `Pattern in ${nm(t)}`;
         if (r.swing !== q.swing || r.human !== q.human) return `Groove in ${nm(t)}`;
@@ -1947,6 +1949,7 @@ function changeLabel(a, b) {
       }
       return `Regionen in ${nm(t)}`;
     }
+    if (ch('frozen')) return t.frozen ? `${nm(t)} eingefroren` : `${nm(t)} aufgetaut`;
     if (ch('name')) return `Spur umbenannt in ${nm(t)}`;
     if (ch('preset') || ch('kit') || ch('pieces') || ch('wam') || ch('usmp')) return `Klang von ${nm(t)}`;
     if (ch('eq')) return `EQ von ${nm(t)}`;
@@ -2044,6 +2047,8 @@ function emptyProject() {
 let saveT = 0;
 function save() {
   dirty = true; snapDirty = true; editGen++; updateTitle();
+  // Eingefrorene Spur verändert: Plugins wieder laden (oder nach dem Einfrieren entladen)
+  if (ctx && !(ctx instanceof OfflineAudioContext)) for (const t of P.tracks) if (t.frozen && chans.has(t.id)) syncPlugins(t);
   clearTimeout(saveT);
   saveT = setTimeout(persist, 300);
   histPaint();
@@ -2178,6 +2183,7 @@ async function loadProjectFile(file) {
   P = normProject(data.project); P.name = file.name.replace(/(\.soundgroot|\.klangwerk)?(\.json)?$/i, '') || P.name;
   selTrack = P.tracks[0]?.id || null; selRegion = null; applyMix(); save(); dirty = false; render();
   toast(`„${P.name}“ geöffnet.`);
+  setTimeout(refreezeMissing, 800);
   return true;
 }
 let fileHandle = null, dirty = false;
@@ -3408,7 +3414,7 @@ function renderArrange() {
       <div class="thead">
         <div class="tcolor"></div>
         <div class="tmain">
-          <div class="trow">${ICONS[tr.type]}<input class="tname" data-act="name" value="${esc(tr.name)}" aria-label="Spurname"><button class="sm fz ${tr.frozen ? 'on' : ''}" data-act="freeze" title="${tr.frozen ? 'Eingefroren: spielt als fertig berechnetes Audio. Klick taut die Spur wieder auf.' : 'Spur einfrieren: Instrument und Plugins einmal berechnen und als Audio abspielen. Spart Rechenleistung.'}">❄</button><button class="sm ab ${tr.showAuto ? 'on' : ''} ${hasAuto ? 'has' : ''}" data-act="auto" title="Automation: Lautstärke, Panorama, Filter und Effekte über die Zeit">A</button><button class="sm x" data-act="del" title="Spur löschen">×</button></div>
+          <div class="trow">${ICONS[tr.type]}<input class="tname" data-act="name" value="${esc(tr.name)}" aria-label="Spurname"><button class="sm fz ${tr.frozen ? 'on' : ''} ${tr.frozen && !useFrozen(tr) ? 'stale' : ''}" data-act="freeze" title="${!tr.frozen ? 'Spur einfrieren: Instrument und Plugins einmal berechnen und als Audio abspielen. Spart Rechenleistung.' : useFrozen(tr) ? 'Eingefroren: spielt als fertig berechnetes Audio, Instrument und Plugins ruhen. Klick taut die Spur wieder auf.' : 'Seit dem Einfrieren geändert: spielt wieder live. Klick friert neu ein.'}">❄</button><button class="sm ab ${tr.showAuto ? 'on' : ''} ${hasAuto ? 'has' : ''}" data-act="auto" title="Automation: Lautstärke, Panorama, Filter, Effekte und Plugin-Parameter über die Zeit">A</button><button class="sm x" data-act="del" title="Spur löschen">×</button></div>
           <div class="trow"><button class="sm m ${tr.mute ? 'on' : ''}" data-act="mute" title="Stumm">M</button><button class="sm s ${tr.solo ? 'on' : ''}" data-act="solo" title="Solo">S</button>${ctrl}</div>
           <div class="trow"><input type="range" class="vol" data-act="vol" min="0" max="1" step="0.01" value="${autoValue(tr, 'vol', currentBeat())}" title="Lautstärke" aria-label="Lautstärke" ${av('vol')}><input type="range" class="pan" data-act="pan" min="-1" max="1" step="0.01" value="${autoValue(tr, 'pan', currentBeat())}" title="Panorama" aria-label="Panorama" ${av('pan')}></div>
         </div>
