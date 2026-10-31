@@ -77,13 +77,16 @@ function vstDirs() {
   return [...new Set([...std, ...vstConf().dirs])];
 }
 // Alle .vst3 unterhalb eines Ordners. Ein .vst3-Ordner ist ein Bundle (ein Plugin), in den wird nicht weiter geschaut.
-async function vstFind(dir, depth = 0, out = []) {
-  let ents; try { ents = await fs.promises.readdir(dir, { withFileTypes: true }); } catch (e) { return out; }
+// Nebenbei werden .dll gezählt: das sind meist VST2-Plugins, die Sound Groot nicht lädt (Hinweis in der App).
+async function vstFind(dir, depth = 0, out = [], dll = { n: 0 }) {
+  let ents; try { ents = await fs.promises.readdir(dir, { withFileTypes: true }); } catch (e) { out.missing = depth === 0; return out; }
   for (const d of ents) {
     const p = path.join(dir, d.name);
     if (/\.vst3$/i.test(d.name)) out.push(p);
-    else if (d.isDirectory() && depth < 6) await vstFind(p, depth + 1, out);
+    else if (/\.dll$/i.test(d.name)) dll.n++;
+    else if (d.isDirectory() && depth < 6) await vstFind(p, depth + 1, out, dll);
   }
+  if (depth === 0) out.dll = dll.n;
   return out;
 }
 function vstScanOne(file) {
@@ -101,8 +104,8 @@ function vstScanOne(file) {
 }
 // Ergebnis pro Datei wird gemerkt (nach Änderungsdatum), damit nur neue oder geänderte Plugins geladen werden müssen
 async function vstScan(wc, force) {
-  const cfg = vstConf(), files = [];
-  for (const d of vstDirs()) files.push(...await vstFind(d));
+  const cfg = vstConf(), files = [], dirInfo = [];
+  for (const d of vstDirs()) { const f = await vstFind(d); files.push(...f); dirInfo.push({ dir: d, vst3: f.length, dll: f.dll || 0, missing: !!f.missing }); }
   const todo = [];
   for (const f of files) {
     let m = 0; try { m = (await fs.promises.stat(f)).mtimeMs; } catch (e) { }
@@ -126,7 +129,7 @@ async function vstScan(wc, force) {
     else for (const k of c.classes) plugs.push({ ...k, path: f });
   }
   plugs.sort((a, b) => a.name.localeCompare(b.name, 'de'));
-  return { plugs, failed, dirs: vstDirs(), own: cfg.dirs };
+  return { plugs, failed, dirs: vstDirs(), own: cfg.dirs, dirInfo };
 }
 const vstHosts = new Map();
 let vstNext = 1;
