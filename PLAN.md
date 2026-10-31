@@ -196,6 +196,18 @@ Bekannte Grenzen:
 - Technik: Host in C++ mit dem Steinberg VST3 SDK (seit Version 3.8 MIT-Lizenz), Quelle in `native/vst3host`, gebaut mit `npm run build:vst3host` (MinGW) oder per GitHub-Action unter Windows (MSVC, mit Tests)
 - Neue Sounds: **19 Synth-Klänge** aus dem FluidR3-GM-Soundfont (CC-BY 3.0): Lead Square, Lead Sägezahn, Calliope, Chiff-Lead, Charang, Voice-Lead, Quinten-Lead, Bass-Lead, Synth-Bass 2, Synth-Bläser, E-Piano DX, Polysynth, Pad gestrichen, Pad metallisch, Pad Sweep, Atmosphäre, Brightness, Echoes, Sci-Fi. Damit klingen auch die Lead-, Pad- und Effekt-Programme aus MIDI-Dateien echt
 
+## Version 1.5 (fertig): Export, Einfrieren, Comping, Plugin-Automation, Einstellungen
+
+- **Export-Dialog** (Datei → „Exportieren …“, Strg+E): ganzer Song, Cycle-Bereich oder **Stems** (jede Spur einzeln, mit Effekten und Mix, gleich lang, als ZIP). Formate: WAV 16/24/32-Bit-Float, **FLAC** 16/24 Bit (verlustfrei), MP3 320/192 kbit/s. **Normalisieren** auf −1 dBTP Spitze oder auf **−14 LUFS** (Streaming) mit True-Peak-Limiter, damit die Spitze unter −1 dBTP bleibt
+- **CPU-Anzeige** in der Transportleiste (Rechenlast der Audio-Engine, in der Windows-App mit den VST3-Prozessen). Tooltip schlägt Einfrieren vor, wenn es knapp wird
+- **Spur einfrieren** (❄ im Spurkopf): Instrument, Plugins (auch VST3) und Effekte einmal berechnen, danach spielt die Spur als Audio und die Plugins werden entladen. Nach einer Änderung wird ❄ gelb und die Spur spielt wieder live, Klick friert neu ein. Eingefrorenes Audio liegt im Projekt-Speicher und wird beim Öffnen bei Bedarf neu berechnet
+- **Comping**: Aufnahmen im Cycle-Modus erzeugen Takes. Im Editor erscheint darüber der Take-Ordner, mit der Maus über einen Take ziehen wählt diesen Abschnitt aus, die Auswahl aus mehreren Takes wird zur fertigen Spur (mit kurzen Überblendungen). Klick auf einen Take-Namen nimmt den ganzen Take
+- **Plugin-Automation**: Im Automations-Menü einer Spur stehen alle Parameter der eingesetzten Plugins (Web-Plugins und VST3). Die Kurve wird sample-genau abgespielt und exportiert, die Plugin-Oberfläche folgt
+- **Einstellungen** (Zahnrad oben rechts, F1 oder ?): Übersicht aller **Tastenkürzel** nach Bereichen mit Suche, dazu Allgemeines (Einführung neu starten) und Export-Standard
+- **Einführung beim ersten Start**: kurze Tour durch Transport, Spuren, Bibliothek, Editor, Mixer und Einstellungen (jederzeit überspringbar, in den Einstellungen neu startbar)
+- Korrektur: Der LUFS-Messer (seit 1.0) zeigte rund 1,6 LU zu wenig an (Hochpass-Güte der K-Gewichtung falsch angegeben). Jetzt stimmt er mit ffmpeg überein
+- Neue Sounds: **13 Instrumente** aus dem FluidR3-GM-Soundfont (CC-BY 3.0): Jazz-Gitarre, Fingerbass, Slap-Bass 2, Sopransaxofon, Pfeifen, Streicher 2, Synth-Streicher 2, Synth-Bläser 2, Pad Chor, Regen, Soundtrack, Goblins, Melodic Tom
+
 ## Grundsatz
 
 Jedes Update bringt auch neue Sounds mit.
@@ -206,7 +218,7 @@ Jedes Update bringt auch neue Sounds mit.
 
 ## Starten
 
-- Windows: `SoundGroot-1.4.0-win.zip` entpacken, `Sound Groot.exe` starten
+- Windows: `SoundGroot-1.5.0-win.zip` entpacken, `Sound Groot.exe` starten
 - iPhone/Browser: https://erikos47.github.io/Klangwerk/ öffnen, dann „Zum Home-Bildschirm“
 - Entwicklung: `npm install`, dann `npm start`
 - Windows-Build: `npm run dist:win`

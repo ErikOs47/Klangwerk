@@ -20,3 +20,5 @@ contextBridge.exposeInMainWorld('sgvst', {
   onExit: fn => { ipcRenderer.on('vst:exit', (e, id, code) => fn(id, code)); },
   onProgress: fn => { ipcRenderer.on('vst:progress', (e, p) => fn(p)); }
 });
+// Systemwerte für die CPU-Anzeige
+contextBridge.exposeInMainWorld('sgsys', { cpu: () => ipcRenderer.invoke('sys:cpu') });
