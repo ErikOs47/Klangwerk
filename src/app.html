@@ -614,6 +614,7 @@ input.st-gname:focus { outline: 1px solid var(--accent); border-radius: 4px; }
 .pl-own button { border: 0; background: none; color: var(--muted); cursor: pointer; }
 .pl-vst > div { margin-top: 6px; flex-wrap: wrap; }
 .pl-vst summary small { margin-left: 4px; }
+.pl-vst .hint.warn { color: #f0b35a; }
 .plugwin { position: fixed; left: 50%; top: 90px; transform: none; z-index: 60; min-width: 260px; max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); display: flex; flex-direction: column; background: #1b1e24f2; -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); border: 1px solid #ffffff14; border-radius: 12px; box-shadow: 0 24px 60px #000c, 0 0 0 1px #000; overflow: hidden; }
 .plugwin:not([hidden]) { animation: toast .2s var(--ease); }
 .pw-head { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 14px; font-size: 12.5px; cursor: move; user-select: none; touch-action: none; border-bottom: 1px solid #ffffff0d; }
@@ -4964,6 +4965,12 @@ if (sgvst) {
   sgvst.onExit((id, code) => { const inst = vstById.get(id); if (inst) vstCrash(inst, code); });
   sgvst.onProgress(p => { if (p.total > 1 || p.done === 0) toast(`VST3-Plugins werden gesucht … ${p.done + 1}/${p.total}: ${p.name}`, 4000); });
 }
+// Ordner mit .dll, aber ohne .vst3: dort liegen fast immer VST2-Plugins (z. B. MPC Beats, wenn nur VST2 installiert wurde)
+function vstDllHint() {
+  const v2 = (vstInfo?.dirInfo || []).filter(i => !i.vst3 && i.dll);
+  if (!v2.length) return '';
+  return `<p class="hint warn">In ${v2.map(i => `„${esc(i.dir.split(/[\\/]/).pop())}“`).join(', ')} liegen nur .dll-Dateien, also VST2-Plugins. Sound Groot lädt nur VST3 (.vst3). Bei MPC Beats: Installer erneut starten und die VST3-Version mitinstallieren, sie landet dann in „Programme\\Gemeinsame Dateien\\VST3“.</p>`;
+}
 function vstCard() {
   if (!sgvst) return '';
   const n = vstPlugs.length, failed = vstInfo?.failed || [];
@@ -4971,7 +4978,8 @@ function vstCard() {
     <p class="hint">${vstBusy ? 'Suche läuft …' : n ? `${n} gefunden, in den Listen unter „VST3“. Jedes läuft abgeschirmt: stürzt eins ab, läuft Sound Groot weiter.` : 'Noch keine gefunden. Gesucht wird in „Programme\\Gemeinsame Dateien\\VST3“ und in eigenen Ordnern.'}</p>
     <div><button class="sbtn" data-pl="vscan" ${vstBusy ? 'disabled' : ''}>Neu suchen</button><button class="sbtn" data-pl="vdir" ${vstBusy ? 'disabled' : ''}>Ordner hinzufügen …</button>${vstMul > 1 ? '<button class="sbtn" data-pl="vbuf" title="Nach Aussetzern wurde der Puffer vergrößert. Kleiner heißt weniger Verzögerung, aber eher Knackser.">Puffer verkleinern</button>' : ''}</div>
     ${ctx && n ? `<p class="hint">Puffer für VST3: ${Math.round(vstLat(ctx) / ctx.sampleRate * 1000)} ms (wird ausgeglichen, alle Spuren bleiben synchron).</p>` : ''}
-    ${vstInfo?.own?.length ? `<div class="pl-own">${vstInfo.own.map(d => `<span title="${esc(d)}">${esc(d.split(/[\\/]/).pop())}<button data-pl="vrm" data-dir="${esc(d)}" title="Ordner entfernen">×</button></span>`).join('')}</div>` : ''}
+    ${vstInfo?.own?.length ? `<p class="hint">Eigene Ordner (hier wird gesucht, das sind keine Plugins):</p><div class="pl-own">${vstInfo.own.map(d => { const i = vstInfo.dirInfo?.find(x => x.dir === d); return `<span title="${esc(d)}">📁 ${esc(d.split(/[\\/]/).pop())}${i ? ` <small>${i.vst3} VST3</small>` : ''}<button data-pl="vrm" data-dir="${esc(d)}" title="Ordner entfernen">×</button></span>`; }).join('')}</div>` : ''}
+    ${vstDllHint()}
     ${failed.length ? `<p class="hint">Nicht ladbar (${failed.length}): ${failed.map(f => `<span title="${esc(f.error)}">${esc(f.path.split(/[\\/]/).pop())}</span>`).join(', ')}</p>` : ''}</details>`;
 }
 
