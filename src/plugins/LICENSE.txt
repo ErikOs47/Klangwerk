@@ -2,3 +2,6 @@ Mitgelieferte Plugins aus "burns-audio-wam" 0.2.54 von Tom Burns (Sequencer Part
 https://github.com/boourns/burns-audio-wam
 Lizenz: MIT (https://opensource.org/licenses/MIT)
 Unverändert übernommen: synth101, modal, delay, distortion, simpleEQ (scripts/fetch-plugins.js).
+
+Ordner sg: eigene Effekte von Sound Groot (Chorus, Flanger, Phaser, Tremolo, Bitcrusher, Auto-Wah, Stereo-Breite, Limiter,
+Plattenhall, Bandsättigung, Noise Gate, Lo-Fi, Transienten). Lizenz: MIT. Der Plattenhall folgt dem gemeinfreien Freeverb-Aufbau von Jezar.

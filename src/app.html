@@ -4912,7 +4912,14 @@ function renderFx(tr) {
 // ================= Plugins (Web Audio Modules 2.0) =================
 // Externe Effekte und Instrumente im offenen WAM-2.0-Format. Sie laufen in der Windows-App und im Browser gleich.
 // Pro Spur: tr.ins = [{ id, url, name, on, state }] als Inserts nach dem Kompressor, tr.wam = { url, name, state } ersetzt den eingebauten Klang.
+// Eigene Effekte von Sound Groot (src/plugins/sg): rechnen im Audio-Thread, brauchen kein Internet und laufen überall
+const SG_FX = [['limiter', 'Limiter', 'Lauter machen, Spitzen abfangen'], ['plate', 'Plattenhall', 'Dichter Hall direkt auf der Spur'], ['chorus', 'Chorus', 'Breiter, schwebender Klang'],
+  ['flanger', 'Flanger', 'Der Düsenjet-Effekt'], ['phaser', 'Phaser', 'Wandernde Kerben, weich und kreisend'], ['tremolo', 'Tremolo & Auto-Pan', 'Lautstärke schwingt, auf Wunsch von links nach rechts'],
+  ['wah', 'Auto-Wah', 'Filter folgt der Spielstärke'], ['tape', 'Bandsättigung', 'Wärme wie von einer Bandmaschine'], ['crusher', 'Bitcrusher', 'Lo-Fi wie alte Sampler'],
+  ['lofi', 'Lo-Fi (Vinyl)', 'Leiern, Rauschen, Knistern'], ['width', 'Stereo-Breite', 'Breiter oder schmaler, Bass bleibt mittig'], ['gate', 'Noise Gate', 'Stumm, wenn nichts gespielt wird'],
+  ['transient', 'Transienten', 'Anschlag und Ausklang formen']];
 const WAM_BUILTIN = [
+  ...SG_FX.map(([id, name, desc]) => ({ url: `plugins/sg/${id}.js`, name, desc, sg: true })),
   { url: 'plugins/synth101/index.js', name: 'Synth-101', vendor: 'Sequencer Party', inst: true, desc: 'Monophoner Analog-Synth nach Vorbild des SH-101' },
   { url: 'plugins/modal/index.js', name: 'Spectrum: Modal', vendor: 'Sequencer Party', inst: true, desc: 'Physical Modelling: Glocken, Holz, Metall und Saiten' },
   { url: 'plugins/delay/index.js', name: 'Simple Delay', vendor: 'Sequencer Party', desc: 'Stereo-Delay mit Filter' },
@@ -5380,7 +5387,7 @@ pwEl.addEventListener('keydown', e => { if (e.code !== 'Space') e.stopPropagatio
 // Karten im Tab „Klang & Effekte“
 function pluginCards(tr) {
   const fx = wamList().filter(p => !p.inst), insts = wamList().filter(p => p.inst), c = chans.get(tr.id);
-  const opt = (p, sel) => `<option value="${esc(p.url)}" ${sel ? 'selected' : ''}>${esc(p.name)}${p.vendor ? ' · ' + esc(p.vendor) : ''}</option>`;
+  const opt = (p, sel) => `<option value="${esc(p.url)}" ${sel ? 'selected' : ''}>${esc(p.name)}${p.sg && p.desc ? ' – ' + esc(p.desc) : p.vendor ? ' · ' + esc(p.vendor) : ''}</option>`;
   // Web-Plugins und VST3 getrennt gruppieren
   const opts = (list, sel) => {
     const o = l => l.map(p => opt(p, p.url === sel)).join(''), grp = (label, l) => l.length ? `<optgroup label="${label}">${o(l)}</optgroup>` : '';
