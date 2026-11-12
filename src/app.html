@@ -1313,7 +1313,12 @@ const drumBeats = r => (r.pb || 1) * drumSig(r)[0];
 const drumBT = r => 4 / drumSig(r)[1];
 const drumLen = r => drumBeats(r) * drumBT(r); // Länge des Patterns in Vierteln
 // Drum-Pattern an die Taktart seiner Stelle im Song anpassen (nach Verschieben, Einfügen, Duplizieren)
-function placeDrum(r) { const s = sigAt(r.start); if (String(s) !== String(drumSig(r))) { fitDrum(r, r.pb || 1, s); delete r.phase; return true; } return false; }
+function placeDrum(r) {
+  const s = sigAt(r.start); if (String(s) === String(drumSig(r))) return false;
+  const bars = r.len / sigLen(drumSig(r)); // gleich viele Takte wie vorher
+  fitDrum(r, r.pb || 1, s); delete r.phase; r.len = Math.max(sigLen(s), Math.round(bars * sigLen(s) * 1e6) / 1e6);
+  return true;
+}
 const phaseOf = r => { const L = drumLen(r); return (((r.phase || 0) % L) + L) % L; }; // Versatz des Patterns nach Schneiden oder Kürzen vorne
 // Pattern auf eine Taktart und Länge in Takten bringen. Schläge wandern nach ihrer Zeit mit,
 // beim Verlängern in derselben Taktart wird das bisherige Pattern wiederholt.
@@ -2859,6 +2864,7 @@ function parseMidi(ab) {
   const ntr = dv.getUint16(10), div = dv.getUint16(12);
   if (div & 0x8000) throw new Error('MIDI-Dateien mit SMPTE-Zeit werden nicht unterstützt');
   const ppq = div || 480, parts = [];
+  const sigs = [];
   let tempo = 0, sig = null, o = 8 + dv.getUint32(4);
   for (let ti = 0; ti < ntr && o + 8 <= d.length; ti++) {
     const len = dv.getUint32(o + 4), isTrk = str(o, 4) === 'MTrk', end = Math.min(d.length, o + 8 + len);
@@ -2882,7 +2888,7 @@ function parseMidi(ab) {
         const type = d[p++], l = vlq(), m = p; p += l;
         if (type === 0x03 && !name) name = new TextDecoder('latin1').decode(d.subarray(m, m + l)).trim();
         else if (type === 0x51 && !tempo && l >= 3) tempo = 60000000 / ((d[m] << 16) | (d[m + 1] << 8) | d[m + 2]);
-        else if (type === 0x58 && !sig && l >= 2) sig = [d[m], 2 ** d[m + 1]];
+        else if (type === 0x58 && l >= 2) { const g = [d[m], 2 ** d[m + 1]]; if (!sig) sig = g; else if (t > 0) sigs.push({ b: t / ppq, sig: g }); }
         else if (type === 0x2f) break;
         continue;
       }
@@ -2898,7 +2904,7 @@ function parseMidi(ab) {
     for (const k of [...open.keys()]) while (open.get(k).length) close(k >> 7, k & 127, Math.max(t, open.get(k)[0].t + ppq / 4));
     for (const x of byCh.values()) if (x.notes.length) { x.notes.sort((a, b) => a.s - b.s || a.p - b.p); parts.push({ name, ...x }); }
   }
-  return { tempo: tempo ? Math.round(tempo * 100) / 100 : 0, sig, parts };
+  return { tempo: tempo ? Math.round(tempo * 100) / 100 : 0, sig, sigs, parts };
 }
 // Drum-Noten auf das Raster eines Drum-Patterns legen. Pro Zählzeit wird entschieden, ob es Triolen sind;
 // gleichmäßig nach hinten geschobene Off-Beats werden als Swing der Region erkannt (so bleibt der MPC-Swing erhalten).
@@ -2943,11 +2949,16 @@ async function importMidi(file, trackId, beat) {
   if (!m.parts.length) { toast(`In „${file.name}“ sind keine Noten.`); return; }
   const go = () => placeMidi(m, file.name.replace(/\.(mid|midi|smf)$/i, ''), trackId, beat);
   const tempoDiff = m.tempo && clamp(Math.round(m.tempo), 40, 240) !== P.bpm, sigDiff = m.sig && String(m.sig) !== String(sigOf()) && SIGS.some(s => String(s) === String(m.sig));
-  if (!tempoDiff && !sigDiff) { go(); return; }
+  if (!tempoDiff && !sigDiff && !(m.sigs?.length && !P.tracks.some(t => t.regions.length))) { go(); return; }
   const what = [tempoDiff && fmtBpm(m.tempo) + ' BPM', sigDiff && m.sig.join('/')].filter(Boolean).join(' und ');
-  const adopt = () => { if (sigDiff) setSig(m.sig); if (tempoDiff) setBpm(m.tempo); };
+  const adopt = () => {
+    if (sigDiff) setSig(m.sig);
+    // Taktartwechsel der Datei übernehmen, wenn sie am Songanfang landet und der Song noch keine eigenen hat
+    if ((beat ?? playPos) <= 0 && !P.sigs?.length && (!m.sig || String(m.sig) === String(sigOf()))) for (const c of m.sigs || []) if (SIGS.some(s => String(s) === String(c.sig)) && Math.abs(barPos(c.b) - Math.round(barPos(c.b))) < 1e-3) setSig(c.sig, Math.round(barPos(c.b)));
+    if (tempoDiff) setBpm(m.tempo);
+  };
   // Leeres Projekt: Tempo und Taktart einfach übernehmen
-  if (!P.tracks.some(t => t.regions.length)) { adopt(); go(); toast(`Tempo und Taktart der Datei übernommen (${what}).`); return; }
+  if (!P.tracks.some(t => t.regions.length)) { adopt(); go(); toast(`Tempo und Taktart der Datei übernommen (${what || 'mit Taktartwechseln'}).`); return; }
   banner(`„${file.name}“ hat ${what}. Für den Song übernehmen?`, [['Übernehmen', () => { adopt(); go(); }, true], ['Song so lassen', go]]);
 }
 function placeMidi(m, name, trackId, beat) {
@@ -3010,7 +3021,7 @@ function trackNotes(tr, only) {
   return out;
 }
 // Schreibt eine MIDI-Datei (Format 1, 480 Ticks pro Viertel). tracks: [{ name, ch, prog, notes }]
-function writeMidi(tracks, bpm, sig) {
+function writeMidi(tracks, bpm, sig, changes = []) {
   const PPQ = 480, chunks = [];
   const vlq = v => { const b = [v & 0x7f]; while ((v >>= 7)) b.unshift((v & 0x7f) | 0x80); return b; };
   const text = s => [...new TextEncoder().encode(s)].slice(0, 120);
@@ -3025,7 +3036,9 @@ function writeMidi(tracks, bpm, sig) {
   const us = Math.round(60000000 / bpm), dd = Math.log2(sig[1]);
   chunk([{ t: 0, o: 0, b: [0xff, 0x03, ...vlq(text(P.name || 'Sound Groot').length), ...text(P.name || 'Sound Groot')] },
     { t: 0, o: 1, b: [0xff, 0x51, 3, (us >> 16) & 255, (us >> 8) & 255, us & 255] },
-    { t: 0, o: 2, b: [0xff, 0x58, 4, sig[0], dd, 24, 8] }]);
+    { t: 0, o: 2, b: [0xff, 0x58, 4, sig[0], dd, 24, 8] },
+    // Taktartwechsel mitten im Song
+    ...changes.map(c => ({ t: Math.round(c.beat * PPQ), o: 2, b: [0xff, 0x58, 4, c.sig[0], Math.log2(c.sig[1]), 24, 8] }))]);
   for (const x of tracks) {
     const nm = text(x.name), evs = [{ t: 0, o: 0, b: [0xff, 0x03, ...vlq(nm.length), ...nm] }];
     if (x.prog >= 0) evs.push({ t: 0, o: 1, b: [0xc0 | x.ch, x.prog] });
@@ -3050,7 +3063,7 @@ async function exportMidi(region) {
   }).filter(x => x.notes.length);
   if (!tracks.length) { toast(region ? 'Diese Region hat keine Noten.' : 'Im Song gibt es keine Noten zum Exportieren. Audio-Spuren stecken nicht in MIDI-Dateien.'); return; }
   const name = (region ? rr.name : P.name || 'Mein Song').replace(/[\\/:*?"<>|]/g, '_') + '.mid';
-  const ok = await saveFile(writeMidi(tracks, P.bpm, sigOf()), name, 'MIDI-Datei', 'mid', 'audio/midi');
+  const ok = await saveFile(writeMidi(tracks, P.bpm, region ? sigAt(rr.start) : sigOf(), region ? [] : sigSegs().slice(1)), name, 'MIDI-Datei', 'mid', 'audio/midi');
   if (ok) toast(`„${name}“ gespeichert (${tracks.length} ${tracks.length === 1 ? 'Spur' : 'Spuren'}). In MPC Beats ziehst du die Datei einfach auf eine Spur.`, 4500);
 }
 const isMidiFile = f => /\.(mid|midi|smf)$/i.test(f.name) || f.type === 'audio/midi' || f.type === 'audio/x-midi';
@@ -3136,9 +3149,10 @@ function schedule(b0, b1, t0) {
   const s = spb(), at = b => t0 + (b - b0) * s;
   // Metronom, und im Vorzähler auch ohne Metronom
   if (P.metro || (rec && b0 < rec.countUntil)) {
-    // Vor dem Songanfang (Vorzähler ab Takt 1) zählt die erste Taktart rückwärts weiter
-    const lines = b0 < 0 ? (() => { const s = sigSegs()[0], o = []; for (let i = Math.ceil(b0 / s.bt - 1e-9); i * s.bt < Math.min(b1, 0) - 1e-9; i++) o.push({ b: i * s.bt, bar: Math.abs(i * s.bt / s.bl - Math.round(i * s.bt / s.bl)) < 1e-6 ? 0 : -1 }); return o.concat(b1 > 0 ? gridLines(0, b1) : []); })() : gridLines(b0, b1);
-    for (const l of lines) if (l.b >= b0 - 1e-9 && l.b < b1 - 1e-9 && (P.metro || l.b < rec?.countUntil)) click(at(l.b), l.bar >= 0);
+    // Der Vorzähler zählt in der Taktart der Aufnahmestelle rückwärts von dort (auch vor dem Songanfang)
+    const cu = rec && b0 < rec.countUntil ? rec.countUntil : -Infinity;
+    if (cu > b0) { const s = segAt(Math.max(0, cu)); for (let k = 1; cu - k * s.bt >= b0 - 1e-9; k++) { const b = cu - k * s.bt, x = k * s.bt / s.bl; if (b < b1 - 1e-9) click(at(b), Math.abs(x - Math.round(x)) < 1e-6); } }
+    if (P.metro) for (const l of gridLines(Math.max(b0, cu, 0), b1)) if (l.b >= b0 - 1e-9 && l.b >= cu - 1e-9 && l.b < b1 - 1e-9) click(at(l.b), l.bar >= 0);
   }
   for (const tr of P.tracks) {
     if (renderNeed && !renderNeed.has(tr.id)) continue;
@@ -5477,7 +5491,7 @@ function renderPianoRoll(tr, r, bars) {
   selNotes = new Set([...selNotes].filter(n => r.notes.includes(n)));
   // Auf einer Sampler-Spur ist jede Zeile ein Pad (1–16) statt einer Taste
   const pads = tr.type === 'sampler', Z = PRZ = pads ? PADROLL : PR;
-  eHead.innerHTML = `<input class="rn" id="rname" value="${esc(r.name)}" aria-label="Regionsname"><span class="note">${esc(tr.name)} · ${esc(pads ? 'Pads' : presetName(tr))} · ${bars} Takte</span>${pads ? '<button class="sbtn" data-tab="smp" title="Chops schneiden und Pads belegen">Pads & Chops</button>' : ''}
+  eHead.innerHTML = `<input class="rn" id="rname" value="${esc(r.name)}" aria-label="Regionsname"><span class="note">${esc(tr.name)} · ${esc(pads ? 'Pads' : presetName(tr))} · ${bars} Takt${bars === '1' ? '' : 'e'}</span>${pads ? '<button class="sbtn" data-tab="smp" title="Chops schneiden und Pads belegen">Pads & Chops</button>' : ''}
     ${toolButtons(TOOLS, prTool)}
     <label class="note">Raster <select id="prSnap">${SNAPS.map(([v, n]) => `<option value="${v}" ${near(v, prSnap) ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
     <label class="note">Länge <select id="prLen"><option value="">–</option>${LENS.map(([v, n]) => `<option value="${v}">${n}</option>`).join('')}</select></label>
@@ -5486,7 +5500,7 @@ function renderPianoRoll(tr, r, bars) {
     <span class="split"><button class="sbtn" id="quant" title="Ausgewählte (oder alle) Noten aufs Raster ziehen, mit Stärke und Swing aus dem Groove-Menü (Q)">Quantisieren</button><button class="sbtn" id="grvBtn" title="Groove: Stärke, Swing, Humanize">Groove ▾</button></span>
     ${pads ? '' : '<button class="sbtn" id="trDown">−12</button><button class="sbtn" id="trUp">+12</button>'}
     <button class="sbtn" id="prDel" title="Ausgewählte Noten löschen (Entf)">Löschen</button>${zoomCtl}`;
-  const rows = Z.hi - Z.lo + 1, W = Math.ceil(r.len * Z.bw), H = rows * Z.rh;
+  const ext = 2 * BL(r.start + r.len), rows = Z.hi - Z.lo + 1, W = Math.ceil((r.len + ext) * Z.bw), H = rows * Z.rh;
   let keys = '';
   if (pads) for (let m = Z.hi; m >= Z.lo; m--) { const c = padChop(tr, m); keys += `<div class="key pkey ${c ? '' : 'empty'}" data-p="${m}" style="height:${Z.rh}px;line-height:${Z.rh - 1}px;--cc:${c?.color || '#ffffff20'}" title="Pad ${m + 1}${c ? ': ' + esc(c.name) : ' (leer)'}">${m + 1} ${c ? esc(c.name) : '·'}</div>`; }
   else {
@@ -5512,8 +5526,11 @@ function renderPianoRoll(tr, r, bars) {
       g.fillStyle = pads ? (m % 4 === 0 ? '#353945' : '#121317') : m % 12 === 0 ? '#353945' : '#121317'; g.fillRect(0, y + Z.rh - 1, W, 1);
     }
     const tripl = !near(prSnap * 4 % 1, 0) && !near(prSnap * 4 % 1, 1);
-    for (let t = 0; t <= r.len + 1e-6; t += prSnap) { g.fillStyle = tripl ? '#283040' : '#24272f'; g.fillRect(Math.round(t * Z.bw), 0, 1, H); }
-    for (const l of gridLines(r.start, r.start + r.len)) { g.fillStyle = l.bar >= 0 ? '#555b69' : '#343844'; g.fillRect(Math.round((l.b - r.start) * Z.bw), 0, 1, H); }
+    for (let t = 0; t <= r.len + ext + 1e-6; t += prSnap) { g.fillStyle = tripl ? '#283040' : '#24272f'; g.fillRect(Math.round(t * Z.bw), 0, 1, H); }
+    for (const l of gridLines(r.start, r.start + r.len + ext)) { g.fillStyle = l.bar >= 0 ? '#555b69' : '#343844'; g.fillRect(Math.round((l.b - r.start) * Z.bw), 0, 1, H); }
+    // hinter dem Ende der Region: abgedunkelt, eine Note dort verlängert die Region
+    g.fillStyle = '#0b0c0fb0'; g.fillRect(Math.round(r.len * Z.bw) + 1, 0, W, H);
+    g.fillStyle = '#ffffff40'; g.fillRect(Math.round(r.len * Z.bw), 0, 1, H);
   };
   drawGrid();
   const items = () => r.notes.map(n => ({ x: n.s * Z.bw, v: n.v, sel: selNotes.has(n) }));
@@ -5566,8 +5583,14 @@ function renderPianoRoll(tr, r, bars) {
   const pAt = y => clamp(Z.hi - Math.floor(y / Z.rh), Z.lo, Z.hi);
   const sAt = x => Math.floor(x / Z.bw / prSnap + 1e-6) * prSnap;
   function createAt(x, y, e) {
-    const s = sAt(x); if (s >= r.len - 1e-6) return;
+    const s = sAt(x); if (s >= r.len + ext - 1e-6) return;
     pushUndo();
+    if (s >= r.len - 1e-6) {
+      // Hinter dem Ende gezeichnet: Region bis zum Ende dieses Takts verlängern
+      r.len = barLen(r.start, s + .01);
+      const n = { p: pAt(y), s, l: Math.min(lastLen, r.len - s), v: .8 };
+      r.notes.push(n); selNotes = new Set([n]); previewNote(tr, n.p); save(); renderArrange(); renderEditor(); return;
+    }
     const n = { p: pAt(y), s, l: Math.min(lastLen, r.len - s), v: .8 };
     r.notes.push(n); selNotes = new Set([n]); previewNote(tr, n.p); refresh();
     if (e) startDrag(e, n, 'draw'); else commit();
@@ -5724,7 +5747,7 @@ function drumStepAt(r, rel) {
 const PBS = [1, 2, 3, 4, 6, 8, 12, 16]; // wählbare Pattern-Längen in Takten
 function renderSteps(tr, r, bars) {
   const pb = r.pb || 1, [num] = drumSig(r), bt = drumBT(r), nb = drumBeats(r), bw = Math.round((pb <= 2 ? 136 : pb <= 4 ? 100 : 80) * bt);
-  eHead.innerHTML = `<input class="rn" id="rname" value="${esc(r.name)}" aria-label="Regionsname"><span class="note">${bars} Takte · ${drumSig(r).join('/')}</span>
+  eHead.innerHTML = `<input class="rn" id="rname" value="${esc(r.name)}" aria-label="Regionsname"><span class="note">${bars} Takt${bars === '1' ? '' : 'e'} · ${drumSig(r).join('/')}</span>${String(drumSig(r)) !== String(sigAt(r.start)) ? `<button class="sbtn" id="patFit" title="Das Pattern hat noch die Taktart ${drumSig(r).join('/')}, an dieser Stelle im Song gilt ${sigAt(r.start).join('/')}">An ${sigAt(r.start).join('/')} anpassen</button>` : ''}
     <label class="note" title="So viele Takte lang ist das Pattern, bevor es sich wiederholt">Länge <select id="patLen">${[...new Set([...PBS, pb])].sort((a, b) => a - b).map(n => `<option value="${n}" ${n === pb ? 'selected' : ''}>${n} Takt${n > 1 ? 'e' : ''}</option>`).join('')}</select></label>
     <label class="note">Pattern <select id="patsel"><option value="">Wählen …</option>${patOrder(drumSig(r)).map(k => `<option value="${esc(k)}">${esc(patLabel(k))}</option>`).join('')}</select></label>
     <label class="note velctl afx" title="Jede zweite 16tel nach hinten schieben. 50 % = gerade, 66 % = Triolen-Gefühl">Swing <input type="range" id="dSwing" min="50" max="75" step="1" value="${r.swing || 50}"><output>${r.swing || 50} %</output></label>
@@ -5749,7 +5772,7 @@ function renderSteps(tr, r, bars) {
     }).join('')}</div>`;
   }).join('')}</div></div>`).join('');
   eBody.innerHTML = `<div class="seq"><div class="seq-row seq-head"><span class="seq-sp"></span><div class="beats">${head}</div></div>${rows}
-    <p class="seq-tip">Mit gedrückter Maus über eine Reihe ziehen belegt alle Felder auf dem Weg, auf einem gesetzten Feld begonnen löscht das Ziehen. Klick auf einen Instrumentnamen öffnet den Drum-Editor mit Tonhöhe und Anschlag für jeden Schlag. Klick auf eine Zählzeit teilt sie in Triolen. Die Taktart stellst du oben im Display ein.</p></div>`;
+    <p class="seq-tip">Mit gedrückter Maus über eine Reihe ziehen belegt alle Felder auf dem Weg, auf einem gesetzten Feld begonnen löscht das Ziehen. Klick auf einen Instrumentnamen öffnet den Drum-Editor mit Tonhöhe und Anschlag für jeden Schlag. Klick auf eine Zählzeit teilt sie in Triolen. Mit Aufnahme (R) spielst du das Pattern live ein. Rechtsklick auf ein Feld: Anschlag wählen oder die Reihe füllen.</p></div>`;
   edState.pxb = 0;
   liveCells = { r, cols: Array.from({ length: nb * 4 }, (_, k) => [...eBody.querySelectorAll(`.cell[data-k="${k}"]`)]), last: -1 };
   const seq = eBody.querySelector('.seq');
@@ -5812,6 +5835,7 @@ function renderSteps(tr, r, bars) {
     if (!e.target.value) return;
     pushUndo(); Object.assign(r, drumRegion(e.target.value, r.start, r.len, pb), { id: r.id }); save(); render();
   };
+  if ($('#patFit')) $('#patFit').onclick = () => { pushUndo(); placeDrum(r); save(); render(); };
   $('#patLen').onchange = e => {
     pushUndo(); fitDrum(r, +e.target.value);
     r.len = Math.max(r.len, drumLen(r)); save(); render();
@@ -6388,7 +6412,7 @@ window.addEventListener('blur', () => { [...held.keys()].forEach(liveNoteOff); }
 const GM_DRUMS = { 35: 'kick', 36: 'kick', 37: 'rim', 38: 'snare', 39: 'clap', 40: 'snare', 41: 'tom', 42: 'hat', 43: 'tom', 44: 'hat', 45: 'tom', 46: 'ohat', 47: 'tom', 48: 'tom', 49: 'crash', 50: 'tom', 51: 'ride', 52: 'crash', 53: 'ride', 55: 'crash', 56: 'cow', 57: 'crash', 59: 'ride', 54: 'shaker', 58: 'cow', 60: 'conga', 61: 'conga', 62: 'conga', 63: 'conga', 64: 'conga', 65: 'tom', 66: 'tom', 67: 'cow', 68: 'cow', 69: 'shaker', 70: 'shaker', 73: 'shaker', 74: 'shaker', 75: 'rim', 76: 'rim', 77: 'rim', 82: 'shaker' };
 function liveNoteOn(id, midi, vel) {
   const tr = findTrack(selTrack); if (!tr || held.has(id)) return;
-  if (useFrozen(tr)) { if (!liveNoteOn.warned) { liveNoteOn.warned = 1; toast('Die Spur ist eingefroren. Zum Spielen mit ❄ im Spurkopf auftauen.'); } return; }
+  if (useFrozen(tr)) { if (!liveNoteOn.warned) { liveNoteOn.warned = 1; toast('Die Spur ist eingefroren. Zum Spielen mit der Schneeflocke im Spurkopf auftauen.'); } return; }
   ensureCtx();
   if (tr.type === 'synth') {
     held.set(id, { v: noteOn(tr, chan(tr).input, midi, ctx.currentTime, vel), midi });
@@ -6647,7 +6671,7 @@ function renderMixer() {
     const el = e.target.closest('.kn, .fader'); if (!el || e.button > 0) return;
     const p = mixParam(el, el.dataset.k); if (!p) return;
     e.preventDefault();
-    if (p.auto) { toast('Dieser Regler folgt der Automation. Ändern oder löschen kannst du sie mit „A“ im Spurkopf.'); return; }
+    if (p.auto) { toast('Dieser Regler folgt der Automation. Ändern oder löschen kannst du sie über das Kurven-Symbol im Spurkopf.'); return; }
     // Doppelklick (oder Doppeltippen) setzt zurück
     const now = performance.now();
     if (mixLast.el === el && now - mixLast.t < 350) { mixLast = {}; pushUndo(); p.set(p.def); p.commit?.(); save(); syncHeads(); mixPaint(); return; }
@@ -7615,7 +7639,7 @@ async function freezeTrack(tr, quiet) {
     if (!quiet) pushUndo();
     tr.frozen = { buf: id, sig: freezeSig(tr) };
     save(); applyMix();
-    toast(quiet ? `„${tr.name}“ ist wieder eingefroren.` : `„${tr.name}“ ist eingefroren. Instrument und Plugins ruhen, bis du ❄ wieder ausschaltest.`, 3500);
+    toast(quiet ? `„${tr.name}“ ist wieder eingefroren.` : `„${tr.name}“ ist eingefroren. Instrument und Plugins ruhen, bis du sie mit der Schneeflocke im Spurkopf wieder auftaust.`, 3500);
   } catch (e) { console.error(e); toast('Einfrieren fehlgeschlagen: ' + (e.message || e)); }
   finally { freezeBusy = null; renderArrange(); }
 }
@@ -7644,7 +7668,7 @@ async function cpuPoll() {
   const frozen = P.tracks.filter(t => useFrozen(t)).length;
   box.title = `Rechenlast der Audio-Engine: ${shown} % eines Prozessorkerns (Spitze zuletzt ${Math.round(cpuPeak)} %).`
     + (m.vst ? ` Dazu ${m.vst} VST3-Plugin${m.vst > 1 ? 's' : ''} in eigenen Prozessen.` : '')
-    + ` Wird es knapp, Spuren mit ❄ im Spurkopf einfrieren${frozen ? ` (${frozen} eingefroren)` : ''}.`;
+    + ` Wird es knapp, Spuren mit der Schneeflocke im Spurkopf einfrieren${frozen ? ` (${frozen} eingefroren)` : ''}.`;
 }
 setInterval(cpuPoll, 1000);
 
@@ -7760,27 +7784,34 @@ function closeModal() {
 modal.addEventListener('pointerdown', e => { if (e.target === modal) closeModal(); });
 
 // ================= Einstellungen und Tastenkürzel =================
-const SG_VERSION = '1.5.0';
+const SG_VERSION = '1.6.0'; // wird beim Bauen aus package.json gesetzt (scripts/build.js)
 // Alle Tastenkürzel an einer Stelle: [Tasten, was passiert, Hinweis]. Daraus entsteht die Übersicht in den Einstellungen.
 const SHORTCUTS = [
   ['Abspielen und Aufnehmen', [
-    ['Leertaste', 'Abspielen / Stopp'], ['Enter', 'Zum Anfang (bei Cycle: zum Cycle-Anfang)'], ['R', 'Aufnahme auf der ausgewählten Spur', 'mit Vorzähler, einstellbar unter Geräte'],
+    ['Leertaste', 'Abspielen / Stopp'], ['Enter / Pos1', 'Zum Anfang (bei Cycle: zum Cycle-Anfang)'], ['Pfeil links / Pfeil rechts', 'Einen Takt zurück / vor'],
+    ['R', 'Aufnahme auf der ausgewählten Spur', 'Noten, Audio oder Drums (die Schläge landen im Pattern). Vorzähler mit dem Knopf „1234“'],
     ['C', 'Cycle (Schleife) an/aus', 'mit Cycle entsteht pro Durchgang ein eigener Take'], [', / .', 'Zum vorigen / nächsten Marker springen']]],
   ['Projekt', [
     ['Strg+S', 'Speichern'], ['Strg+Umschalt+S', 'Speichern unter …'], ['Strg+O', 'Projekt öffnen'], ['Strg+E', 'Audio exportieren', 'Mix oder Stems, WAV, FLAC oder MP3'],
     ['Strg+Z', 'Rückgängig', 'alle Schritte stehen im Verlauf neben den Pfeilen'], ['Strg+Umschalt+Z', 'Wiederholen', 'oder Strg+Y']]],
   ['Ansicht', [
-    ['M', 'Mixer ein/aus'], ['I', 'Bibliothek ein/aus'], ['Strg+Mausrad', 'Zoomen', 'im Arrangement und im Piano Roll, am Touchscreen mit zwei Fingern'],
+    ['N', 'Editor ein/aus', 'Piano Roll, Drum-Pattern oder Audio der ausgewählten Region'], ['V', 'Klang & Effekte der Spur ein/aus'], ['M', 'Mixer ein/aus'], ['I', 'Bibliothek ein/aus'],
+    ['Pfeil hoch / Pfeil runter', 'Spur darüber / darunter auswählen'], ['Rechtsklick', 'Menü mit den passenden Befehlen', 'am Touchscreen: lange drücken. Geht auf Regionen, Spuren, Noten, Drum-Feldern, Markern und im Lineal'], ['Strg+Mausrad', 'Zoomen', 'im Arrangement und im Piano Roll, am Touchscreen mit zwei Fingern'],
     ['F1 / ?', 'Diese Übersicht öffnen'], ['Esc', 'Dialog schließen']]],
   ['Regionen', [
-    ['Doppelklick', 'Neue Region in einer leeren Stelle der Spur'], ['Strg+D', 'Region duplizieren'], ['Strg+C / Strg+X', 'Region kopieren / ausschneiden'],
+    ['Doppelklick', 'Neue Region in einer leeren Stelle der Spur', 'auf eine Region: im Editor öffnen'], ['Strg+D', 'Region duplizieren'], ['Strg+C / Strg+X', 'Region kopieren / ausschneiden'],
     ['Strg+V', 'An der Abspielposition einfügen', 'auch auf eine andere Spur'], ['B / Strg+T', 'An der Abspielposition teilen'], ['Alt+Klick', 'Region an dieser Stelle teilen'],
     ['Entf / Rücktaste', 'Region, Note oder Marker löschen'], ['Umschalt+Ziehen', 'Feiner verschieben (ohne Takt-Raster)'],
     ['Alt+Ziehen', 'Audio dehnen, ohne die Tonhöhe zu ändern', 'am rechten Rand einer Audio-Region (Time-Stretch)']]],
   ['Piano Roll', [
-    ['Q', 'Noten quantisieren', 'mit Swing und Stärke aus „Groove“'], ['Strg+A', 'Alle Noten auswählen'], ['Umschalt+Klick', 'Mehrere Noten auswählen'], ['Alt+Klick', 'Note löschen']]],
+    ['Q', 'Noten quantisieren', 'mit Swing und Stärke aus „Groove“'], ['Strg+A', 'Alle Noten auswählen'], ['Umschalt+Klick', 'Mehrere Noten auswählen'], ['Alt+Klick', 'Note löschen'],
+    ['Rechtsklick auf eine Note', 'Duplizieren, Oktave, Länge, Anschlag, Löschen'], ['Klick hinter das Ende', 'Note setzen und die Region um einen Takt verlängern']]],
   ['Drum-Editor', [
-    ['Klicken und ziehen', 'Ganze Reihe füllen oder leeren'], ['Umschalt+Klick', 'Schlag mit Akzent (volle Lautstärke)']]],
+    ['Klicken und ziehen', 'Ganze Reihe füllen oder leeren'], ['Umschalt+Klick', 'Schlag mit Akzent (volle Lautstärke)'],
+    ['Rechtsklick auf ein Feld', 'Anschlag wählen (leise, normal, Akzent) oder die ganze Reihe füllen'], ['R', 'Pattern live einspielen', 'mit Cycle kommt in jeder Runde etwas dazu']]],
+  ['Taktart', [
+    ['Klick auf die Taktart oben', 'Taktart ändern oder einen Wechsel ab der Abspielposition einfügen'], ['Rechtsklick ins Lineal', 'Taktartwechsel an diesem Takt, Marker, Cycle'],
+    ['Klick auf ein Schild im Lineal', 'Taktartwechsel ändern oder entfernen']]],
   ['Automation', [
     ['Klick', 'Punkt setzen'], ['Ziehen', 'Kurve zeichnen oder Punkt verschieben'], ['Doppelklick / Alt+Klick', 'Punkt löschen'], ['Umschalt+Ziehen', 'Ohne Raster']]],
   ['Comping (Takes)', [
@@ -7834,8 +7865,8 @@ function paintSettings() {
     pane.innerHTML = `<h3>So geht's</h3>${HELP_HTML}`;
   } else if (setTab === 'general') {
     pane.innerHTML = `<h3>Einführung</h3>
-      <div class="optrow"><span>Kurze Tour durch Sound Groot<small>Zeigt in neun Schritten, wo was ist. Lief beim ersten Start automatisch.</small></span><button class="sbtn" id="stTour">Starten</button></div>
-      ${sgsys ? `<h3>Anzeige</h3><div class="optrow"><span>CPU-Anzeige in der Leiste<small>Rechenlast der Audio-Engine. Wird es knapp, Spuren mit ❄ einfrieren.</small></span><input type="checkbox" id="stCpu" ${cpuOn ? 'checked' : ''}></div>` : ''}
+      <div class="optrow"><span>Kurze Tour durch Sound Groot<small>Zeigt in zehn Schritten, wo was ist. Lief beim ersten Start automatisch.</small></span><button class="sbtn" id="stTour">Starten</button></div>
+      ${sgsys ? `<h3>Anzeige</h3><div class="optrow"><span>CPU-Anzeige in der Leiste<small>Rechenlast der Audio-Engine. Wird es knapp, Spuren einfrieren (Schneeflocke im Spurkopf).</small></span><input type="checkbox" id="stCpu" ${cpuOn ? 'checked' : ''}></div>` : ''}
       <h3>Export</h3>
       <div class="optrow"><span>Standard-Format<small>Wird im Export-Dialog (Strg+E) vorgewählt.</small></span><select id="stFmt">${Object.entries(XFMT).map(([k, v]) => `<option value="${k}" ${k === xPrefs.fmt ? 'selected' : ''}>${v[0]}</option>`).join('')}</select></div>
       <h3>Speichern</h3><p>Sound Groot sichert dein Projekt laufend im Hintergrund und alle zwei Minuten als Sicherung (Uhr-Symbol oben). Als Datei speicherst du mit Strg+S.</p>`;
@@ -7865,11 +7896,12 @@ $('#bSet').onclick = () => openSettings();
 const tourEl = $('#tour');
 const TOUR = [
   [null, 'Willkommen bei Sound Groot', 'In einer Minute zeigen wir dir die wichtigsten Stellen. Du kannst jederzeit überspringen und die Tour später unter Einstellungen (Zahnrad) wieder starten.'],
-  ['#bAdd', 'Spuren anlegen', 'Hier legst du neue Spuren an: Software-Instrument, Drummer mit Patterns, Audio für Mikrofon und Dateien oder einen Sampler mit 16 Pads wie bei der MPC.'],
+  ['#bAdd', 'Spuren anlegen', 'Das Plus über den Spuren legt eine neue Spur an: Software-Instrument, Drummer mit Patterns, Audio für Mikrofon und Dateien oder einen Sampler mit 16 Pads wie bei der MPC.'],
   ['#bLib', 'Klänge aus der Bibliothek', 'Die Bibliothek (Taste I) enthält alle Instrumente, Drum-Kits und Loops, sortiert nach Familie. ▶ hört rein, der Stern merkt sich Favoriten.'],
-  ['#arrange', 'Das Arrangement', 'Doppelklick in eine leere Stelle einer Spur erstellt eine Region. Verschieben mit der Maus, am Rand die Länge ändern. Im Spurkopf öffnet „A“ die Automation, ❄ friert eine Spur ein und spart Rechenleistung.'],
+  ['#arrange', 'Das Arrangement', 'Doppelklick in eine leere Stelle einer Spur erstellt eine Region. Verschieben mit der Maus, am Rand die Länge ändern. Ein Rechtsklick (am Touchscreen: lange drücken) zeigt überall die passenden Befehle. Spuren sortierst du um, indem du sie am Symbol links ziehst.'],
   ['.transport', 'Abspielen und Aufnehmen', 'Leertaste spielt ab, R nimmt auf, C schaltet den Cycle. Mit Cycle entsteht pro Durchgang ein Take, aus denen du im Editor die besten Stellen zusammensetzt.'],
-  ['#editor', 'Der Editor', 'Unten bearbeitest du die ausgewählte Region: Noten im Piano Roll, Drum-Patterns oder Audio. Über die Reiter kommst du zu Mixer, Kanal-EQ und Effekten.'],
+  ['#lcd', 'Anzeige: Position, Tempo, Taktart', 'Das Tempo tippst du direkt ein. Ein Klick auf die Taktart ändert sie, auch mitten im Song: Abspielposition auf den Takt setzen und die neue Taktart wählen.'],
+  ['#bEd', 'Der Editor', 'Dieser Knopf (oder ein Doppelklick auf eine Region) öffnet unten den Editor: Noten im Piano Roll, Drum-Patterns oder Audio. Über die Reiter kommst du zu Mixer, Kanal-EQ und Effekten.'],
   ['#bDev', 'MIDI-Keyboard und Mikrofon', 'Hier verbindest du dein MIDI-Keyboard, wählst den Audio-Eingang und misst die Latenz, damit Aufnahmen genau im Takt landen.'],
   ['#bFile', 'Speichern und Exportieren', 'Im Datei-Menü speicherst du Projekte und exportierst den Song als WAV, FLAC oder MP3, auf Wunsch jede Spur einzeln als Stem (Strg+E).'],
   ['#bSet', 'Einstellungen und Tastenkürzel', 'Hier findest du jederzeit alle Tastenkürzel übersichtlich (auch mit F1) und kannst diese Tour neu starten. Viel Spaß beim Musikmachen!']
