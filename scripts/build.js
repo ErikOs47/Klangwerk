@@ -3,7 +3,8 @@
 const fs = require('fs'), path = require('path'), crypto = require('crypto');
 const root = path.join(__dirname, '..'), dist = path.join(root, 'dist');
 const { version } = require(path.join(root, 'package.json'));
-const body = fs.readFileSync(path.join(root, 'src/app.html'), 'utf8');
+// Die Versionsnummer in den Einstellungen kommt aus package.json
+const body = fs.readFileSync(path.join(root, 'src/app.html'), 'utf8').replace(/const SG_VERSION = '[^']*';/, `const SG_VERSION = '${version}';`);
 const head = [
   '<meta charset="utf-8">',
   // maximum-scale verhindert, dass iOS beim Tippen in ein Eingabefeld hineinzoomt

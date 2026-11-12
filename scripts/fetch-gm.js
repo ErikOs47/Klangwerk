@@ -38,7 +38,11 @@ const GM = {
   fingerbass: ['electric_bass_finger', 28, 60, 2], 'slap2': ['slap_bass_2', 28, 60, 2], sopsax: ['soprano_sax', 56, 88, 2.5],
   whistle: ['whistle', 60, 96, 2.5], strings2: ['string_ensemble_2', 36, 96, 3],
   synthstrings2: ['synth_strings_2', 36, 96, 3], synthbrass2: ['synth_brass_2', 41, 84, 2.5], 'pad-choir': ['pad_4_choir', 36, 90, 3],
-  rain: ['fx_1_rain', 36, 90, 3], soundtrack: ['fx_2_soundtrack', 36, 90, 3], goblins: ['fx_6_goblins', 36, 90, 3], 'melodic-tom': ['melodic_tom', 36, 72, 1.5]
+  rain: ['fx_1_rain', 36, 90, 3], soundtrack: ['fx_2_soundtrack', 36, 90, 3], goblins: ['fx_6_goblins', 36, 90, 3], 'melodic-tom': ['melodic_tom', 36, 72, 1.5],
+  // Neu in v1.6: heller Flügel und die Geräusche am Ende des GM-Satzes
+  brightpiano: ['bright_acoustic_piano', 36, 96, 3], synthdrum: ['synth_drum', 36, 72, 1.5], revcymbal: ['reverse_cymbal', 48, 72, 2.5],
+  fretnoise: ['guitar_fret_noise', 48, 72, 1.5], breath: ['breath_noise', 48, 72, 2], seashore: ['seashore', 48, 72, 3], birds: ['bird_tweet', 48, 72, 3],
+  telephone: ['telephone_ring', 48, 72, 3], helicopter: ['helicopter', 48, 72, 3], applause: ['applause', 48, 72, 3], gunshot: ['gunshot', 48, 72, 1.5]
 };
 const run = (cmd, args) => new Promise((res, rej) => execFile(cmd, args, { maxBuffer: 1 << 26 }, (e, so) => e ? rej(e) : res(so)));
 async function pool(items, n, fn) { let i = 0; await Promise.all(Array.from({ length: n }, async () => { while (i < items.length) await fn(items[i++]); })); }

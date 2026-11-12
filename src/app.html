@@ -151,7 +151,7 @@ input[type=checkbox] { accent-color: var(--accent); }
 .lcd select { appearance: none; -webkit-appearance: none; background: transparent; border: 0; padding: 0; font-family: var(--font-mono); font-size: 18px; font-weight: 600; color: var(--lcd-fg); text-shadow: 0 0 12px #8fb4ff40; cursor: pointer; }
 .lcd select option { background: #16181d; color: var(--fg); font-size: 13px; }
 @media (max-width: 960px) { .master { display: none !important; } }
-@media (max-width: 900px) { #bImport { display: none; } .bar { gap: 6px 8px; } }
+@media (max-width: 900px) { .bar { gap: 6px 8px; } }
 @media (max-width: 1200px) { .brand span, .pname, .bar .tbtn .lbl { display: none; } .bar { gap: 8px 10px; } }
 
 /* Kanal-EQ */
@@ -627,9 +627,9 @@ input.st-gname:focus { outline: 1px solid var(--accent); border-radius: 4px; }
 #toast:not([hidden]) { animation: toast .26s var(--ease); }
 @keyframes toast { from { opacity: 0; transform: translate(-50%, 10px) scale(.98); } }
 @media (max-width: 1480px) and (min-width: 1201px) { .pname { max-width: 90px; } }
-@media (max-width: 820px) {
+@media (max-width: 1000px) {
   .bar { gap: 6px; padding-block: 6px; }
-  .tbtn .lbl, .brand span, .spacer, .master, #bImport { display: none; }
+  .tbtn .lbl, .brand span, .spacer, .master { display: none; }
   .brand { order: 0; } .bar > .group { order: 1; } .bar > .filegrp { order: 0; flex: 1; min-width: 0; } .views { order: 1; }
   .transport, .lcd { order: 2; }
   .transport { flex: none; }
@@ -690,7 +690,7 @@ input.st-gname:focus { outline: 1px solid var(--accent); border-radius: 4px; }
 /* Handy quer: Arrangement und Keyboard, der Editor macht Platz */
 @media (max-height: 500px) { #app.kb-open .editor { display: none; } .kb { --kbh: 84px; gap: 4px; padding-top: 4px; } }
 button { touch-action: manipulation; }
-@media (max-width: 820px) { #app > .bar { --bar-pt: 6px; } }
+@media (max-width: 1000px) { #app > .bar { --bar-pt: 6px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 /* Dialoge (Einstellungen, Export) */
 .modal { position: fixed; inset: 0; z-index: 90; background: #05060899; -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); display: grid; place-items: center; padding: 16px; }
@@ -771,6 +771,161 @@ kbd.k { font-family: var(--font-mono); font-size: 11.5px; background: var(--rais
 .tstrip .sel { position: absolute; top: 0; bottom: 0; background: #ffffff2a; pointer-events: none; }
 .ebody.hastakes > .prw, .ebody.hastakes > .seq { top: var(--tkh); }
 .ebody.hastakes > .wave { top: calc(var(--tkh) + 12px); }
+/* ================= Version 1.6: Bedienung nach GarageBand-Art ================= */
+body { -webkit-touch-callout: none; }
+:root { --hw: 262px; --row: 78px; }
+@media (max-width: 1100px) { :root { --hw: 236px; } }
+@media (max-width: 700px) { :root { --hw: 150px; --row: 74px; } }
+
+/* Leiste: Ansichten links, Transport und Anzeige in der Mitte, Cycle/Vorzähler/Metronom daneben */
+.bar { gap: 8px 10px; }
+.pname { border: 0; background: transparent; border-radius: 7px; height: 28px; cursor: text; text-align: left; max-width: 130px; }
+.pname:hover { background: var(--hover); color: var(--fg); }
+.modes .tbtn.on { background: var(--accent-soft); color: var(--accent); }
+#bLoop.on { background: linear-gradient(180deg, #f6c868, #e3a73a); color: #2a1c00; }
+.cnt { font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; letter-spacing: .02em; }
+.lcd-pos { cursor: pointer; min-width: 88px; border-radius: 8px 0 0 8px; }
+.lcd-pos:hover { background: #ffffff08; }
+.lcdbtn { appearance: none; background: transparent; border: 0; padding: 0; font-family: var(--font-mono); font-size: 18px; font-weight: 600; color: var(--lcd-fg); text-shadow: 0 0 12px #8fb4ff40; cursor: pointer; text-align: left; border-radius: 5px; line-height: 1.15; }
+.lcdbtn:hover { color: #fff; }
+.lcd-sig { cursor: pointer; }
+.bar > .spacer { margin: 0 -5px; }
+.mini.master input[type=range] { width: 72px; }
+@media (max-width: 1700px) { .brand span { display: none; } .views .lbl { display: none; } }
+@media (max-width: 1500px) { .bar .tbtn .lbl { display: none; } .pname { max-width: 96px; } .bar { gap: 8px; } .lcd > div { padding: 0 10px; } .seg .tbtn { min-width: 32px; padding: 0 8px; } .master .meter { display: none; } }
+@media (max-width: 1280px) { .pname, .lcd-lufs { display: none !important; } }
+@media (max-width: 1120px) { #bBack, #bFwd, #bHelp, #bHist { display: none; } .master { display: none !important; } }
+@media (max-width: 960px) { #bHist, #bSmart { display: none; } .lcd > div { padding: 0 9px; } }
+
+/* Ecke über den Spurköpfen: neue Spur */
+.addtr { width: 28px; height: 22px; flex: none; border-radius: 7px; border: 1px solid #ffffff1a; background: #ffffff0d; color: var(--fg); display: grid; place-items: center; padding: 0; transition: background .12s, border-color .12s, color .12s; }
+.addtr svg { width: 12px; height: 12px; fill: currentColor; }
+.addtr:hover { background: var(--accent); border-color: var(--accent); color: #1b1400; }
+.corner { padding-left: 10px; gap: 8px; }
+
+/* Taktartwechsel im Lineal */
+.ruler .bn.sgc { border-left-color: var(--accent); z-index: 1; }
+.ruler .sg { margin-left: 5px; height: 14px; padding: 0 5px; border-radius: 4px; border: 0; background: var(--accent); color: #1b1400; font-family: var(--font-mono); font-size: 9.5px; font-weight: 600; line-height: 14px; vertical-align: 1px; cursor: pointer; }
+.ruler .sg:hover { background: #ffd27a; }
+
+/* Spurkopf: großes Symbol links (ziehen sortiert um), Name, Stumm/Solo, Klang, Regler */
+.thead { align-items: stretch; }
+.tico { flex: none; align-self: center; width: 38px; height: 38px; margin-left: 8px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--c) 38%, transparent); background: linear-gradient(180deg, color-mix(in srgb, var(--c) 30%, #1b1d23), color-mix(in srgb, var(--c) 14%, #15171b)); display: grid; place-items: center; padding: 0; cursor: grab; touch-action: none; box-shadow: inset 0 1px 0 #ffffff14, 0 2px 5px #0006; transition: transform .12s var(--ease), border-color .12s; }
+.tico:hover { border-color: color-mix(in srgb, var(--c) 80%, transparent); transform: scale(1.04); }
+.tico:active { cursor: grabbing; }
+.tico .ticon { width: 20px; height: 20px; fill: color-mix(in srgb, var(--c) 78%, #fff); }
+.trow > .ticon { display: none; }
+.tmain { padding: 0 8px 0 9px; gap: 6px; }
+.tname { font-size: 13px; letter-spacing: -.01em; padding: 1px 4px; margin-left: -4px; }
+.sm svg { width: 11px; height: 11px; fill: currentColor; }
+.sm.fz, .sm.ab { min-width: 22px; padding: 0 5px; opacity: .55; }
+.track-row:hover .sm.fz, .track-row:hover .sm.ab, .track-row.sel .sm.fz, .track-row.sel .sm.ab, .sm.fz.on, .sm.ab.on, .sm.ab.has { opacity: 1; }
+@media (hover: none) { .sm.fz, .sm.ab { opacity: 1; } }
+.sm.m, .sm.s { min-width: 24px; }
+.track-row.sel .thead { background: linear-gradient(90deg, color-mix(in srgb, var(--c) 20%, #22252c), #22252c 75%); box-shadow: inset 2px 0 0 var(--c); }
+.track-row.tdrag { opacity: .45; }
+.tdrop { position: absolute; left: 0; right: 0; height: 3px; background: var(--accent); box-shadow: 0 0 10px var(--accent); z-index: 8; pointer-events: none; border-radius: 2px; }
+#rows { position: relative; }
+@media (max-width: 700px) { .tico { display: none; } .trow > .ticon { display: block; } .tmain { padding: 0 8px; } .tname { margin-left: 0; } }
+.region { border-radius: 8px; }
+.region .rname { height: 18px; line-height: 18px; font-size: 11px; letter-spacing: 0; }
+.region canvas { top: 18px; height: calc(100% - 18px); }
+
+/* Editor: einklappen */
+.edx { flex: none; width: 26px; height: 26px; border-radius: 7px; border: 0; background: transparent; color: var(--muted); display: grid; place-items: center; padding: 0; }
+.edx:hover { background: var(--hover); color: var(--fg); }
+.edx svg { width: 14px; height: 14px; fill: currentColor; }
+.ehead .rdel:hover { background-color: #ff5a5226 !important; color: #ff8a84; }
+
+/* Startkarten im leeren Editor */
+.empty.start { display: block; padding-block: 18px; }
+.startcards { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; max-width: 980px; }
+.startcards button { display: grid; grid-template-columns: 34px 1fr; grid-template-rows: auto auto; column-gap: 12px; align-items: center; text-align: left; padding: 12px 14px; border-radius: 12px; border: 1px solid #ffffff10; background: linear-gradient(180deg, #1e2128, #1a1c22); transition: border-color .12s, background .12s, transform .1s; }
+.startcards button:hover { border-color: #f2b84b66; background: linear-gradient(180deg, #242730, #1e2027); }
+.startcards button:active { transform: scale(.985); }
+.startcards svg { grid-row: 1 / 3; width: 34px; height: 34px; padding: 9px; box-sizing: border-box; border-radius: 10px; background: var(--accent-soft); fill: var(--accent); }
+.startcards b { font-size: 13px; font-weight: 600; color: var(--fg); align-self: end; }
+.startcards span { font-size: 12px; color: var(--muted); line-height: 1.35; align-self: start; }
+.starthint { margin: 14px 0 0 !important; font-size: 12px; max-width: 90ch !important; }
+
+/* Menüs (Rechtsklick, lange drücken) */
+.menu.ctx { position: fixed; top: 0; left: 0; z-index: 130; min-width: 232px; max-width: min(340px, calc(100vw - 16px)); max-height: calc(100vh - 16px); overflow-y: auto; background: #22252df2; }
+.ctx button { min-height: 30px; padding: 6px 10px; white-space: nowrap; }
+.ctx button:disabled { opacity: .38; pointer-events: none; }
+.ctx button.danger { color: #ff8a84; }
+.ctx button.danger:hover { background: var(--rec); color: #fff; }
+.ctx kbd { margin-left: auto; padding-left: 16px; font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+.ctx hr { border: 0; border-top: 1px solid #ffffff12; margin: 4px 6px; }
+.cx-t { padding: 6px 10px 5px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cx-h { padding: 7px 10px 3px; font-size: 11px; font-weight: 600; color: var(--muted); }
+.cx-n { margin: 4px 10px 6px; font-size: 11.5px; line-height: 1.45; color: var(--muted); white-space: normal; }
+.cx-chips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 3px 8px 6px; }
+.ctx .cx-chips button { justify-content: center; min-height: 28px; padding: 0 6px; border: 1px solid #ffffff14; background: #ffffff0a; font-family: var(--font-mono); font-size: 12px; }
+.ctx .cx-chips button.on { background: var(--accent); border-color: var(--accent); color: #1b1400; font-weight: 600; }
+.cx-chips.cols { display: flex; gap: 7px; padding: 4px 10px 8px; }
+.ctx .cx-chips.cols button { width: 22px; min-height: 22px; height: 22px; padding: 0; border-radius: 50%; background: var(--cc); border: 2px solid transparent; flex: none; }
+.ctx .cx-chips.cols button:hover { background: var(--cc); transform: scale(1.15); }
+.ctx .cx-chips.cols button.on { background: var(--cc); border-color: #fff; }
+.menu.ctx.sheet { left: 8px !important; right: 8px; top: auto !important; bottom: calc(8px + env(safe-area-inset-bottom, 0px)); max-width: none; max-height: 72vh; border-radius: 16px; padding: 8px; transform-origin: bottom center; animation: sheet .22s var(--ease); }
+@keyframes sheet { from { opacity: 0; transform: translateY(24px); } }
+.ctx.sheet button { min-height: 44px; font-size: 15px; }
+.ctx.sheet .cx-chips button { min-height: 40px; font-size: 14px; }
+.ctx.sheet .cx-chips.cols button { width: 32px; height: 32px; min-height: 32px; }
+@media (hover: none) { .ctx kbd { display: none; } }
+
+/* Dialoge mit Kacheln: neue Spur, neues Projekt */
+.tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 16px; overflow-y: auto; }
+.tile { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; text-align: left; padding: 14px; border-radius: 14px; border: 1px solid #ffffff12; background: linear-gradient(180deg, #1f2229, #1a1c22); transition: border-color .12s, background .12s, transform .1s; min-width: 0; }
+.tile:hover, .tile:focus-visible { border-color: var(--accent); background: linear-gradient(180deg, #262932, #1f2128); }
+.tile:active { transform: scale(.985); }
+.tile-i { width: 40px; height: 40px; padding: 10px; box-sizing: border-box; border-radius: 12px; background: var(--accent-soft); fill: var(--accent); margin-bottom: 2px; }
+.tile b { font-size: 14px; font-weight: 600; }
+.tile span { font-size: 12px; line-height: 1.45; color: var(--muted); }
+.tiles.tpl { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.tiles.tpl .tile { padding: 12px 14px; }
+@media (max-width: 480px) { .tiles { grid-template-columns: 1fr; } .tile { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: 12px; } .tile span { flex-basis: 100%; } }
+.askf { display: flex; flex-direction: column; }
+.askf input { margin: 16px 16px 4px; height: 38px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg-deep); padding: 0 12px; font-size: 14px; outline: none; user-select: text; -webkit-user-select: text; }
+.askf input:focus { border-color: #f2b84b88; box-shadow: 0 0 0 3px var(--accent-soft); }
+.askf .mfoot { border-top: 0; }
+.mpane p { max-width: 72ch; }
+
+/* Schnellhilfe */
+.qhelp { position: fixed; left: max(14px, env(safe-area-inset-left, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 85; width: min(300px, calc(100vw - 28px)); padding: 11px 14px 12px; border-radius: 12px; background: #262014f2; border: 1px solid #f2b84b55; box-shadow: 0 14px 40px #000b; pointer-events: none; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.qhelp b { display: block; font-size: 12.5px; color: var(--accent); margin-bottom: 3px; }
+.qhelp p { margin: 0; font-size: 12px; line-height: 1.45; color: #e2dccb; }
+
+/* ---------- Handy: zwei schlanke Zeilen, darunter das Arrangement ---------- */
+@media (max-width: 1000px) {
+  .bar { gap: 5px 6px; row-gap: 6px; }
+  .bar > .brand { order: 0; } .bar > .vwl { order: 1; } .bar > .filegrp { order: 2; flex: 0 0 auto; } .bar > .vwr { order: 3; margin-left: auto; } .bar > .editgrp { order: 4; } .bar > #bSet { order: 5; }
+  .bar > .transport { order: 6; } .bar > .lcd { order: 7; } .bar > .modes { order: 8; }
+  .pname, #bHelp, #bHist, #bBack, #bFwd { display: none !important; }
+  .brand svg { width: 24px; height: 24px; }
+  .lcd { flex: 1 1 120px; min-width: 0; justify-content: space-around; padding: 2px; }
+  .lcd > div { padding: 0 6px; min-width: 0; }
+  .lcd small { font-size: 8px; letter-spacing: .1em; }
+  .lcd b, .lcd input, .lcdbtn { font-size: 15px; }
+  .lcd input { width: 36px; }
+  .lcd-pos { min-width: 74px; }
+  .lcd-lufs { display: none !important; }
+  .seg { padding: 2px; }
+}
+@media (max-width: 700px) { #bSmart, #bStop, #bCount { display: none !important; } }
+@media (max-width: 400px) { #bRedo { display: none; } .bar { padding-left: max(10px, env(safe-area-inset-left, 0px)); padding-right: max(10px, env(safe-area-inset-right, 0px)); } }
+/* Handy quer: alles in eine Zeile */
+@media (max-height: 500px) and (min-width: 600px) {
+  .bar { flex-wrap: nowrap; padding-block: 4px; --bar-pt: 4px; }
+  .bar > .vwr { margin-left: 0; }
+  .lcd small { display: none; }
+  .lcd { flex: 0 1 auto; }
+  #bDev, #bRedo, .filegrp .tbtn .lbl { display: none; }
+  .ruler-row { height: 26px; } .marker-row { top: 26px; height: 22px; }
+  .marker-row .corner { height: 22px; }
+}
+.lcd b { white-space: nowrap; }
+/* Handy hochkant: im schmalen Spurkopf bleibt Platz für den Namen; Einfrieren, Automation und Löschen stehen im Menü (lange drücken) */
+@media (max-width: 700px) { .thead .sm.fz, .thead .sm.ab, .thead .sm.x, .thead .eqb { display: none; } .tname { font-size: 12.5px; } }
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="sgLogo" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.1"><path d="M21.5 27.6 C19.5 26.8 18 26.3 16 25"></path><path d="M22.5 27.8 C21.5 26.5 20.8 25.6 20 23.5"></path><path d="M23.5 28.3 C24.5 27.4 25.5 26.6 28 25"></path><path d="M42.6 22 C41.5 20.8 40.6 20 39.5 18"></path><path d="M42.8 21.8 C43 20.6 43.4 19.6 44 16"></path><path d="M42 23 C44 22 46 21.4 48 20"></path></g><path d="M31 34.5 C27.5 31.8 24.5 30.2 21 28.6 L21.6 27.2 C25 28.5 28.2 29.8 31.6 31.6 Z" fill="currentColor"></path><path d="M32 32.5 C35.5 29.2 38.8 25.8 42.2 21.6 L43.2 22.4 C40.4 26.4 37.6 30.4 34.6 34 Z" fill="currentColor"></path><rect x="10.5" y="20" width="3" height="6" rx="1.5" fill="#ff5a52"></rect><rect x="14.5" y="17" width="3" height="12" rx="1.5" fill="#ff7a45"></rect><rect x="18.5" y="14.5" width="3" height="17" rx="1.5" fill="#ff9a3c"></rect><rect x="22.5" y="16.5" width="3" height="13" rx="1.5" fill="#f7c043"></rect><rect x="26.5" y="20" width="3" height="6" rx="1.5" fill="#f2d64b"></rect><rect x="34.5" y="12" width="3" height="7" rx="1.5" fill="#a6d45a"></rect><rect x="38.5" y="8" width="3" height="15" rx="1.5" fill="#45c776"></rect><rect x="42.5" y="4.5" width="3" height="22" rx="1.5" fill="#48b5c9"></rect><rect x="46.5" y="7.5" width="3" height="16" rx="1.5" fill="#5aa0ff"></rect><rect x="50.5" y="11" width="3" height="9" rx="1.5" fill="#9b7bff"></rect><path d="M25 48 C24 45 27.5 43.5 26.5 40 C25.5 36.5 27 33.5 30 31.5 C31.5 30.5 33.5 30.5 35 31 C35.5 33 34 35 35 38 C36.5 42 34 45 35.5 48 Z" fill="currentColor"></path><path d="M34.2 40.5 C37.5 41.5 39.2 44.5 39.2 47.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"></path><path d="M11.5 47 H52.5 C53.3 47 53.8 47.7 53.5 48.4 L50.2 56 C49.7 57.2 48.6 58 47.3 58 H16.7 C15.4 58 14.3 57.2 13.8 56 L10.5 48.4 C10.2 47.7 10.7 47 11.5 47 Z" fill="currentColor"></path></symbol><radialGradient id="knobGrad" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="#5a5f6b"/><stop offset=".6" stop-color="#30333b"/><stop offset="1" stop-color="#1f2127"/></radialGradient></defs></svg>
@@ -791,16 +946,23 @@ kbd.k { font-family: var(--font-mono); font-size: 11.5px; background: var(--rais
 <div id="app">
   <header class="bar">
     <div class="brand" title="Sound Groot"><svg aria-hidden="true"><use href="#sgLogo"/></svg><span><b>Sound</b> Groot</span></div>
+    <div class="seg views vwl">
+      <button class="tbtn" id="bLib" title="Bibliothek: Klänge, Drum-Kits und Loops für die ausgewählte Spur (I)"><svg viewBox="0 0 16 16"><path d="M2 2h3v12H2zm4 0h3v12H6zm4.2.6l2.9-.8 3 11.6-2.9.8z"/></svg><span class="lbl">Bibliothek</span></button>
+      <button class="tbtn" id="bHelp" title="Schnellhilfe: zeigt zu allem, worüber die Maus fährt, eine kurze Erklärung"><svg viewBox="0 0 16 16"><path d="M8 1a7 7 0 1 1 0 14A7 7 0 0 1 8 1zm0 1.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11zM8 4.2c1.5 0 2.6.9 2.6 2.2 0 1-.6 1.6-1.3 2-.5.3-.6.5-.6 1H7.3c0-1 .3-1.5 1-2 .5-.3.8-.6.8-1 0-.5-.4-.8-1.1-.8-.7 0-1.2.4-1.3 1L5.3 6.300C5.500 5 6.600 4.200 8 4.200zM7.200 10.400h1.600V12H7.200z"/></svg></button>
+      <button class="tbtn" id="bSmart" title="Klang &amp; Effekte der ausgewählten Spur: Klangregler, Kompressor, Hall, Delay, Plugins (V)"><svg viewBox="0 0 16 16"><path d="M8 1.500a6.500 6.500 0 1 1 0 13 6.500 6.500 0 0 1 0-13zM8 3a5 5 0 1 0 0 10A5 5 0 0 0 8 3zm-.700 1h1.400v4.200H7.300z"/></svg></button>
+      <button class="tbtn" id="bEd" title="Editor ein/aus: Piano Roll, Drum-Pattern oder Audio der ausgewählten Region (N). Doppelklick auf eine Region öffnet ihn auch."><svg viewBox="0 0 16 16"><path d="M11.300 1.300l3.400 3.400L5.400 14H2v-3.400zm0 2.100L3.500 11.200v1.300h1.300l7.800-7.800zM8.500 12.500H14V14H8.500z"/></svg></button>
+    </div>
     <div class="group filegrp">
       <div class="menu-wrap">
         <button class="tbtn" id="bFile" title="Datei"><svg viewBox="0 0 16 16"><path d="M1.5 3.5A1.5 1.5 0 0 1 3 2h3.2l1.6 1.6H13a1.5 1.5 0 0 1 1.5 1.5v7.4A1.5 1.5 0 0 1 13 14H3a1.5 1.5 0 0 1-1.5-1.5zM3 5.2v7.3h10V5.2z"/></svg><span class="lbl">Datei</span></button>
         <div class="menu filemenu" id="fileMenu" hidden>
-          <button data-file="new">Neues Projekt</button>
+          <button data-file="new">Neues Projekt …</button>
           <button data-file="open">Öffnen …<kbd>Strg+O</kbd></button>
           <button data-file="save">Speichern<kbd>Strg+S</kbd></button>
           <button data-file="saveas">Speichern unter …</button>
           <hr>
           <button data-file="export">Audio exportieren …<kbd>Strg+E</kbd></button>
+          <button data-file="audio">Audiodatei importieren …</button>
           <button data-file="mid">Song als MIDI exportieren</button>
           <button data-file="midiin">MIDI-Datei importieren …</button>
           <hr>
@@ -811,42 +973,37 @@ kbd.k { font-family: var(--font-mono); font-size: 11.5px; background: var(--rais
         </div>
       </div>
       <input type="file" id="projIn" accept=".soundgroot,.klangwerk,.json,application/json" hidden><input type="file" id="midiIn" accept=".mid,.midi,.smf,audio/midi,audio/x-midi" hidden>
-      <span class="pname" id="pname" title="Projektname"></span>
+      <button class="pname" id="pname" title="Projektname (Klick zum Umbenennen)"></button>
     </div>
     <div class="spacer"></div>
     <div class="seg transport" aria-label="Transport">
       <button class="tbtn" id="bStart" title="Zum Anfang (Enter)"><svg viewBox="0 0 16 16"><path d="M3 2.5h2v11H3zM14 3v10L6 8z"/></svg></button>
-      <button class="tbtn play" id="bPlay" title="Abspielen / Stopp (Leertaste)"><svg viewBox="0 0 16 16"><path d="M4.5 2.6c0-.7.8-1.1 1.4-.7l8 5.4c.5.3.5 1.1 0 1.4l-8 5.4c-.6.4-1.4 0-1.4-.7z"/></svg></button>
+      <button class="tbtn" id="bBack" title="Einen Takt zurück (Pfeil links)"><svg viewBox="0 0 16 16"><path d="M8 3v10L1.500 8zm6.500 0v10L8 8z"/></svg></button>
+      <button class="tbtn" id="bFwd" title="Einen Takt vor (Pfeil rechts)"><svg viewBox="0 0 16 16"><path d="M8 3v10l6.500-5zM1.500 3v10L8 8z"/></svg></button>
       <button class="tbtn" id="bStop" title="Stopp"><svg viewBox="0 0 16 16"><rect x="3.5" y="3.5" width="9" height="9" rx="1.5"/></svg></button>
+      <button class="tbtn play" id="bPlay" title="Abspielen / Stopp (Leertaste)"><svg viewBox="0 0 16 16"><path d="M4.5 2.6c0-.7.8-1.1 1.4-.7l8 5.4c.5.3.5 1.1 0 1.4l-8 5.4c-.6.4-1.4 0-1.4-.7z"/></svg></button>
       <button class="tbtn rec" id="bRec" title="Aufnehmen (R)"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5"/></svg></button>
-      <button class="tbtn" id="bLoop" title="Cycle an/aus (C)"><svg viewBox="0 0 16 16"><path d="M4 5h7V3l3 3-3 3V7H4a1 1 0 0 0-1 1v1H1V8a3 3 0 0 1 3-3zm8 6H5v2l-3-3 3-3v2h7a1 1 0 0 0 1-1V8h2v1a3 3 0 0 1-3 3z"/></svg></button>
-      <button class="tbtn" id="bMetro" title="Metronom"><svg viewBox="0 0 16 16"><path d="M6 1h4l3 14H3zm1.6 2L5.5 13h5L8.4 3zM8 6l4-3 .6.8-4 3z"/></svg></button>
     </div>
     <div class="lcd" id="lcd">
-      <div><small>Takt</small><b id="lcdPos">001 1 1</b></div>
-      <div><small>Tempo</small><input id="bpm" type="number" min="40" max="240" step="1" value="96" aria-label="Tempo in BPM"></div>
-      <div class="lcd-sig"><small>Taktart</small><select id="sigSel" aria-label="Taktart des Songs" title="Taktart des ganzen Songs: Raster, Metronom und Drum-Patterns richten sich danach"></select></div>
+      <div class="lcd-pos" id="lcdPosBox" role="button" tabindex="0" title="Abspielposition. Klick wechselt zwischen Takt · Zählzeit · 16tel und Zeit (Minuten:Sekunden)."><small id="lcdPosL">Takt</small><b id="lcdPos">001 1 1</b></div>
+      <div><small>Tempo</small><input id="bpm" type="number" min="40" max="240" step="1" value="96" aria-label="Tempo in BPM" title="Tempo in Schlägen pro Minute (40–240)"></div>
+      <div class="lcd-sig"><small>Taktart</small><button id="sigBtn" class="lcdbtn" aria-label="Taktart" title="Taktart an der Abspielposition. Klick ändert sie oder fügt einen Taktartwechsel mitten im Song ein.">4/4</button></div>
       <div class="lcd-cpu" id="lcdCpu" hidden><small>CPU</small><em id="cpuTxt">–</em><i><b id="cpuBar"></b></i></div>
       <div class="lcd-lufs" id="lcdLu" title="Lautheit der letzten 3 Sekunden in LUFS. Streaming-Dienste spielen Songs um −14 LUFS ab. Klick öffnet den Mixer mit der integrierten Messung."><small>LUFS</small><b id="lcdLufs">–</b></div>
     </div>
+    <div class="seg modes" aria-label="Cycle, Vorzähler, Metronom">
+      <button class="tbtn" id="bLoop" title="Cycle an/aus (C)"><svg viewBox="0 0 16 16"><path d="M4 5h7V3l3 3-3 3V7H4a1 1 0 0 0-1 1v1H1V8a3 3 0 0 1 3-3zm8 6H5v2l-3-3 3-3v2h7a1 1 0 0 0 1-1V8h2v1a3 3 0 0 1-3 3z"/></svg></button>
+      <button class="tbtn" id="bCount" title="Vorzähler vor der Aufnahme an/aus (Länge unter Geräte)"><span class="cnt">1234</span></button>
+      <button class="tbtn" id="bMetro" title="Metronom"><svg viewBox="0 0 16 16"><path d="M6 1h4l3 14H3zm1.6 2L5.5 13h5L8.4 3zM8 6l4-3 .6.8-4 3z"/></svg></button>
+    </div>
     <div class="spacer"></div>
-    <div class="group">
-      <div class="menu-wrap">
-        <button class="tbtn" id="bAdd" title="Neue Spur"><svg viewBox="0 0 16 16"><path d="M7 2h2v5h5v2H9v5H7V9H2V7h5z"/></svg><span class="lbl">Spur</span></button>
-        <div class="menu" id="addMenu" hidden>
-          <button data-add="synth"><svg viewBox="0 0 16 16"><path d="M1 3h14v10H1zm2 1v8h2V8H4V4zm3 0v4h1v4h2V8h1V4zm5 0v4h-1v4h2V4z"/></svg>Software-Instrument</button>
-          <button data-add="drums"><svg viewBox="0 0 16 16"><path d="M8 3c4 0 7 1.3 7 3v5c0 1.7-3 3-7 3s-7-1.3-7-3V6c0-1.7 3-3 7-3zm0 1.5C4.7 4.5 2.5 5.4 2.5 6S4.7 7.5 8 7.5s5.5-.9 5.5-1.5S11.3 4.5 8 4.5z"/></svg>Drummer (Pattern)</button>
-          <button data-add="audio"><svg viewBox="0 0 16 16"><path d="M2 7h1v2H2zm2-3h1v8H4zm2 2h1v4H6zm2-5h1v14H8zm2 3h1v8h-1zm2 2h1v4h-1z"/></svg>Audio (Mikrofon / Datei)</button>
-          <button data-add="sampler"><svg viewBox="0 0 16 16"><path d="M1.5 1.5h5.5v5.5H1.5zm7.5 0h5.5v5.5H9zM1.5 9h5.5v5.5H1.5zM9 9h5.5v5.5H9z"/></svg>Sampler (MPC-Pads)</button>
-        </div>
-      </div>
+    <div class="group editgrp">
       <button class="tbtn" id="bUndo" title="Rückgängig (Strg+Z)"><svg viewBox="0 0 16 16"><path d="M5.5 3L1.5 6.5 5.5 10V7.6h4a2.9 2.9 0 0 1 0 5.8H6V15h3.5a4.5 4.5 0 0 0 0-9h-4z"/></svg></button>
       <button class="tbtn" id="bRedo" title="Wiederholen (Strg+Umschalt+Z)"><svg viewBox="0 0 16 16"><path d="M10.5 3l4 3.5-4 3.5V7.6h-4a2.9 2.9 0 0 0 0 5.8H10V15H6.5a4.5 4.5 0 0 1 0-9h4z"/></svg></button>
       <div class="menu-wrap">
         <button class="tbtn" id="bHist" title="Verlauf und automatische Sicherungen"><svg viewBox="0 0 16 16"><path d="M8 1.5A6.5 6.5 0 1 1 1.6 9h1.6A5 5 0 1 0 4.5 4.6L6.2 6.3H1.5V1.6l1.9 1.9A6.5 6.5 0 0 1 8 1.5zM7.3 4.5h1.4v3.2l2.4 1.4-.7 1.2-3.1-1.8z"/></svg></button>
         <div class="menu devmenu histmenu" id="histMenu" hidden></div>
       </div>
-      <button class="tbtn" id="bImport" title="Audiodatei importieren"><svg viewBox="0 0 16 16"><path d="M7 1.5h2v6.6l2.3-2.3 1.4 1.4L8 11.9 3.3 7.2l1.4-1.4L7 8.1zM2 12h2v1.5h8V12h2v3.5H2z"/></svg></button>
       <input type="file" id="fileIn" accept="audio/*" hidden><input type="file" id="smpIn" accept="audio/*" hidden><input type="file" id="smpFileIn" accept="audio/*" multiple hidden>
       <div class="menu-wrap">
         <button class="tbtn" id="bDev" title="MIDI-Keyboard und Audio-Eingang"><svg viewBox="0 0 16 16"><path d="M5 1h2v3h2V1h2v3h1.5v4A4.5 4.5 0 0 1 9 12.4V15H7v-2.6A4.5 4.5 0 0 1 3.5 8V4H5z"/></svg><span id="midiDot" class="dot"></span></button>
@@ -867,12 +1024,11 @@ kbd.k { font-family: var(--font-mono); font-size: 11.5px; background: var(--rais
         </div>
       </div>
     </div>
-    <button class="tbtn" id="bSet" title="Einstellungen und Tastenkürzel (F1)"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M6.9 1h2.2l.4 1.9 1.2.5 1.6-1.1 1.6 1.6-1.1 1.6.5 1.2 1.9.4v2.2l-1.9.4-.5 1.2 1.1 1.6-1.6 1.6-1.6-1.1-1.2.5-.4 1.9H6.9l-.4-1.9-1.2-.5-1.6 1.1-1.6-1.6 1.1-1.6-.5-1.2L1 9.1V6.9l1.9-.4.5-1.2-1.1-1.6 1.6-1.6 1.6 1.1 1.2-.5zM8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/></svg></button>
-    <div class="seg views">
-      <button class="tbtn" id="bLib" title="Bibliothek (I)"><svg viewBox="0 0 16 16"><path d="M2 2h3v12H2zm4 0h3v12H6zm4.2.6l2.9-.8 3 11.6-2.9.8z"/></svg><span class="lbl">Bibliothek</span></button>
+    <div class="seg views vwr">
       <button class="tbtn" id="bMix" title="Mixer (M)"><svg viewBox="0 0 16 16"><path d="M3 1h1.5v5H6v3H4.5v6H3V9H1.5V6H3zm4.25 0h1.5v8h1.5v3h-1.5v3h-1.5v-3h-1.5V9h1.5zM11.5 1H13v3h1.5v3H13v8h-1.5V7H10V4h1.5z"/></svg><span class="lbl">Mixer</span></button>
       <button class="tbtn" id="bKeys" title="Bildschirm-Keyboard zum Spielen mit Maus oder Fingern"><svg viewBox="0 0 16 16"><path d="M1 3h14v10H1zm1.5 1.5v7h2V8.5H4v-4zm3.5 0v4h-.5v3h2v-3H7v-4zm3 0v4h-.5v3h2v-3H10v-4zm3 0v4h-.5v3h2v-7z"/></svg><span class="lbl">Keyboard</span></button>
     </div>
+    <button class="tbtn" id="bSet" title="Einstellungen und Tastenkürzel (F1)"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M6.9 1h2.2l.4 1.9 1.2.5 1.6-1.1 1.6 1.6-1.1 1.6.5 1.2 1.9.4v2.2l-1.9.4-.5 1.2 1.1 1.6-1.6 1.6-1.6-1.1-1.2.5-.4 1.9H6.9l-.4-1.9-1.2-.5-1.6 1.1-1.6-1.6 1.1-1.6-.5-1.2L1 9.1V6.9l1.9-.4.5-1.2-1.1-1.6 1.6-1.6 1.6 1.1 1.2-.5zM8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/></svg></button>
     <label class="mini master" title="Master-Lautstärke"><svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor"><path d="M2 6h2.5L8 3v10L4.5 10H2zm8.2-1.6a5 5 0 0 1 0 7.2l-1-1a3.6 3.6 0 0 0 0-5.2zm1.9-1.9a7.7 7.7 0 0 1 0 11l-1-1a6.3 6.3 0 0 0 0-9z"/></svg><input type="range" id="masterVol" min="0" max="1" step="0.01" value="0.8" aria-label="Master-Lautstärke"><span class="meter"><i id="meter"></i></span></label>
   </header>
 
@@ -881,7 +1037,7 @@ kbd.k { font-family: var(--font-mono); font-size: 11.5px; background: var(--rais
     <main class="arrange" id="arrange">
       <div class="countin" id="countin" hidden><b>1</b><span></span></div>
       <div id="scroller"><div id="grid">
-        <div class="ruler-row"><div class="corner"><span>Spuren</span><label class="zoomer" title="Zoom (Strg + Mausrad oder zwei Finger)"><svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M6.5 1a5.5 5.5 0 0 1 4.4 8.8l3.9 3.9-1.1 1.1-3.9-3.9A5.5 5.5 0 1 1 6.5 1zm0 1.5a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM5.8 4.5h1.4v1.3h1.3v1.4H7.2v1.3H5.8V7.2H4.5V5.8h1.3z"/></svg><input type="range" id="zoom" min="8" max="160" value="30" aria-label="Zoom"></label></div><div class="ruler" id="ruler"></div></div>
+        <div class="ruler-row"><div class="corner"><button class="addtr" id="bAdd" title="Neue Spur: Software-Instrument, Drummer, Audio oder Sampler"><svg viewBox="0 0 16 16"><path d="M7 2h2v5h5v2H9v5H7V9H2V7h5z"/></svg></button><span></span><label class="zoomer" title="Zoom (Strg + Mausrad oder zwei Finger)"><svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M6.5 1a5.5 5.5 0 0 1 4.4 8.8l3.9 3.9-1.1 1.1-3.9-3.9A5.5 5.5 0 1 1 6.5 1zm0 1.5a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM5.8 4.5h1.4v1.3h1.3v1.4H7.2v1.3H5.8V7.2H4.5V5.8h1.3z"/></svg><input type="range" id="zoom" min="8" max="160" value="30" aria-label="Zoom"></label></div><div class="ruler" id="ruler"></div></div>
         <div class="marker-row"><div class="corner"><span>Marker</span><button class="sm" id="bMarker" title="Marker an der Abspielposition setzen">+ Marker</button></div><div class="mlane" id="mlane" title="Doppelklick = neuer Marker"></div></div>
         <div id="rows"></div>
         <div id="playhead"></div>
@@ -899,6 +1055,8 @@ kbd.k { font-family: var(--font-mono); font-size: 11.5px; background: var(--rais
 </div>
 <div id="plugWin" class="plugwin" hidden role="dialog" aria-label="Plugin"><div class="pw-head"><span class="pw-t"></span><button class="x" title="Schließen">×</button></div><div class="pw-body"></div></div>
 <div id="grvMenu" class="menu devmenu grvmenu" hidden></div>
+<div id="ctxMenu" class="menu ctx" hidden role="menu"></div>
+<div id="qhelp" class="qhelp" hidden><b>Schnellhilfe</b><p>Fahre mit der Maus über einen Knopf, eine Spur oder eine Region.</p></div>
 <div id="toast" hidden></div>
 <div id="banner" hidden><span></span><div class="bn-acts"></div></div>
 <div class="modal" id="modal" hidden></div>
@@ -911,6 +1069,7 @@ const $ = s => document.querySelector(s);
 const uid = () => Math.random().toString(36).slice(2, 9);
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const TYPE_NAMES = { synth: 'Software-Instrument', drums: 'Drummer', audio: 'Audio-Spur', sampler: 'Sampler' };
 const COLORS = ['#e9b949', '#5ba4f5', '#62c785', '#b48af0', '#f07a7a', '#4fd1c5', '#f39c5a', '#d78ad8'];
 const ICONS = {
   synth: '<svg class="ticon" viewBox="0 0 16 16"><path d="M1 3h14v10H1zm2 1v8h2V8H4V4zm3 0v4h1v4h2V8h1V4zm5 0v4h-1v4h2V4z"/></svg>',
@@ -1090,8 +1249,8 @@ const PATTERNS = {
 };
 const patLabel = k => k + (PATTERNS[k].sig && !k.includes('/') ? ` (${PATTERNS[k].sig.join('/')})` : '');
 // Patterns in der Taktart des Songs zuerst
-const patFits = k => String(PATTERNS[k].sig || [4, 4]) === String(sigOf());
-const patOrder = () => Object.keys(PATTERNS).sort((a, b) => patFits(b) - patFits(a));
+const patFits = (k, sig = sigAt(playPos)) => String(PATTERNS[k].sig || [4, 4]) === String(sig);
+const patOrder = sig => Object.keys(PATTERNS).sort((a, b) => patFits(b, sig) - patFits(a, sig));
 function patternSteps(name) {
   const p = PATTERNS[name] || {}, [num, den] = p.sig || [4, 4], per = den === 8 ? 2 : 4, o = {};
   for (const d of DRUMS) {
@@ -1100,15 +1259,51 @@ function patternSteps(name) {
   }
   return o;
 }
+// Pattern, mit dem eine neue Drum-Region in dieser Taktart beginnt
+const DEF_PAT = { '3/4': 'Walzer', '6/8': '6/8 Ballade', '12/8': '12/8 Blues', '5/4': '5/4 Groove', '7/8': '7/8 Groove' };
 const zeros = (n = 16) => Object.fromEntries(DRUMS.map(d => [d.id, Array(n).fill(0)]));
-// Taktart des Songs als [Zähler, Nenner]. Die Zeit zählt intern immer in Vierteln, ein Takt ist also BL() Viertel lang.
+// Taktart als [Zähler, Nenner]. Die Zeit zählt intern immer in Vierteln. P.sig gilt ab Takt 1,
+// P.sigs = [{ bar, sig }] sind Taktartwechsel mitten im Song (bar = Taktnummer ab 0, aufsteigend).
 const SIGS = [[2, 4], [3, 4], [4, 4], [5, 4], [6, 4], [7, 4], [3, 8], [5, 8], [6, 8], [7, 8], [9, 8], [12, 8]];
-const sigOf = () => P?.sig || [4, 4];
-const BL = () => sigOf()[0] * 4 / sigOf()[1];
-const BT = () => 4 / sigOf()[1]; // eine Zählzeit in Vierteln
-const snapBar = b => Math.floor(b / BL() + 1e-9) * BL(), ceilBar = b => Math.ceil(b / BL() - 1e-9) * BL();
+const sigLen = s => s[0] * 4 / s[1];
+const sigOf = () => P?.sig || [4, 4]; // Taktart am Songanfang
+// Abschnitte gleicher Taktart: [{ bar, beat, sig, bl = Taktlänge, bt = eine Zählzeit }], alles in Vierteln
+let sigMemo = {};
+function sigSegs(p = P) {
+  if (p === sigMemo.p && sigMemo.segs) return sigMemo.segs;
+  const first = p?.sig || [4, 4], out = [{ bar: 0, beat: 0, sig: first, bl: sigLen(first), bt: 4 / first[1] }];
+  for (const c of p?.sigs || []) {
+    const l = out.at(-1); if (!(c.bar > l.bar) || !Array.isArray(c.sig)) continue;
+    out.push({ bar: c.bar, beat: l.beat + (c.bar - l.bar) * l.bl, sig: c.sig, bl: sigLen(c.sig), bt: 4 / c.sig[1] });
+  }
+  if (p && p === P) sigMemo = { p, segs: out };
+  return out;
+}
+const sigDirty = () => { sigMemo = {}; };
+const segAt = (b, p) => { const s = sigSegs(p); let i = s.length - 1; while (i > 0 && s[i].beat > b + 1e-9) i--; return s[i]; };
+const segOfBar = (n, p) => { const s = sigSegs(p); let i = s.length - 1; while (i > 0 && s[i].bar > n) i--; return s[i]; };
+const sigAt = (b, p) => segAt(b, p).sig;
+const BL = (b = 0) => segAt(b).bl; // Länge des Takts an der Stelle b
+const BT = (b = 0) => segAt(b).bt; // eine Zählzeit an der Stelle b
+const barStart = n => { const s = segOfBar(n); return s.beat + (n - s.bar) * s.bl; };
+const barPos = b => { const s = segAt(b); return s.bar + (b - s.beat) / s.bl; }; // Takt als Kommazahl (0 = Anfang von Takt 1)
+const barNo = b => Math.floor(barPos(b) + 1e-9);
+const snapBar = b => barStart(barNo(b)), ceilBar = b => barStart(Math.ceil(barPos(b) - 1e-9));
+const nearBar = b => barStart(Math.max(0, Math.round(barPos(b))));
+const nearBeat = b => { const s = segAt(b); return s.beat + Math.round((b - s.beat) / s.bt) * s.bt; };
+// Länge einer Region ab start: auf ganze Takte aufgerundet, mindestens ein Takt
+const barLen = (start, len) => Math.max(BL(start), ceilBar(start + len - 1e-6) - start);
+// Takt- und Zählzeit-Linien zwischen a und b: [{ b, bar: Taktnummer oder -1 für eine Zählzeit }]
+function gridLines(a, b) {
+  const out = [];
+  for (let n = Math.max(0, barNo(a)); n < 1e5; n++) {
+    const s = segOfBar(n), b0 = s.beat + (n - s.bar) * s.bl; if (b0 > b + 1e-6) break;
+    for (let i = 0; i * s.bt < s.bl - 1e-6; i++) { const x = b0 + i * s.bt; if (x >= a - 1e-6 && x <= b + 1e-6) out.push({ b: x, bar: i ? -1 : n }); }
+  }
+  return out;
+}
 // Die Patterns oben sind für einen 4/4-Takt geschrieben und werden beim Anlegen auf die Taktart des Songs übertragen
-function drumRegion(name, start, len, pb = 1, sig = sigOf()) {
+function drumRegion(name, start, len, pb = 1, sig = sigAt(start)) {
   const t = !!PATTERNS[name]?.trip, s0 = PATTERNS[name]?.sig || [4, 4];
   const r = { id: uid(), name, start, len, steps: patternSteps(name), pitch: zeros(s0[0] * 4), trip: Array(s0[0]).fill(t), sig: [...s0], pb: 1, v2: true };
   fitDrum(r, pb, sig); return r;
@@ -1118,10 +1313,17 @@ const drumSig = r => r.sig || [4, 4];
 const drumBeats = r => (r.pb || 1) * drumSig(r)[0];
 const drumBT = r => 4 / drumSig(r)[1];
 const drumLen = r => drumBeats(r) * drumBT(r); // Länge des Patterns in Vierteln
+// Drum-Pattern an die Taktart seiner Stelle im Song anpassen (nach Verschieben, Einfügen, Duplizieren)
+function placeDrum(r) {
+  const s = sigAt(r.start); if (String(s) === String(drumSig(r))) return false;
+  const bars = r.len / sigLen(drumSig(r)); // gleich viele Takte wie vorher
+  fitDrum(r, r.pb || 1, s); delete r.phase; r.len = Math.max(sigLen(s), Math.round(bars * sigLen(s) * 1e6) / 1e6);
+  return true;
+}
 const phaseOf = r => { const L = drumLen(r); return (((r.phase || 0) % L) + L) % L; }; // Versatz des Patterns nach Schneiden oder Kürzen vorne
 // Pattern auf eine Taktart und Länge in Takten bringen. Schläge wandern nach ihrer Zeit mit,
 // beim Verlängern in derselben Taktart wird das bisherige Pattern wiederholt.
-function fitDrum(r, pb = r.pb || 1, sig = sigOf()) {
+function fitDrum(r, pb = r.pb || 1, sig = sigAt(r.start)) {
   const old = drumSig(r), same = old[0] === sig[0] && old[1] === sig[1], nb1 = pb * sig[0];
   if (same && (r.pb || 1) === pb && r.trip?.length === nb1 && DRUMS.every(d => r.steps[d.id]?.length === nb1 * 4)) return false;
   const s0 = drumSlots(r), L0 = drumLen(r), bt0 = drumBT(r), st0 = r.steps, pt0 = r.pitch, tr0 = r.trip || [], r0pb = r.pb || 1;
@@ -1152,8 +1354,10 @@ function normProject(p) {
     r.pitch ||= zeros(); r.trip ||= [false, false, false, false];
     const n = drumBeats(r) * 4;
     for (const d of DRUMS) { r.steps[d.id] ||= Array(n).fill(0); r.pitch[d.id] ||= Array(n).fill(0); }
-    fitDrum(r, r.pb || 1, p.sig || [4, 4]);
+    // Patterns behalten ihre eigene Taktart (r.sig); ältere Projekte ohne Angabe bekommen die Taktart an ihrer Stelle im Song
+    fitDrum(r, r.pb || 1, r.sig || sigAt(r.start, p));
   }
+  if (p.sigs) { p.sigs = p.sigs.filter(c => c && c.bar > 0 && Array.isArray(c.sig)).sort((a, b) => a.bar - b.bar); if (!p.sigs.length) delete p.sigs; }
   for (const t of p.tracks) if (t.type === 'synth' && (!PRESETS[t.preset] || (t.preset === 'user' && !t.usmp))) t.preset = 'epiano';
   for (const t of p.tracks) if (t.type === 'sampler') normSampler(t);
   p.markers ||= []; p.countIn ??= 1;
@@ -1591,24 +1795,31 @@ const SAMPLED = {
   'gm-synthstrings2': ['Synth-Streicher 2', { hold: 1, a: .15, r: .8 }], 'gm-synthbrass2': ['Synth-Bläser 2', { hold: 1, a: .02, r: .3, prev: 60 }],
   'gm-pad-choir': ['Pad Chor', { hold: 1, a: .25, r: 1.2 }], 'gm-rain': ['Regen (FX)', { hold: 1, a: .05, r: 1.2, prev: 72 }],
   'gm-soundtrack': ['Soundtrack (FX)', { hold: 1, a: .2, r: 1.5 }], 'gm-goblins': ['Goblins (FX)', { hold: 1, a: .3, r: 1.5 }],
-  'gm-melodic-tom': ['Melodic Tom', { r: .5, prev: 48 }]
+  'gm-melodic-tom': ['Melodic Tom', { r: .5, prev: 48 }],
+  // Neu in v1.6: heller Flügel und die Geräusche am Ende des GM-Satzes (FluidR3 GM)
+  'gm-brightpiano': ['Heller Flügel', { r: .5 }], 'gm-synthdrum': ['Synth-Tom', { r: .5, prev: 48 }], 'gm-revcymbal': ['Becken rückwärts', { r: .3, prev: 60 }],
+  'gm-fretnoise': ['Gitarren-Griffgeräusch', { r: .2, prev: 60 }], 'gm-breath': ['Atemgeräusch', { hold: 1, a: .03, r: .3, prev: 60 }],
+  'gm-seashore': ['Meeresrauschen', { hold: 1, a: .3, r: 1.2, prev: 60 }], 'gm-birds': ['Vogelzwitschern', { hold: 1, a: .02, r: .5, prev: 60 }],
+  'gm-telephone': ['Telefon', { hold: 1, a: .005, r: .2, prev: 60 }], 'gm-helicopter': ['Hubschrauber', { hold: 1, a: .2, r: .8, prev: 60 }],
+  'gm-applause': ['Applaus', { hold: 1, a: .15, r: 1, prev: 60 }], 'gm-gunshot': ['Schuss', { r: .5, prev: 60 }]
 };
 for (const [id, [name, o]] of Object.entries(SAMPLED))
   PRESETS['s_' + id] = { cat: 'Echte Instrumente', name, smp: id, hold: !!o.hold, prev: o.prev, env: { a: o.a || .002, d: 1, s: 1, r: o.r }, cut: 20000, level: o.level || (o.hold ? .38 : .48) };
 PRESETS.user = { cat: 'Eigene Samples', name: 'Eigenes Sample', smp: 'user', env: { a: .002, d: 1, s: 1, r: .25 }, cut: 20000, level: .9 };
 // Bibliothek: Synth-Klänge und Aufnahmen stehen gemeinsam nach Instrumentenfamilie sortiert (Reihenfolge = Anzeige)
 const FAMS = [
-  ['Klavier & Tasten', 'piano epiano tines honky wurli toypiano lofikeys clav harpsi s_piano s_upright-piano s_grand-kawai s_upright-knight s_fm-piano s_tx-piano s_harpsichord s_harpsichord-lute s_clavisynth s_gm-epiano s_gm-honky s_gm-clavinet s_gm-egrand s_gm-epiano2'],
+  ['Klavier & Tasten', 'piano epiano tines honky wurli toypiano lofikeys clav harpsi s_piano s_upright-piano s_grand-kawai s_upright-knight s_fm-piano s_tx-piano s_harpsichord s_harpsichord-lute s_clavisynth s_gm-epiano s_gm-honky s_gm-clavinet s_gm-egrand s_gm-epiano2 s_gm-brightpiano'],
   ['Orgel & Akkordeon', 'organ church accordion s_organ s_harmonium s_renaissance-organ s_pipe-organ s_gm-drawbar s_gm-rockorgan s_gm-accordion s_gm-bandoneon s_gm-percorgan'],
   ['Gitarre & Zupfinstrumente', 'guitar harp acgtr nylon egtr dist banjo twelve ukulele mandolin s_guitar-acoustic s_guitar-nylon s_guitar-electric s_harp s_folk-harp s_strumstick s_psaltery-pluck s_gm-guitar-clean s_gm-guitar-muted s_gm-overdrive s_gm-distortion s_gm-banjo s_gm-dulcimer s_gm-harmonics s_gm-guitar-jazz'],
   ['Bass', 'bass ebass sub b808 acid reese upright slap wobble fmbass moog s_bass-electric s_contrabass s_gm-acbass s_gm-fretless s_gm-slap s_gm-pickbass s_gm-synthbass s_gm-synthbass2 s_gm-basslead s_gm-fingerbass s_gm-slap2'],
   ['Streicher', 'strings pizz cello violin tutti s_cello s_violin s_psaltery s_gm-viola s_gm-strings s_gm-tremolo s_gm-pizz s_gm-synthstrings s_gm-strings2 s_gm-synthstrings2'],
   ['Blechbläser', 'brass trumpet synbrass s_trumpet s_trombone s_french-horn s_tuba s_gm-brass s_gm-mutedtpt s_gm-synthbrass s_gm-synthbrass2'],
   ['Holzbläser & Flöten', 'flute sax clarinet oboe harmonica whistle s_flute s_clarinet s_saxophone s_bassoon s_tenor-sax s_saxello s_harmonica s_harmonica-chrom s_ocarina s_recorder s_bass-recorder s_gm-altosax s_gm-barisax s_gm-oboe s_gm-englhorn s_gm-piccolo s_gm-bottle s_gm-sopsax s_gm-whistle'],
-  ['Mallets, Glocken & Pauken', 'celesta marimba vibes musicbox bell glock tubular s_xylophone s_vibraphone s_vibes-soft s_marimba s_balafon s_glockenspiel s_tubular-glock s_tubular-bells s_hand-chimes s_gm-celesta s_gm-musicbox s_gm-crystal s_gm-timpani s_gm-tinkle s_gm-agogo s_gm-woodblock s_gm-taiko s_gm-melodic-tom'],
+  ['Mallets, Glocken & Pauken', 'celesta marimba vibes musicbox bell glock tubular s_xylophone s_vibraphone s_vibes-soft s_marimba s_balafon s_glockenspiel s_tubular-glock s_tubular-bells s_hand-chimes s_gm-celesta s_gm-musicbox s_gm-crystal s_gm-timpani s_gm-tinkle s_gm-agogo s_gm-woodblock s_gm-taiko s_gm-melodic-tom s_gm-synthdrum'],
   ['Chor & Flächen', 'pad glass choir darkpad shimmer vox s_gm-choir s_gm-oohs s_gm-pad-warm s_gm-pad-halo s_gm-pad-newage s_gm-synthvox s_gm-polysynth s_gm-pad-bowed s_gm-pad-metal s_gm-pad-sweep s_gm-atmosphere s_gm-brightness s_gm-echoes s_gm-scifi s_gm-pad-choir s_gm-rain s_gm-soundtrack s_gm-goblins'],
   ['Weltmusik', 'sitar koto steeldrum panflute kalimba s_kalimba s_kalimba-tz s_mbira s_nyunga s_dan-tranh s_gm-steeldrum s_gm-sitar s_gm-koto s_gm-shamisen s_gm-shakuhachi s_gm-panflute s_gm-bagpipe s_gm-fiddle s_gm-shanai'],
-  ['Lead & Synth', 'lead square supersaw pluck arp chip hoover sweep riser s_gm-orchhit s_gm-lead-square s_gm-lead-saw s_gm-calliope s_gm-chiff s_gm-charang s_gm-lead-voice s_gm-fifths']
+  ['Lead & Synth', 'lead square supersaw pluck arp chip hoover sweep riser s_gm-orchhit s_gm-lead-square s_gm-lead-saw s_gm-calliope s_gm-chiff s_gm-charang s_gm-lead-voice s_gm-fifths'],
+  ['Geräusche & Effekte', 's_gm-revcymbal s_gm-seashore s_gm-birds s_gm-applause s_gm-helicopter s_gm-telephone s_gm-gunshot s_gm-breath s_gm-fretnoise']
 ];
 const FAM_OF = Object.fromEntries(FAMS.flatMap(([f, ids]) => ids.split(' ').map(k => [k, f])));
 const famOf = k => FAM_OF[k] || PRESETS[k]?.cat || 'Weitere';
@@ -2560,7 +2771,7 @@ function openExport() {
     <div class="mpane">
       <h3>Inhalt</h3><div class="chips" id="xWhat">${radio('what', 'mix', 'Ganzer Song (Mix)', xPrefs.what)}${radio('what', 'stems', `Einzelspuren (${stems} Stems)`, xPrefs.what)}${radio('what', 'both', 'Mix und Stems', xPrefs.what)}</div>
       <p id="xWhatNote"></p>
-      <h3>Bereich</h3><div class="chips">${radio('range', 'song', 'Ganzer Song', xPrefs.range)}${loopOk ? radio('range', 'cycle', `Cycle-Bereich (Takt ${Math.floor(P.loop.start / BL()) + 1}–${Math.ceil(P.loop.end / BL())})`, xPrefs.range) : ''}</div>
+      <h3>Bereich</h3><div class="chips">${radio('range', 'song', 'Ganzer Song', xPrefs.range)}${loopOk ? radio('range', 'cycle', `Cycle-Bereich (Takt ${barNo(P.loop.start) + 1}–${Math.max(barNo(P.loop.start) + 1, Math.ceil(barPos(P.loop.end) - 1e-9))})`, xPrefs.range) : ''}</div>
       <h3>Format</h3>
       <div class="optrow"><span>Dateiformat<small id="xFmtNote">${XFMT[xPrefs.fmt][2]}</small></span><select id="xFmt">${Object.entries(XFMT).map(([k, v]) => `<option value="${k}" ${k === xPrefs.fmt ? 'selected' : ''}>${v[0]}</option>`).join('')}</select></div>
       <div class="optrow"><span>Normalisieren<small id="xNormNote"></small></span><select id="xNorm">${Object.entries(XNORM).map(([k, v]) => `<option value="${k}" ${k === xPrefs.norm ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
@@ -2626,7 +2837,7 @@ async function runExport(base) {
 // Standard-MIDI-Dateien lesen und schreiben: Patterns aus MPC Beats („Export MIDI“) oder anderen DAWs holen
 // und eigene Spuren als Noten weitergeben. Die Zeit zählt wie im Projekt in Vierteln, das Tempo spielt dafür keine Rolle.
 // General-MIDI-Programm 0…127 → passender Klang aus der Bibliothek
-const GM_PROG = ('s_piano s_grand-kawai s_upright-piano s_gm-honky s_gm-epiano s_fm-piano s_harpsichord s_gm-clavinet '
+const GM_PROG = ('s_piano s_gm-brightpiano s_upright-piano s_gm-honky s_gm-epiano s_fm-piano s_harpsichord s_gm-clavinet '
   + 's_gm-celesta s_glockenspiel s_gm-musicbox s_vibraphone s_marimba s_xylophone s_tubular-bells s_gm-dulcimer '
   + 's_gm-drawbar s_gm-percorgan s_gm-rockorgan s_pipe-organ s_harmonium s_gm-accordion s_harmonica s_gm-bandoneon '
   + 's_guitar-nylon s_guitar-acoustic s_gm-guitar-jazz s_gm-guitar-clean s_gm-guitar-muted s_gm-overdrive s_gm-distortion s_gm-harmonics '
@@ -2640,10 +2851,10 @@ const GM_PROG = ('s_piano s_grand-kawai s_upright-piano s_gm-honky s_gm-epiano s
   + 's_gm-pad-newage s_gm-pad-warm s_gm-polysynth s_gm-pad-choir s_gm-pad-bowed s_gm-pad-metal s_gm-pad-halo s_gm-pad-sweep '
   + 's_gm-rain s_gm-soundtrack s_gm-crystal s_gm-atmosphere s_gm-brightness s_gm-goblins s_gm-echoes s_gm-scifi '
   + 's_gm-sitar s_gm-banjo s_gm-shamisen s_gm-koto s_kalimba s_gm-bagpipe s_gm-fiddle s_gm-shanai '
-  + 's_gm-tinkle s_gm-agogo s_gm-steeldrum s_gm-woodblock s_gm-taiko s_gm-melodic-tom b808 riser '
-  + 'riser riser riser riser riser riser riser riser').split(' ');
+  + 's_gm-tinkle s_gm-agogo s_gm-steeldrum s_gm-woodblock s_gm-taiko s_gm-melodic-tom s_gm-synthdrum s_gm-revcymbal '
+  + 's_gm-fretnoise s_gm-breath s_gm-seashore s_gm-birds s_gm-telephone s_gm-helicopter s_gm-applause s_gm-gunshot').split(' ');
 // Klänge, die beim Import einem anderen Programm den Vortritt lassen, beim Export aber trotzdem ihr GM-Programm bekommen
-const GM_ALIAS = { 's_bass-electric': 33, 's_guitar-electric': 26, s_saxello: 64, whistle: 78, synbrass: 63, darkpad: 97 };
+const GM_ALIAS = { 's_grand-kawai': 0, b808: 38, riser: 119, 's_bass-electric': 33, 's_guitar-electric': 26, s_saxello: 64, whistle: 78, synbrass: 63, darkpad: 97 };
 const gmProgOf = id => GM_PROG.indexOf(id) >= 0 ? GM_PROG.indexOf(id) : GM_ALIAS[id] ?? -1;
 // Drum-Sounds als General-MIDI-Noten (für den Export, MPC Beats und andere DAWs verstehen das)
 const DRUM_GM = { kick: 36, snare: 38, clap: 39, hat: 42, ohat: 46, tom: 45, rim: 37, cow: 56, crash: 49, ride: 51, shaker: 70, conga: 63 };
@@ -2661,6 +2872,7 @@ function parseMidi(ab) {
   const ntr = dv.getUint16(10), div = dv.getUint16(12);
   if (div & 0x8000) throw new Error('MIDI-Dateien mit SMPTE-Zeit werden nicht unterstützt');
   const ppq = div || 480, parts = [];
+  const sigs = [];
   let tempo = 0, sig = null, o = 8 + dv.getUint32(4);
   for (let ti = 0; ti < ntr && o + 8 <= d.length; ti++) {
     const len = dv.getUint32(o + 4), isTrk = str(o, 4) === 'MTrk', end = Math.min(d.length, o + 8 + len);
@@ -2684,7 +2896,7 @@ function parseMidi(ab) {
         const type = d[p++], l = vlq(), m = p; p += l;
         if (type === 0x03 && !name) name = new TextDecoder('latin1').decode(d.subarray(m, m + l)).trim();
         else if (type === 0x51 && !tempo && l >= 3) tempo = 60000000 / ((d[m] << 16) | (d[m + 1] << 8) | d[m + 2]);
-        else if (type === 0x58 && !sig && l >= 2) sig = [d[m], 2 ** d[m + 1]];
+        else if (type === 0x58 && l >= 2) { const g = [d[m], 2 ** d[m + 1]]; if (!sig) sig = g; else if (t > 0) sigs.push({ b: t / ppq, sig: g }); }
         else if (type === 0x2f) break;
         continue;
       }
@@ -2700,12 +2912,12 @@ function parseMidi(ab) {
     for (const k of [...open.keys()]) while (open.get(k).length) close(k >> 7, k & 127, Math.max(t, open.get(k)[0].t + ppq / 4));
     for (const x of byCh.values()) if (x.notes.length) { x.notes.sort((a, b) => a.s - b.s || a.p - b.p); parts.push({ name, ...x }); }
   }
-  return { tempo: tempo ? Math.round(tempo * 100) / 100 : 0, sig, parts };
+  return { tempo: tempo ? Math.round(tempo * 100) / 100 : 0, sig, sigs, parts };
 }
 // Drum-Noten auf das Raster eines Drum-Patterns legen. Pro Zählzeit wird entschieden, ob es Triolen sind;
 // gleichmäßig nach hinten geschobene Off-Beats werden als Swing der Region erkannt (so bleibt der MPC-Swing erhalten).
 function notesToDrums(notes, start, bars, name) {
-  const BL0 = BL(), bt = BT(), sub = bt < 1 ? 2 : 4, out = [];
+  const BL0 = BL(start), bt = BT(start), sub = bt < 1 ? 2 : 4, out = [];
   let skipped = 0;
   for (let b0 = 0; b0 < bars;) {
     const rest = bars - b0, pb = rest >= 16 ? 16 : PBS.find(x => x >= rest), nb = Math.min(16, rest);
@@ -2745,23 +2957,28 @@ async function importMidi(file, trackId, beat) {
   if (!m.parts.length) { toast(`In „${file.name}“ sind keine Noten.`); return; }
   const go = () => placeMidi(m, file.name.replace(/\.(mid|midi|smf)$/i, ''), trackId, beat);
   const tempoDiff = m.tempo && clamp(Math.round(m.tempo), 40, 240) !== P.bpm, sigDiff = m.sig && String(m.sig) !== String(sigOf()) && SIGS.some(s => String(s) === String(m.sig));
-  if (!tempoDiff && !sigDiff) { go(); return; }
+  if (!tempoDiff && !sigDiff && !(m.sigs?.length && !P.tracks.some(t => t.regions.length))) { go(); return; }
   const what = [tempoDiff && fmtBpm(m.tempo) + ' BPM', sigDiff && m.sig.join('/')].filter(Boolean).join(' und ');
-  const adopt = () => { if (sigDiff) setSig(m.sig); if (tempoDiff) setBpm(m.tempo); };
+  const adopt = () => {
+    if (sigDiff) setSig(m.sig);
+    // Taktartwechsel der Datei übernehmen, wenn sie am Songanfang landet und der Song noch keine eigenen hat
+    if ((beat ?? playPos) <= 0 && !P.sigs?.length && (!m.sig || String(m.sig) === String(sigOf()))) for (const c of m.sigs || []) if (SIGS.some(s => String(s) === String(c.sig)) && Math.abs(barPos(c.b) - Math.round(barPos(c.b))) < 1e-3) setSig(c.sig, Math.round(barPos(c.b)));
+    if (tempoDiff) setBpm(m.tempo);
+  };
   // Leeres Projekt: Tempo und Taktart einfach übernehmen
-  if (!P.tracks.some(t => t.regions.length)) { adopt(); go(); toast(`Tempo und Taktart der Datei übernommen (${what}).`); return; }
+  if (!P.tracks.some(t => t.regions.length)) { adopt(); go(); toast(`Tempo und Taktart der Datei übernommen (${what || 'mit Taktartwechseln'}).`); return; }
   banner(`„${file.name}“ hat ${what}. Für den Song übernehmen?`, [['Übernehmen', () => { adopt(); go(); }, true], ['Song so lassen', go]]);
 }
 function placeMidi(m, name, trackId, beat) {
   pushUndo();
   const start = snapBar(Math.max(0, beat ?? playPos)), target = trackId && findTrack(trackId);
-  const lenOf = notes => Math.max(BL(), ceilBar(Math.max(...notes.map(n => n.s + n.l)) - 1e-6));
+  const lenOf = notes => barLen(start, Math.max(...notes.map(n => n.s + n.l)));
   const made = [];
   let skipped = 0, first = null;
   const fill = (tr, notes, nm) => {
     if (tr.type === 'drums') {
       // Bei Drums zählt nur der Anschlag: ein Schlag auf der letzten 16tel verlängert nicht um einen Takt
-      const res = notesToDrums(notes, start, Math.round(lenOf(notes.map(n => ({ s: n.s, l: .01 }))) / BL()), nm);
+      const res = notesToDrums(notes, start, Math.round(lenOf(notes.map(n => ({ s: n.s, l: .01 }))) / BL(start)), nm);
       tr.regions.push(...res.regions); skipped += res.skipped; first ||= res.regions[0];
     } else {
       const r = { id: uid(), name: nm, start, len: lenOf(notes), notes: notes.map(n => ({ s: n.s, l: n.l, p: tr.type === 'sampler' ? padOfNote(tr, n.p) : n.p, v: Math.round(n.v * 100) / 100 })) };
@@ -2812,7 +3029,7 @@ function trackNotes(tr, only) {
   return out;
 }
 // Schreibt eine MIDI-Datei (Format 1, 480 Ticks pro Viertel). tracks: [{ name, ch, prog, notes }]
-function writeMidi(tracks, bpm, sig) {
+function writeMidi(tracks, bpm, sig, changes = []) {
   const PPQ = 480, chunks = [];
   const vlq = v => { const b = [v & 0x7f]; while ((v >>= 7)) b.unshift((v & 0x7f) | 0x80); return b; };
   const text = s => [...new TextEncoder().encode(s)].slice(0, 120);
@@ -2827,7 +3044,9 @@ function writeMidi(tracks, bpm, sig) {
   const us = Math.round(60000000 / bpm), dd = Math.log2(sig[1]);
   chunk([{ t: 0, o: 0, b: [0xff, 0x03, ...vlq(text(P.name || 'Sound Groot').length), ...text(P.name || 'Sound Groot')] },
     { t: 0, o: 1, b: [0xff, 0x51, 3, (us >> 16) & 255, (us >> 8) & 255, us & 255] },
-    { t: 0, o: 2, b: [0xff, 0x58, 4, sig[0], dd, 24, 8] }]);
+    { t: 0, o: 2, b: [0xff, 0x58, 4, sig[0], dd, 24, 8] },
+    // Taktartwechsel mitten im Song
+    ...changes.map(c => ({ t: Math.round(c.beat * PPQ), o: 2, b: [0xff, 0x58, 4, c.sig[0], Math.log2(c.sig[1]), 24, 8] }))]);
   for (const x of tracks) {
     const nm = text(x.name), evs = [{ t: 0, o: 0, b: [0xff, 0x03, ...vlq(nm.length), ...nm] }];
     if (x.prog >= 0) evs.push({ t: 0, o: 1, b: [0xc0 | x.ch, x.prog] });
@@ -2852,7 +3071,7 @@ async function exportMidi(region) {
   }).filter(x => x.notes.length);
   if (!tracks.length) { toast(region ? 'Diese Region hat keine Noten.' : 'Im Song gibt es keine Noten zum Exportieren. Audio-Spuren stecken nicht in MIDI-Dateien.'); return; }
   const name = (region ? rr.name : P.name || 'Mein Song').replace(/[\\/:*?"<>|]/g, '_') + '.mid';
-  const ok = await saveFile(writeMidi(tracks, P.bpm, sigOf()), name, 'MIDI-Datei', 'mid', 'audio/midi');
+  const ok = await saveFile(writeMidi(tracks, P.bpm, region ? sigAt(rr.start) : sigOf(), region ? [] : sigSegs().slice(1)), name, 'MIDI-Datei', 'mid', 'audio/midi');
   if (ok) toast(`„${name}“ gespeichert (${tracks.length} ${tracks.length === 1 ? 'Spur' : 'Spuren'}). In MPC Beats ziehst du die Datei einfach auf eine Spur.`, 4500);
 }
 const isMidiFile = f => /\.(mid|midi|smf)$/i.test(f.name) || f.type === 'audio/midi' || f.type === 'audio/x-midi';
@@ -2911,7 +3130,7 @@ function currentBeat() {
   const now = ctx.currentTime;
   while (segs.length > 1 && segs[1].time <= now) segs.shift();
   const s = segs[0];
-  return s.beat + Math.max(0, now - s.time) / spb();
+  return s.beat + Math.max(0, now - s.time) / (s.spb || spb());
 }
 function tick() {
   const target = ctx.currentTime + LOOKAHEAD, L = P.loop;
@@ -2938,8 +3157,10 @@ function schedule(b0, b1, t0) {
   const s = spb(), at = b => t0 + (b - b0) * s;
   // Metronom, und im Vorzähler auch ohne Metronom
   if (P.metro || (rec && b0 < rec.countUntil)) {
-    const bt = BT(), bl = BL();
-    for (let i = Math.ceil(b0 / bt - 1e-9); i * bt < b1 - 1e-9; i++) { const b = i * bt; if (P.metro || b < rec?.countUntil) click(at(b), Math.abs(b / bl - Math.round(b / bl)) < 1e-6); }
+    // Der Vorzähler zählt in der Taktart der Aufnahmestelle rückwärts von dort (auch vor dem Songanfang)
+    const cu = rec && b0 < rec.countUntil ? rec.countUntil : -Infinity;
+    if (cu > b0) { const s = segAt(Math.max(0, cu)); for (let k = 1; cu - k * s.bt >= b0 - 1e-9; k++) { const b = cu - k * s.bt, x = k * s.bt / s.bl; if (b < b1 - 1e-9) click(at(b), Math.abs(x - Math.round(x)) < 1e-6); } }
+    if (P.metro) for (const l of gridLines(Math.max(b0, cu, 0), b1)) if (l.b >= b0 - 1e-9 && l.b >= cu - 1e-9 && l.b < b1 - 1e-9) click(at(l.b), l.bar >= 0);
   }
   for (const tr of P.tracks) {
     if (renderNeed && !renderNeed.has(tr.id)) continue;
@@ -3011,29 +3232,45 @@ function fadeEnv(r, total) {
   const G = Math.pow(10, (r.gain || 0) / 20), fi = r.fi || 0, fo = r.fo || 0;
   return x => G * Math.max(0, Math.min(1, fi > 0 ? x / fi : 1, fo > 0 ? (total - x) / fo : 1));
 }
-// Taktart des Songs ändern. Alles bleibt im selben Takt: Regionen, Marker, Cycle und Automation wandern
-// mit ihrem Taktanfang mit, Drum-Patterns werden auf die neue Taktart umgebaut, Noten bleiben, wie sie sind.
-function setSig(sig) {
-  const o = sigOf(); if (o[0] === sig[0] && o[1] === sig[1]) return;
+// Taktart ab Takt `bar` ändern (bar = 0: Songanfang, sonst ein Taktartwechsel mitten im Song). sig = null entfernt den Wechsel.
+// Alles bleibt im selben Takt: Regionen, Marker, Cycle und Automation wandern mit ihrem Taktanfang mit,
+// Drum-Patterns ab dieser Stelle werden auf die neue Taktart umgebaut, Noten bleiben, wie sie sind.
+function setSig(sig, bar = 0) {
+  const old = sigSegs().map(s => ({ ...s })), cur = old.find(s => s.bar === bar);
+  if (sig ? cur && String(cur.sig) === String(sig) : !cur || !bar) return;
   if (playing) stop();
   pushUndo();
-  const f = (sig[0] * 4 / sig[1]) / (o[0] * 4 / o[1]), m = b => Math.round(b * f * 1e6) / 1e6;
-  P.sig = [...sig];
+  const posOld = b => { let i = old.length - 1; while (i > 0 && old[i].beat > b + 1e-9) i--; return old[i].bar + (b - old[i].beat) / old[i].bl; };
+  const so = old.filter(s => s.bar <= bar).at(-1), cut = so.beat + (bar - so.bar) * so.bl; // alte Stelle des Wechsels in Vierteln
+  // Drum-Patterns, die über den Wechsel reichen, dort teilen: der hintere Teil bekommt die neue Taktart
+  for (const t of P.tracks) if (t.type === 'drums') for (const r of [...t.regions]) if (r.start < cut - 1e-6 && r.start + r.len > cut + 1e-6) splitRegion(t, r, cut);
+  let list = old.map(s => ({ bar: s.bar, sig: s.sig })).filter(c => c.bar !== bar);
+  if (sig) list.push({ bar, sig: [...sig] });
+  list.sort((a, b) => a.bar - b.bar);
+  // Wechsel auf dieselbe Taktart wie davor sind überflüssig
+  list = list.reduce((a, c) => { if (!a.length || String(a.at(-1).sig) !== String(c.sig)) a.push(c); return a; }, []);
+  P.sig = [...list[0].sig]; P.sigs = list.slice(1); if (!P.sigs.length) delete P.sigs;
+  sigDirty();
+  const m = b => { if (b <= cut + 1e-9) return b; const x = posOld(b), n = Math.floor(x + 1e-9); return Math.round((barStart(n) + (x - n) * segOfBar(n).bl) * 1e6) / 1e6; };
   for (const t of P.tracks) {
     for (const r of t.regions) {
-      r.start = m(r.start);
-      if (t.type === 'drums') { r.len = Math.max(BL(), m(r.len)); fitDrum(r); delete r.phase; }
-      else if (t.type !== 'audio') r.len = Math.max(BL(), ceilBar(r.len));
+      const end = r.start + r.len; if (end <= cut + 1e-9) continue;
+      const ns = m(r.start), ne = m(end);
+      r.start = ns;
+      if (t.type === 'drums') { if (String(sigAt(ns)) !== String(drumSig(r))) { r.len = Math.max(BL(ns), ne - ns); fitDrum(r, r.pb || 1, sigAt(ns)); delete r.phase; } }
+      else if (t.type !== 'audio') r.len = barLen(ns, r.len);
     }
     for (const k in t.auto || {}) if (Array.isArray(t.auto[k])) for (const pt of t.auto[k]) pt.b = m(pt.b);
   }
   for (const mk of P.markers) mk.b = m(mk.b);
-  P.loop.start = m(P.loop.start); P.loop.end = m(P.loop.end); playPos = m(playPos);
-  save(); render(); toast(`Taktart ${sig.join('/')}. Strg+Z macht es rückgängig.`);
+  P.loop.start = m(P.loop.start); P.loop.end = Math.max(P.loop.start + .25, m(P.loop.end)); playPos = m(playPos);
+  save(); render();
+  toast(!sig ? `Taktartwechsel ab Takt ${bar + 1} entfernt. Strg+Z macht es rückgängig.` : bar ? `Ab Takt ${bar + 1} gilt ${sig.join('/')}. Strg+Z macht es rückgängig.` : `Taktart ${sig.join('/')}. Strg+Z macht es rückgängig.`);
 }
 function setBpm(v) {
   v = clamp(Math.round(v) || 96, 40, 240);
-  if (playing) { const b = currentBeat(), now = ctx.currentTime; P.bpm = v; segs = [{ time: now, beat: b }]; cur = { time: now, beat: b }; }
+  // Beim Abspielen gilt das neue Tempo ab dem Punkt, bis zu dem schon vorausgeplant ist. Abschnitte davor behalten ihr Tempo.
+  if (playing && v !== P.bpm) { const old = spb(); for (const s of segs) s.spb ??= old; P.bpm = v; segs.push({ time: cur.time, beat: cur.beat }); }
   else P.bpm = v;
   $('#bpm').value = v; applyBuses(); save();
   // Regionen, die dem Tempo folgen: Anzeige und neue Dehnung vorbereiten
@@ -3217,7 +3454,8 @@ async function toggleRecord() {
   if (recPending) return;
   ensureCtx();
   const tr = findTrack(selTrack);
-  if (!tr || tr.type === 'drums') { toast('Wähle zuerst eine Instrument- oder Audiospur aus.'); return; }
+  if (!tr) { toast('Wähle zuerst eine Spur aus.'); return; }
+  if (useFrozen(tr)) { toast('Die Spur ist eingefroren. Zum Aufnehmen erst auftauen (Schneeflocke im Spurkopf).'); return; }
   let cap = null;
   if (tr.type === 'audio') {
     recPending = true;
@@ -3225,10 +3463,11 @@ async function toggleRecord() {
     catch (e) { toast('Kein Mikrofonzugriff. Erlaube das Mikrofon oder importiere eine Audiodatei.'); return; }
     finally { recPending = false; }
   }
-  const start = playing ? currentBeat() : loopStartPos(playPos), ci = playing ? 0 : (P.countIn ?? 1) * BL();
-  rec = { type: tr.type === 'audio' ? 'audio' : 'midi', track: tr.id, startBeat: start, countUntil: start, cap, marks: [], region: null, held: new Map(), pass: 0 };
+  const start = playing ? currentBeat() : loopStartPos(playPos), ci = playing ? 0 : (P.countIn ?? 1) * BL(start);
+  rec = { type: tr.type === 'audio' ? 'audio' : tr.type === 'drums' ? 'drums' : 'midi', track: tr.id, startBeat: start, countUntil: start, cap, marks: [], region: null, held: new Map(), pass: 0 };
   if (playing) rec.marks.push({ time: ctx.currentTime, beat: start });
   else { playPos = start - ci; play(); }
+  if (rec.type === 'drums') { toast((ci ? 'Vorzähler läuft, dann: ' : 'Aufnahme läuft: ') + 'Drums spielen mit den Tasten A bis #, den Pads oder dem MIDI-Keyboard.' + (P.loop.on ? ' Im Cycle kommt in jeder Runde etwas dazu.' : ''), 4200); if (!kbOpen && matchMedia('(hover: none)').matches) setKb(true); }
   if (rec.type === 'midi') toast(ci ? 'Vorzähler läuft, dann wird aufgenommen.' : tr.type === 'sampler' ? 'Aufnahme läuft. Spiele die Pads (Maus, Tasten oder MIDI). Stopp mit der Leertaste.' : 'Aufnahme läuft. Spiele mit den Tasten A bis L, dem Bildschirm-Keyboard oder dem MIDI-Keyboard.');
   updateTransport();
 }
@@ -3242,6 +3481,7 @@ function recMark(m) {
 function stopRecording() {
   const r = rec; rec = null;
   if (r.type === 'audio') finishAudio(r);
+  else if (r.type === 'drums') { if (r.pushed) { save(); render(); toast(`${r.hits} Schläge aufgenommen. Strg+Z nimmt die Aufnahme zurück.`); } else toast('Es wurde nichts eingespielt.'); }
   else {
     r.held.forEach((n, code) => endRecNote(r, code));
     const reg = r.region;
@@ -3267,7 +3507,7 @@ function finishAudio(r) {
   const S = looped ? Math.min(L.start, passes[0].b0) : passes[0].b0, E = looped ? L.end : passes[0].b1;
   const len = E - S, N = Math.round(len * s * sr);
   // Kurze Reste am Ende (Stopp kurz nach dem Cycle-Sprung) verwerfen, solange es andere Takes gibt
-  const keep = passes.filter((p, i) => i === 0 || p.b1 - p.b0 >= Math.min(1, (L.end - L.start) / BL()));
+  const keep = passes.filter((p, i) => i === 0 || p.b1 - p.b0 >= Math.min(1, (L.end - L.start) / BL(L.start)));
   const bufs = keep.map(p => {
     const out = new Float32Array(N), from = idx(p.m.time + (p.b0 - p.m.beat) * s), at = Math.round((p.b0 - S) * s * sr), n = Math.min(Math.round((p.b1 - p.b0) * s * sr), N - at);
     for (let i = 0; i < n; i++) { const j = from + i; if (j >= 0 && j < data.length) out[at + i] = data[j]; }
@@ -3298,6 +3538,41 @@ function newMidiTake(R) {
   r.takes.push({ notes: [] }); r.take = r.takes.length - 1; r.notes = r.takes[r.take].notes;
   renderArrange(); if (selRegion === r.id) renderEditor();
 }
+// Drums live einspielen: jeder Schlag landet auf dem nächsten Platz im Pattern unter der Abspielposition.
+// Im Cycle läuft das Pattern rund und füllt sich Runde für Runde, ohne Cycle wächst es Takt für Takt mit (bis 16 Takte).
+function recDrumHit(d, vel) {
+  const tr = findTrack(rec.track); if (!tr) return;
+  const b = currentBeat() - outLatency() / spb();
+  if (b < rec.startBeat - .12) return; // im Vorzähler gespielt
+  const hit = x => b >= x.start - .12 && b < x.start + x.len - .12;
+  let r = tr.regions.find(hit), fresh = false;
+  if (!rec.pushed) { pushUndo(); rec.pushed = true; rec.hits = 0; }
+  if (!r) {
+    const L = P.loop, inLoop = L.on && L.end > L.start && b >= L.start - .12 && b < L.end, own = rec.region;
+    if (own && !inLoop && b >= own.start + own.len - .12 && b < own.start + own.len + BL(b) && (own.pb || 1) < 16 && String(sigAt(b + .12)) === String(drumSig(own))) {
+      // nächster Takt: Pattern um einen leeren Takt verlängern
+      const n0 = drumBeats(own) * 4; fitDrum(own, (own.pb || 1) + 1, drumSig(own));
+      for (const x of DRUMS) for (let k = n0; k < own.steps[x.id].length; k++) { own.steps[x.id][k] = 0; own.pitch[x.id][k] = 0; }
+      for (let i = n0 / 4; i < own.trip.length; i++) own.trip[i] = false;
+      own.len = drumLen(own); r = own;
+    } else {
+      const start = inLoop ? L.start : snapBar(Math.max(0, b + .12)), bars = inLoop ? Math.max(1, Math.round(barPos(L.end) - barPos(L.start))) : 1;
+      r = drumRegion('Leer', start, inLoop ? L.end - L.start : BL(start), Math.min(16, bars)); r.name = 'Aufnahme';
+      tr.regions.push(r); rec.region = r; selRegion = r.id; edTab = 'region';
+    }
+    fresh = true;
+  }
+  // nächster Platz im Pattern (mit Swing), über das Pattern-Ende hinweg gerechnet
+  const PL = drumLen(r), pos = (((b - r.start + phaseOf(r)) % PL) + PL) % PL;
+  let best = null, bd = 1e9;
+  for (const sl of drumSlots(r)) { const t = sl.off + slotSwing(r, sl), dd = Math.min(Math.abs(pos - t), PL - Math.abs(pos - t)); if (dd < bd) { bd = dd; best = sl; } }
+  if (!best) return;
+  const v = Math.round(clamp(vel, .15, 1) * 100) / 100;
+  r.steps[d][best.k] = v; rec.hits++;
+  if (fresh) { renderArrange(); renderEditor(); return; }
+  const el = rowsEl.querySelector(`.region[data-region="${r.id}"] canvas`); if (el) drawRegion(el, tr, r);
+  if (selRegion === r.id && liveCells?.r === r) { const c = eBody.querySelector(`.cell[data-d="${d}"][data-k="${best.k}"]`); if (c) { c.classList.add('on'); c.classList.toggle('acc', v >= .95); c.style.setProperty('--v', v); } }
+}
 function recNoteStart(code, midi, vel = .8) {
   const tr = findTrack(rec.track); if (!tr) return;
   // Gespielt wird zu dem, was man hört: also um die Ausgabelatenz früher eintragen
@@ -3308,14 +3583,14 @@ function recNoteStart(code, midi, vel = .8) {
     pushUndo();
     const L = P.loop, inLoop = L.on && rec.startBeat >= L.start && rec.startBeat < L.end;
     const start = inLoop ? L.start : Math.max(0, snapBar(rec.startBeat));
-    rec.region = { id: uid(), name: 'Aufnahme', start, len: inLoop ? L.end - L.start : BL(), notes: [] };
+    rec.region = { id: uid(), name: 'Aufnahme', start, len: inLoop ? L.end - L.start : BL(start), notes: [] };
     tr.regions.push(rec.region); selRegion = rec.region.id;
   }
   const r = rec.region;
   if (b < r.start) return;
   const n = { p: midi, s: b - r.start, l: .25, v: vel };
   r.notes.push(n); rec.held.set(code, { n, b });
-  r.len = Math.max(r.len, ceilBar(n.s + .25));
+  r.len = Math.max(r.len, ceilBar(r.start + n.s + .25) - r.start);
   renderArrange(); renderEditor();
 }
 function endRecNote(r, code) {
@@ -3324,14 +3599,14 @@ function endRecNote(r, code) {
   let l = currentBeat() - outLatency() / spb() - h.b;
   if (l <= 0) l = .25;
   h.n.l = Math.max(.05, l);
-  r.region.len = Math.max(r.region.len, ceilBar(h.n.s + h.n.l));
+  r.region.len = Math.max(r.region.len, ceilBar(r.region.start + h.n.s + h.n.l) - r.region.start);
 }
 // Vorzähler-Anzeige
 const countEl = $('#countin');
 function showCount(b) {
   const left = rec.countUntil - b;
   if (left <= 0) { hideCount(); return; }
-  const bl = BL(), n = Math.floor((((b % bl) + bl) % bl) / BT() + 1e-6) + 1, bars = Math.ceil(left / bl - 1e-6);
+  const sg = segAt(Math.max(0, rec.countUntil)), bl = sg.bl, x = b - sg.beat, n = Math.floor((((x % bl) + bl) % bl) / sg.bt + 1e-6) + 1, bars = Math.ceil(left / bl - 1e-6);
   countEl.hidden = false; countEl.firstChild.textContent = n; countEl.lastChild.textContent = `Vorzähler · noch ${bars} Takt${bars > 1 ? 'e' : ''}`;
 }
 function hideCount() { countEl.hidden = true; }
@@ -3367,7 +3642,7 @@ function renderRecSettings() {
   $('#latMs').value = manual ? recPrefs.lat : Math.round(autoLatency() * 1000);
   $('#latOut').textContent = (manual ? recPrefs.lat : Math.round(autoLatency() * 1000)) + ' ms';
 }
-$('#countSel').onchange = e => { P.countIn = +e.target.value; save(); };
+$('#countSel').onchange = e => { P.countIn = +e.target.value; save(); updateTransport(); };
 $('#latMode').onchange = e => { recPrefs.lat = e.target.value === 'manual' ? Math.round(autoLatency() * 1000) : null; saveRecPrefs(); renderRecSettings(); };
 $('#latMs').oninput = e => { recPrefs.lat = +e.target.value; $('#latOut').textContent = recPrefs.lat + ' ms'; saveRecPrefs(); };
 $('#bLatMeasure').onclick = measureLatency;
@@ -3378,29 +3653,46 @@ const hw = () => rowsEl.querySelector('.thead')?.offsetWidth || $('.corner').off
 function songLen() {
   let end = 0;
   for (const t of P.tracks) for (const r of t.regions) end = Math.max(end, r.start + r.len);
-  const bl = BL();
-  P.bars = Math.max(P.bars, 16, Math.ceil(end / bl - 1e-9) + 4, Math.ceil(P.loop.end / bl - 1e-9) + 1);
-  return P.bars * bl;
+  P.bars = Math.max(P.bars || 0, 16, Math.ceil(barPos(end) - 1e-9) + 4, Math.ceil(barPos(P.loop.end) - 1e-9) + 1, (P.sigs?.at(-1)?.bar || 0) + 2);
+  return barStart(P.bars);
 }
 function render() { renderArrange(); renderEditor(); updateTransport(); renderLib(); }
+// Taktzahlen im Lineal, an Taktartwechseln mit der neuen Taktart
+function rulerMarks() {
+  const every = ppb < 16 ? 4 : ppb < 24 ? 2 : 1, ch = new Map((P.sigs || []).map(c => [c.bar, c.sig]));
+  let rh = '';
+  for (let b = 0; b < P.bars; b++) {
+    const sg = ch.get(b); if (b % every && !sg) continue;
+    rh += `<span class="bn ${sg ? 'sgc' : ''}" data-b="${b}" style="left:${barStart(b) * ppb}px">${b + 1}${sg ? `<button class="sg" data-sigbar="${b}" title="Taktartwechsel: ab Takt ${b + 1} gilt ${sg.join('/')}. Klick ändert oder entfernt ihn.">${sg.join('/')}</button>` : ''}</span>`;
+  }
+  return rh;
+}
+// Taktstriche hinter den Spuren: pro Abschnitt gleicher Taktart ein eigenes Streifenmuster
+function laneBg() {
+  const segs = sigSegs(), end = barStart(P.bars), im = [], po = [], si = [];
+  segs.forEach((s, i) => {
+    im.push(`repeating-linear-gradient(90deg, #22252d 0 1px, transparent 1px ${ppb * s.bl}px)`);
+    po.push(`${s.beat * ppb}px 0`); si.push(`${((segs[i + 1]?.beat ?? end) - s.beat) * ppb}px 100%`);
+  });
+  return `${im.join(',')};background-position:${po.join(',')};background-size:${si.join(',')};background-repeat:no-repeat`;
+}
+function setLaneBg(el) { const [im, po, si] = laneBg().split(/;background-(?:position|size|repeat):/); el.style.backgroundImage = im; el.style.backgroundPosition = po; el.style.backgroundSize = si; el.style.backgroundRepeat = 'no-repeat'; }
 function renderArrange() {
   for (const id of usedSamples()) if (!smpSets.has(id)) loadSamples(id).catch(() => { });
   for (const id of usedDrumSets()) if (!drumSets.has(id)) loadDrumSet(id).catch(() => { });
   const beats = songLen(), W = beats * ppb;
   rulerEl.style.width = W + 'px';
-  let rh = '';
-  const every = ppb < 16 ? 4 : ppb < 24 ? 2 : 1;
-  for (let b = 0; b < P.bars; b += every) rh += `<span class="bn" data-b="${b}" style="left:${b * BL() * ppb}px">${b + 1}</span>`;
+  let rh = rulerMarks();
   rh += `<div class="loopband ${P.loop.on ? 'on' : ''}" style="left:${P.loop.start * ppb}px;width:${(P.loop.end - P.loop.start) * ppb}px"></div>`;
   rulerEl.innerHTML = rh;
-  const lineBg = `repeating-linear-gradient(90deg, #22252d 0 1px, transparent 1px ${ppb * BL()}px)`;
+  const lineBg = laneBg();
   rowsEl.innerHTML = P.tracks.map(tr => {
     const sel = tr.id === selTrack ? 'sel' : '';
     let ctrl = '';
     if (tr.type === 'sampler') ctrl = `<button class="tinst" data-act="smp" title="Sampler mit Chops und Pads öffnen"><span>${esc(instName(tr))}</span></button>`;
     else if (tr.type !== 'audio') ctrl = `<button class="tinst" data-act="lib" title="Klang in der Bibliothek wählen"><span>${esc(instName(tr))}</span></button>`;
     else ctrl = '<button class="sm" data-act="import" title="Audiodatei importieren">Import</button><span class="tsub">Mikro</span>';
-    ctrl += `<button class="sm eqb ${eqActive(tr) ? 'on' : ''}" data-act="eq" title="Kanal-EQ öffnen">EQ</button><button class="sm eqb fxb ${fxActive(tr) ? 'on' : ''}" data-act="fx" title="Klang & Effekte öffnen">FX</button>`;
+    const eqfx = `<button class="sm eqb ${eqActive(tr) ? 'on' : ''}" data-act="eq" title="Kanal-EQ: Höhen, Mitten und Bässe dieser Spur formen">EQ</button><button class="sm eqb fxb ${fxActive(tr) ? 'on' : ''}" data-act="fx" title="Klang &amp; Effekte: Klangregler, Kompressor, Hall, Delay und Plugins dieser Spur">FX</button>`;
     const hasAuto = Object.keys(tr.auto || {}).some(k => autoOn(tr, k));
     const regs = tr.regions.map(r => {
       const missing = tr.type === 'audio' && !audioBuffers.has(r.buf), au = tr.type === 'audio' && !missing, total = r.len * spb();
@@ -3414,10 +3706,11 @@ function renderArrange() {
     let row = `<div class="track-row ${sel}" data-track="${tr.id}" style="--c:${tr.color}">
       <div class="thead">
         <div class="tcolor"></div>
+        <button class="tico" data-act="grab" title="${TYPE_NAMES[tr.type]}: Klick wählt die Spur aus, nach oben oder unten ziehen sortiert sie um" aria-label="Spur auswählen oder verschieben">${ICONS[tr.type]}</button>
         <div class="tmain">
-          <div class="trow">${ICONS[tr.type]}<input class="tname" data-act="name" value="${esc(tr.name)}" aria-label="Spurname"><button class="sm fz ${tr.frozen ? 'on' : ''} ${tr.frozen && !useFrozen(tr) ? 'stale' : ''}" data-act="freeze" title="${!tr.frozen ? 'Spur einfrieren: Instrument und Plugins einmal berechnen und als Audio abspielen. Spart Rechenleistung.' : useFrozen(tr) ? 'Eingefroren: spielt als fertig berechnetes Audio, Instrument und Plugins ruhen. Klick taut die Spur wieder auf.' : 'Seit dem Einfrieren geändert: spielt wieder live. Klick friert neu ein.'}">❄</button><button class="sm ab ${tr.showAuto ? 'on' : ''} ${hasAuto ? 'has' : ''}" data-act="auto" title="Automation: Lautstärke, Panorama, Filter, Effekte und Plugin-Parameter über die Zeit">A</button><button class="sm x" data-act="del" title="Spur löschen">×</button></div>
+          <div class="trow">${ICONS[tr.type]}<input class="tname" data-act="name" value="${esc(tr.name)}" aria-label="Spurname"><button class="sm fz ${tr.frozen ? 'on' : ''} ${tr.frozen && !useFrozen(tr) ? 'stale' : ''}" data-act="freeze" title="${!tr.frozen ? 'Spur einfrieren: Instrument und Plugins einmal berechnen und als Audio abspielen. Spart Rechenleistung.' : useFrozen(tr) ? 'Eingefroren: spielt als fertig berechnetes Audio, Instrument und Plugins ruhen. Klick taut die Spur wieder auf.' : 'Seit dem Einfrieren geändert: spielt wieder live. Klick friert neu ein.'}" aria-label="Einfrieren"><svg viewBox="0 0 16 16"><path d="M7.4 1h1.2v14H7.4zM1.6 4.800l.6-1 12.200 7-.6 1zm0 6.400l12.200-7 .6 1-12.200 7z"/></svg></button><button class="sm ab ${tr.showAuto ? 'on' : ''} ${hasAuto ? 'has' : ''}" data-act="auto" title="Automation: Lautstärke, Panorama, Filter, Effekte und Plugin-Parameter als Kurve über die Zeit" aria-label="Automation"><svg viewBox="0 0 16 16"><path d="M1.5 13.500V12l3.600-5.600 3.400 3.300L13 2.500l1.300.8-5.500 8.700-3.400-3.300z"/></svg></button><button class="sm x" data-act="del" title="Spur löschen (Strg+Z holt sie zurück)" aria-label="Spur löschen">×</button></div>
           <div class="trow"><button class="sm m ${tr.mute ? 'on' : ''}" data-act="mute" title="Stumm">M</button><button class="sm s ${tr.solo ? 'on' : ''}" data-act="solo" title="Solo">S</button>${ctrl}</div>
-          <div class="trow"><input type="range" class="vol" data-act="vol" min="0" max="1" step="0.01" value="${autoValue(tr, 'vol', currentBeat())}" title="Lautstärke" aria-label="Lautstärke" ${av('vol')}><input type="range" class="pan" data-act="pan" min="-1" max="1" step="0.01" value="${autoValue(tr, 'pan', currentBeat())}" title="Panorama" aria-label="Panorama" ${av('pan')}></div>
+          <div class="trow"><input type="range" class="vol" data-act="vol" min="0" max="1" step="0.01" value="${autoValue(tr, 'vol', currentBeat())}" title="Lautstärke" aria-label="Lautstärke" ${av('vol')}><input type="range" class="pan" data-act="pan" min="-1" max="1" step="0.01" value="${autoValue(tr, 'pan', currentBeat())}" title="Panorama" aria-label="Panorama" ${av('pan')}>${eqfx}</div>
         </div>
         <i class="tmeter"><b></b></i>
       </div>
@@ -3522,9 +3815,20 @@ function drawWave(g, buf, off, dur, w, h, color, gain = 1) {
 function updatePlayhead() {
   const b = currentBeat();
   playheadEl.style.left = (hw() + Math.max(0, b) * ppb) + 'px';
-  const bl = BL(), bt = BT(), m = x => ((x % bl) + bl) % bl, bar = Math.floor(b / bl + 1e-9) + 1, inBar = m(b), beat = Math.floor(inBar / bt + 1e-9) + 1, six = Math.floor(((inBar / bt) % 1) * bt * 4 + 1e-6) + 1;
-  $('#lcdPos').textContent = `${String(bar).padStart(3, '0')} ${beat} ${six}`;
+  const sg = segAt(b), bl = sg.bl, bt = sg.bt, x = b - sg.beat, bar = sg.bar + Math.floor(x / bl + 1e-9) + 1, inBar = ((x % bl) + bl) % bl, beat = Math.floor(inBar / bt + 1e-9) + 1, six = Math.floor(((inBar / bt) % 1) * bt * 4 + 1e-6) + 1;
+  updateLcd(b, `${String(bar).padStart(3, '0')} ${beat} ${six}`, sg);
   if (!playing && autoPos !== playPos) { autoPos = playPos; applyAutoStatic(); }
+}
+// Positionsanzeige: Takt · Zählzeit · 16tel oder Zeit; die Taktart folgt der Abspielposition
+let lcdShown = '';
+function updateLcd(b, bars, sg = segAt(b)) {
+  if (bars == null) { updatePlayhead(); return; }
+  let txt = bars;
+  if (lcdTime) { const s = Math.max(0, b) * spb(), m = Math.floor(s / 60); txt = `${m}:${String(Math.floor(s % 60)).padStart(2, '0')}.${Math.floor(s * 10 % 10)}`; }
+  const key = txt + '|' + sg.sig + '|' + lcdTime;
+  if (key === lcdShown) return; lcdShown = key;
+  $('#lcdPos').textContent = txt; $('#lcdPosL').textContent = lcdTime ? 'Zeit' : 'Takt';
+  $('#sigBtn').textContent = sg.sig.join('/');
 }
 let autoPos = -1;
 function markSelection() {
@@ -3541,7 +3845,8 @@ function updateTransport() {
   $('#bLoop').classList.toggle('on', P.loop.on);
   $('#bMetro').classList.toggle('on', !!P.metro);
   $('#bpm').value = P.bpm;
-  $('#sigSel').value = sigOf().join('/');
+  $('#bCount').classList.toggle('on', (P.countIn ?? 1) > 0);
+  lcdShown = ''; updateLcd(currentBeat());
   $('#zoom').value = ppb;
   $('#masterVol').value = P.master ?? .8;
 }
@@ -3567,21 +3872,28 @@ const eHead = $('#ehead'), eBody = $('#ebody');
 let edState = { id: null }, lastLen = .5, liveCells = null;
 const noteName = m => ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'][m % 12] + (Math.floor(m / 12) - 2);
 let edTab = 'region', eqView = null, mixView = null, edKey = '';
+// Der Editor unten lässt sich wie in GarageBand ein- und ausblenden (am Handy startet er eingeklappt)
+let edOpen = (() => { try { const v = localStorage.getItem('klangwerk.edopen'); return v == null ? window.innerWidth > 820 && window.innerHeight > 560 : v === '1'; } catch (e) { return true; } })();
 function renderEditor() {
   if (!grvMenu.hidden) grvMenu.hidden = true;
+  editorEl.hidden = !edOpen;
+  $('#bEd').classList.toggle('on', edOpen && (edTab === 'region' || edTab === 'smp'));
+  $('#bSmart').classList.toggle('on', edOpen && (edTab === 'fx' || edTab === 'eq'));
+  $('#bMix').classList.toggle('on', edOpen && edTab === 'mix');
+  if (!edOpen) { eHead.innerHTML = ''; eBody.innerHTML = ''; eBody.classList.remove('hastakes'); liveCells = null; eqView = null; mixView = null; smpView = null; edKey = ''; renderKb(); return; }
   eBody.classList.remove('hastakes');
   liveCells = null; eqView = null; mixView = null; smpView = null;
   const tr = findTrack(selTrack);
   if (edTab === 'mix') renderMixer(); else if (edTab === 'eq' && tr) renderEq(tr); else if (edTab === 'fx' && tr) renderFx(tr); else if (edTab === 'smp' && tr?.type === 'sampler') renderSampler(tr); else { edTab = 'region'; renderRegionEditor(); }
   const tab = (id, label) => `<button data-tab="${id}" class="${edTab === id ? 'on' : ''}" ${tr || id === 'region' || id === 'mix' ? '' : 'disabled'}>${label}</button>`;
-  eHead.insertAdjacentHTML('afterbegin', `<div class="tabs" role="tablist">${tab('region', 'Editor')}${tr?.type === 'sampler' ? tab('smp', 'Pads & Chops') : ''}${tab('mix', 'Mixer')}${tab('eq', 'Kanal-EQ')}${tab('fx', 'Klang & Effekte')}</div>`);
-  $('#bMix').classList.toggle('on', edTab === 'mix');
+  eHead.insertAdjacentHTML('afterbegin', `<button class="edx" data-edclose title="Editor einklappen (N)" aria-label="Editor einklappen"><svg viewBox="0 0 16 16"><path d="M3.300 5.300L8 10l4.700-4.700 1.100 1.100L8 12.200 2.200 6.400z"/></svg></button><div class="tabs" role="tablist">${tab('region', 'Editor')}${tr?.type === 'sampler' ? tab('smp', 'Pads & Chops') : ''}${tab('mix', 'Mixer')}${tab('eq', 'Kanal-EQ')}${tab('fx', 'Klang & Effekte')}</div>`);
   renderKb();
   // Sanft einblenden, wenn sich der Inhalt ändert (nicht bei jeder Bearbeitung)
   const key = edTab + '|' + (edTab === 'region' ? selRegion + '|' + edState.piece : edTab === 'mix' ? '' : selTrack + (edTab === 'smp' ? '|' + (tr?.srcs.length ? 1 : 0) : ''));
   if (key !== edKey) { edKey = key; eBody.firstElementChild?.classList.add('enter'); }
 }
 eHead.addEventListener('click', e => {
+  if (e.target.closest('[data-edclose]')) { setEditor(false); return; }
   const z = e.target.closest('[data-ez]'); if (z) { edZoom(+z.dataset.ez); return; }
   if (e.target.closest('[data-takeonly]')) { const [, r] = findRegion(selRegion); if (r?.takes) { const comp = r.take === -1; pushUndo(); useTake(r, r.take); delete r.takes; delete r.take; delete r.comp; save(); render(); toast(comp ? 'Comp übernommen, die Takes wurden verworfen.' : 'Die anderen Takes wurden verworfen.'); } return; }
   if (e.target.closest('[data-rmidi]')) { exportMidi(selRegion); return; }
@@ -3591,45 +3903,23 @@ eHead.addEventListener('click', e => {
 function renderRegionEditor() {
   const [tr, r] = findRegion(selRegion);
   // Sampler-Spur ohne ausgewählte Region: gleich Pads und Chops zeigen
-  if (!r && findTrack(selTrack)?.type === 'sampler') { edTab = 'smp'; renderSampler(findTrack(selTrack)); return; }
+  if (!r && findTrack(selTrack)?.type === 'sampler') { edTab = 'smp'; edOpen = true; renderSampler(findTrack(selTrack)); return; }
   if (!r) {
     edState = { id: null };
-    eHead.innerHTML = `<span class="note">Wähle eine Region im Arrangement aus.</span>`;
-    eBody.innerHTML = `<div class="empty">
-      <div><h3>So geht's los</h3>
-        <p>Doppelklicke (am Touchscreen: doppelt tippen) in eine leere Stelle einer Spur, um eine Region zu erstellen. Ein Klick auf eine Region öffnet sie hier im Editor.</p>
-        <p>Regionen verschiebst du mit der Maus, am rechten Rand änderst du die Länge, am linken Rand kürzt du den Anfang. Zum Löschen eine Region antippen und oben im Editor „Region löschen“ wählen (oder Entf). Ziehen im Lineal oben setzt den Cycle-Bereich.</p>
-        <p>Mit „A“ im Spurkopf öffnest du die Automation: Lautstärke, Panorama, Filter, Hall und Delay als Kurve über die Zeit. Marker für Intro, Strophe, Refrain setzt du mit „+ Marker“ oder per Doppelklick in die Marker-Leiste.</p>
-        <p>In der Bibliothek (I) sind alle Klänge nach Instrumentenfamilie sortiert. „Echt“ zeigt nur aufgenommene Instrumente, ▶ spielt einen Sound vor, ohne ihn auszuwählen, und mit dem Stern landet er unter „Favoriten“. Mit „Eigenes Sample laden …“ machst du aus einer beliebigen Audiodatei ein spielbares Instrument.</p>
-        <p>Sampler wie eine MPC: Zieh eine Audiodatei ins Arrangement (rechte Hälfte) oder lege mit „+ Spur“ einen Sampler an. Sound Groot schneidet sie in Chops und legt sie auf 16 Pads. Jeden Chop kannst du stimmen, ein- und ausblenden, umdrehen und filtern. Gespielt wird mit Maus, Tasten oder Pad-Controller; R (auf der Sampler-Spur Umschalt+R) nimmt auf.</p>
-        <p>MPC Beats und andere DAWs: MIDI-Dateien (.mid) ziehst du ins Arrangement oder öffnest sie unter Datei. Noten werden zu Regionen, Drums zu Drum-Patterns, der MPC-Swing bleibt erhalten. „Als MIDI“ oben im Editor und „Song als MIDI exportieren“ gehen den Weg zurück. In der Bibliothek zeigt „Ordner“ deine Sample-Ordner; in der Windows-App findet Sound Groot die installierten MPC-Expansions selbst. MPC-Drumkits (.xpm) werden zur Sampler-Spur mit allen Pads, Keygroup-Programme zum spielbaren Instrument.</p>
-        <p>Groove: Im Piano Roll zieht „Quantisieren“ die Noten aufs Raster, unter „Groove“ stellst du Stärke, Swing und Humanize ein. Im Drum-Pattern gibt es Swing und Humanize pro Region. Audio-Regionen folgen auf Wunsch dem Songtempo, ohne dass sich die Tonhöhe ändert. Loops dafür liegen in der Bibliothek einer Audio-Spur.</p>
-        <p>Im Mixer (M) fasst du Spuren zu Gruppen zusammen, rechts zeigt der Master die Lautheit in LUFS. Unter Klang & Effekte kann der Kompressor per Sidechain von einer anderen Spur gesteuert werden, etwa damit die Kick den Bass kurz wegdrückt.</p>
-        <p>Aufnahme (R) startet mit einem Takt Vorzähler. Ist der Cycle an, entsteht pro Durchgang ein eigener Take, den besten wählst du im Editor. Vorzähler und Latenzausgleich stellst du unter Geräte ein.</p>
-        <p class="hint">Instrument-Samples: <a href="https://github.com/nbrosowsky/tonejs-instruments" target="_blank" rel="noopener">tonejs-instruments</a> von Nicholas Brosowsky, Lizenz CC-BY 3.0. Weitere Instrumente, Percussion und Loops: <a href="https://github.com/sgossner/VCSL" target="_blank" rel="noopener">Versilian Community Sample Library</a> (CC0).</p></div>
-      <div><h3>Tastatur</h3><dl>
-        <dt>F1</dt><dd>Alle Tastenkürzel übersichtlich (auch über das Zahnrad oben rechts)</dd>
-        <dt>Leertaste</dt><dd>Abspielen / Stopp</dd>
-        <dt>R</dt><dd>Aufnahme auf ausgewählter Spur</dd>
-        <dt>C</dt><dd>Cycle an/aus</dd>
-        <dt>M</dt><dd>Mixer ein/aus</dd>
-        <dt>I</dt><dd>Bibliothek ein/aus</dd>
-        <dt>Strg+Mausrad</dt><dd>Zoomen (am Handy mit zwei Fingern)</dd>
-        <dt>A … L</dt><dd>Musical Typing: Noten spielen (W, E, T, Z, U = schwarze Tasten)</dd>
-        <dt>Y / X</dt><dd>Oktave runter / hoch</dd>
-        <dt>1–4 Q–R A–F Y–V</dt><dd>Pads 1–16 auf einer Sampler-Spur</dd>
-        <dt>Strg+D</dt><dd>Region duplizieren</dd>
-        <dt>Strg+C / X / V</dt><dd>Region kopieren, ausschneiden, an der Abspielposition einfügen (auch auf eine andere Spur)</dd>
-        <dt>B</dt><dd>Region an der Abspielposition teilen</dd>
-        <dt>Alt+Klick</dt><dd>Region an dieser Stelle teilen</dd>
-        <dt>, / .</dt><dd>Zum vorigen / nächsten Marker springen</dd>
-        <dt>Entf</dt><dd>Region, Note oder Marker löschen</dd>
-        <dt>Strg+Z</dt><dd>Rückgängig (der Verlauf mit allen Schritten liegt oben neben den Pfeilen)</dd>
-        <dt>Strg+Umschalt+Z</dt><dd>Wiederholen</dd>
-        <dt>Q</dt><dd>Noten quantisieren (im Piano Roll, mit Swing und Stärke aus „Groove“)</dd>
-        <dt>Alt+Ziehen</dt><dd>am rechten Rand einer Audio-Region: dehnen ohne Tonhöhe zu ändern</dd>
-        <dt>Strg+S</dt><dd>Projekt speichern</dd></dl></div>
-    </div>`;
+    const tr0 = findTrack(selTrack);
+    eHead.innerHTML = `<span class="note">${tr0 ? `Spur „${esc(tr0.name)}“: Doppelklick in die Spur erstellt eine Region.` : 'Lege mit + über den Spuren eine Spur an.'}</span>`;
+    eBody.innerHTML = `<div class="empty start"><div class="startcards">
+      <button data-go="add"><svg viewBox="0 0 16 16"><path d="M7 2h2v5h5v2H9v5H7V9H2V7h5z"/></svg><b>Neue Spur</b><span>Instrument, Drummer, Audio oder Sampler</span></button>
+      <button data-go="lib"><svg viewBox="0 0 16 16"><path d="M2 2h3v12H2zm4 0h3v12H6zm4.2.6l2.9-.8 3 11.6-2.9.8z"/></svg><b>Klang wählen</b><span>Instrumente, Drum-Kits und Loops in der Bibliothek (I)</span></button>
+      <button data-go="rec"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.500"/></svg><b>Aufnehmen</b><span>Spur wählen, R drücken und spielen oder singen</span></button>
+      <button data-go="keys"><svg viewBox="0 0 16 16"><path d="M1 3h14v10H1zm1.500 1.500v7h11v-7zM4 6h1.500v1.500H4zm2.500 0H8v1.500H6.500zM9 6h1.500v1.500H9zm2.500 0H12v1.500h-.500zM4.500 9h7v1.500h-7z"/></svg><b>Tastenkürzel</b><span>Alle Kürzel auf einen Blick (F1)</span></button>
+      <button data-go="help"><svg viewBox="0 0 16 16"><path d="M3 1.500h7.500L13 4v10.500H3zm1.500 1.500v10h7V5H9.500V3zM6 7h4v1.200H6zm0 2.500h4v1.200H6z"/></svg><b>Anleitung</b><span>Alles Wichtige zum Nachlesen</span></button>
+      <button data-go="tour"><svg viewBox="0 0 16 16"><path d="M8 1.500a6.500 6.500 0 1 1 0 13 6.500 6.500 0 0 1 0-13zM8 3a5 5 0 1 0 0 10A5 5 0 0 0 8 3zm2.800 2.200L9.300 9.300 5.200 10.800l1.500-4.100z"/></svg><b>Kurze Tour</b><span>In einer Minute die wichtigsten Stellen</span></button>
+    </div><p class="starthint">Tipp: Ein Rechtsklick (am Touchscreen lange drücken) zeigt überall die passenden Befehle. Die Schnellhilfe (Fragezeichen oben links) erklärt, worüber die Maus gerade fährt.</p></div>`;
+    eBody.querySelector('.startcards').onclick = e => {
+      const go = e.target.closest('[data-go]')?.dataset.go; if (!go) return;
+      if (go === 'add') openAddTrack(); else if (go === 'lib') setLib(true); else if (go === 'rec') toggleRecord(); else if (go === 'keys') openSettings('keys'); else if (go === 'help') openSettings('help'); else if (go === 'tour') startTour();
+    };
     return;
   }
   const same = edState.id === r.id && edState.kind === tr.type;
@@ -3637,12 +3927,12 @@ function renderRegionEditor() {
   const keep = same && sc ? { left: sc.scrollLeft, top: sc.scrollTop } : null;
   edState = { id: r.id, kind: tr.type, piece: same ? edState.piece : null, scrolled: same && edState.scrolled };
   eBody.style.setProperty('--c', tr.color);
-  const nbar = r.len / BL(), bars = (Math.abs(nbar - Math.round(nbar)) < 1e-6 ? Math.round(nbar) : nbar.toFixed(2)).toString().replace('.', ',');
+  const nbar = barPos(r.start + r.len) - barPos(r.start), bars = (Math.abs(nbar - Math.round(nbar)) < 1e-6 ? Math.round(nbar) : nbar.toFixed(2)).toString().replace('.', ',');
   const nt = r.takes?.length > 1 ? r.takes.length : 0;
   eBody.classList.toggle('hastakes', !!nt);
   if (nt) eBody.style.setProperty('--tkh', Math.round(Math.min(34 + nt * 34, Math.max(110, eBody.clientHeight * .45))) + 'px');
   if (tr.type === 'synth' || tr.type === 'sampler') renderPianoRoll(tr, r, bars);
-  else if (tr.type === 'drums') { normProject({ tracks: [tr], sig: sigOf() }); edState.piece ? renderDrumRoll(tr, r, edState.piece) : renderSteps(tr, r, bars); }
+  else if (tr.type === 'drums') { normProject({ tracks: [tr], sig: sigOf(), sigs: P.sigs }); edState.piece ? renderDrumRoll(tr, r, edState.piece) : renderSteps(tr, r, bars); }
   else renderAudioEditor(tr, r);
   const rn = $('#rname'); if (rn) rn.onchange = e => { pushUndo(); r.name = e.target.value || r.name; save(); renderArrange(); };
   const del = (tr.type !== 'audio' ? `<button class="sbtn" data-rmidi title="Diese Region als MIDI-Datei speichern, etwa für MPC Beats">Als MIDI</button>` : '') + `<button class="sbtn rdel" data-rdel title="Ganze Region aus der Spur löschen (Entf)">Region löschen</button>`;
@@ -3877,7 +4167,7 @@ function addSamplerSource(buf, name, trackId, extra = {}) {
   tr.srcs.push({ buf: addBuffer(buf), name, ...extra }); tr.src = tr.srcs.length - 1;
   // Fertige Loops gröber schneiden, damit die Hauptschläge auf den Pads landen; kurze Einzelklänge (Kick, Snare …) bleiben ganz
   const n = autoChop(tr, extra.bpm ? 'hits1' : buf.duration < 1.5 ? 'one' : 'hits2');
-  selTrack = tr.id; selRegion = null; edTab = 'smp'; libKey = '';
+  selTrack = tr.id; selRegion = null; edTab = 'smp'; edOpen = true; libKey = '';
   save(); render();
   const onPads = tr.pads.filter(id => tr.chops.find(c => c.id === id)?.buf === tr.srcs[tr.src].buf).length;
   toast(`„${name}“ in ${n} Chops geschnitten${onPads < n ? `, ${onPads} davon auf den Pads` : ''}. Tippe die Pads an oder nimm die Tasten 1–4, Q–R, A–F, ${padKey(0)}–V.`);
@@ -4295,7 +4585,7 @@ function chopsToRegion(tr) {
   }
   if (!notes.length) { toast('Keine Chops zum Einfügen.'); return; }
   pushUndo();
-  const start = Math.max(0, snapBar(currentBeat())), r = { id: uid(), name: 'Chops', start, len: Math.max(BL(), ceilBar(pos)), notes };
+  const start = Math.max(0, snapBar(currentBeat())), r = { id: uid(), name: 'Chops', start, len: barLen(start, pos), notes };
   tr.regions.push(r); selTrack = tr.id; selRegion = r.id; edTab = 'region'; save(); render();
   toast(`${notes.length} Chops als Region eingefügt${skipped ? ` (${skipped} ohne freies Pad ausgelassen)` : ''}. Im Editor kannst du sie verschieben.`);
 }
@@ -4337,6 +4627,7 @@ function pasteRegion() {
   if (!tr) { toast('Keine passende Spur zum Einfügen.'); return; }
   pushUndo();
   const c = JSON.parse(JSON.stringify(clipboard.r)); c.id = uid(); c.start = Math.max(0, Math.round(currentBeat() * 4) / 4);
+  if (tr.type === 'drums') placeDrum(c);
   tr.regions.push(c); selTrack = tr.id; selRegion = c.id; save(); render();
 }
 
@@ -4393,13 +4684,13 @@ mlaneEl.addEventListener('pointerdown', e => {
   if (e.target.closest('[data-mkdel]')) { deleteMarker(m.id); return; }
   selMarker = m.id; focusArea = 'mk';
   mlaneEl.querySelectorAll('.mk').forEach(x => x.classList.toggle('sel', x === el));
-  const x0 = e.clientX, b0 = m.b, snap = ppb < 40 ? 4 : 1;
+  const x0 = e.clientX, b0 = m.b, bars = ppb < 40;
   let moved = false;
   el.setPointerCapture(e.pointerId);
   el.onpointermove = ev => {
     if (!moved && Math.abs(ev.clientX - x0) < 4) return;
     if (!moved) { pushUndo(); moved = true; }
-    m.b = Math.max(0, Math.round((b0 + (ev.clientX - x0) / ppb) / snap) * snap);
+    m.b = Math.max(0, bars ? nearBar(b0 + (ev.clientX - x0) / ppb) : nearBeat(b0 + (ev.clientX - x0) / ppb));
     el.style.left = m.b * ppb + 'px';
   };
   el.onpointerup = ev => {
@@ -4407,7 +4698,7 @@ mlaneEl.addEventListener('pointerdown', e => {
     if (moved) { save(); renderMarkers(); return; }
     if (ev.shiftKey) {
       const ms = markersSorted(), nx = ms[ms.indexOf(m) + 1];
-      P.loop = { on: true, start: m.b, end: nx ? nx.b : Math.max(m.b + BL(), ceilBar(songLen())) }; save(); renderArrange(); updateTransport();
+      P.loop = { on: true, start: m.b, end: nx ? nx.b : Math.max(m.b + BL(m.b), ceilBar(songLen())) }; save(); renderArrange(); updateTransport();
       toast(`Cycle auf „${m.name}“ gesetzt.`); return;
     }
     jumpTo(m.b);
@@ -4881,7 +5172,7 @@ async function vstCreate(c, url, state) {
 // Abspielposition und Tempo an die Plugins (für Tempo-synchrone Delays, Arpeggiatoren usw.)
 let vstTp = null;
 function vstTransportTo(inst) {
-  const [num, den] = sigOf();
+  const [num, den] = sigAt(vstTp ? vstTp.beat : playPos);
   inst.audioNode.port.postMessage({ tp: vstTp ? { play: 1, bpm: P.bpm, num, den, ...vstTp } : { play: 0, bpm: P.bpm, num, den, time: 0, beat: playPos } });
 }
 function vstTransport(seg) {
@@ -5208,7 +5499,7 @@ function renderPianoRoll(tr, r, bars) {
   selNotes = new Set([...selNotes].filter(n => r.notes.includes(n)));
   // Auf einer Sampler-Spur ist jede Zeile ein Pad (1–16) statt einer Taste
   const pads = tr.type === 'sampler', Z = PRZ = pads ? PADROLL : PR;
-  eHead.innerHTML = `<input class="rn" id="rname" value="${esc(r.name)}" aria-label="Regionsname"><span class="note">${esc(tr.name)} · ${esc(pads ? 'Pads' : presetName(tr))} · ${bars} Takte</span>${pads ? '<button class="sbtn" data-tab="smp" title="Chops schneiden und Pads belegen">Pads & Chops</button>' : ''}
+  eHead.innerHTML = `<input class="rn" id="rname" value="${esc(r.name)}" aria-label="Regionsname"><span class="note">${esc(tr.name)} · ${esc(pads ? 'Pads' : presetName(tr))} · ${bars} Takt${bars === '1' ? '' : 'e'}</span>${pads ? '<button class="sbtn" data-tab="smp" title="Chops schneiden und Pads belegen">Pads & Chops</button>' : ''}
     ${toolButtons(TOOLS, prTool)}
     <label class="note">Raster <select id="prSnap">${SNAPS.map(([v, n]) => `<option value="${v}" ${near(v, prSnap) ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
     <label class="note">Länge <select id="prLen"><option value="">–</option>${LENS.map(([v, n]) => `<option value="${v}">${n}</option>`).join('')}</select></label>
@@ -5217,7 +5508,7 @@ function renderPianoRoll(tr, r, bars) {
     <span class="split"><button class="sbtn" id="quant" title="Ausgewählte (oder alle) Noten aufs Raster ziehen, mit Stärke und Swing aus dem Groove-Menü (Q)">Quantisieren</button><button class="sbtn" id="grvBtn" title="Groove: Stärke, Swing, Humanize">Groove ▾</button></span>
     ${pads ? '' : '<button class="sbtn" id="trDown">−12</button><button class="sbtn" id="trUp">+12</button>'}
     <button class="sbtn" id="prDel" title="Ausgewählte Noten löschen (Entf)">Löschen</button>${zoomCtl}`;
-  const rows = Z.hi - Z.lo + 1, W = Math.ceil(r.len * Z.bw), H = rows * Z.rh;
+  const ext = 2 * BL(r.start + r.len), rows = Z.hi - Z.lo + 1, W = Math.ceil((r.len + ext) * Z.bw), H = rows * Z.rh;
   let keys = '';
   if (pads) for (let m = Z.hi; m >= Z.lo; m--) { const c = padChop(tr, m); keys += `<div class="key pkey ${c ? '' : 'empty'}" data-p="${m}" style="height:${Z.rh}px;line-height:${Z.rh - 1}px;--cc:${c?.color || '#ffffff20'}" title="Pad ${m + 1}${c ? ': ' + esc(c.name) : ' (leer)'}">${m + 1} ${c ? esc(c.name) : '·'}</div>`; }
   else {
@@ -5243,8 +5534,11 @@ function renderPianoRoll(tr, r, bars) {
       g.fillStyle = pads ? (m % 4 === 0 ? '#353945' : '#121317') : m % 12 === 0 ? '#353945' : '#121317'; g.fillRect(0, y + Z.rh - 1, W, 1);
     }
     const tripl = !near(prSnap * 4 % 1, 0) && !near(prSnap * 4 % 1, 1);
-    for (let t = 0; t <= r.len + 1e-6; t += prSnap) { g.fillStyle = tripl ? '#283040' : '#24272f'; g.fillRect(Math.round(t * Z.bw), 0, 1, H); }
-    for (let i = 0, bt = BT(), bl = BL(); i * bt <= r.len + 1e-6; i++) { const b = i * bt; g.fillStyle = Math.abs(b / bl - Math.round(b / bl)) < 1e-6 ? '#555b69' : '#343844'; g.fillRect(Math.round(b * Z.bw), 0, 1, H); }
+    for (let t = 0; t <= r.len + ext + 1e-6; t += prSnap) { g.fillStyle = tripl ? '#283040' : '#24272f'; g.fillRect(Math.round(t * Z.bw), 0, 1, H); }
+    for (const l of gridLines(r.start, r.start + r.len + ext)) { g.fillStyle = l.bar >= 0 ? '#555b69' : '#343844'; g.fillRect(Math.round((l.b - r.start) * Z.bw), 0, 1, H); }
+    // hinter dem Ende der Region: abgedunkelt, eine Note dort verlängert die Region
+    g.fillStyle = '#0b0c0fb0'; g.fillRect(Math.round(r.len * Z.bw) + 1, 0, W, H);
+    g.fillStyle = '#ffffff40'; g.fillRect(Math.round(r.len * Z.bw), 0, 1, H);
   };
   drawGrid();
   const items = () => r.notes.map(n => ({ x: n.s * Z.bw, v: n.v, sel: selNotes.has(n) }));
@@ -5266,16 +5560,45 @@ function renderPianoRoll(tr, r, bars) {
   if (!edState.scrolled) { const ps = r.notes.length ? r.notes.reduce((a, n) => a + n.p, 0) / r.notes.length : pads ? 8 : 62; pr.scrollTop = (Z.hi - ps) * Z.rh - pr.clientHeight / 2; edState.scrolled = true; }
 
   pr.querySelector('.pr-keys').onpointerdown = e => { const k = e.target.closest('.key'); if (k) previewNote(tr, +k.dataset.p); };
-  grid.oncontextmenu = e => {
-    e.preventDefault();
-    const el = e.target.closest('.nt'); if (!el) return;
-    pushUndo(); const n = r.notes[+el.dataset.i]; r.notes.splice(+el.dataset.i, 1); selNotes.delete(n); refresh(); commit();
-  };
+  // Rechtsklick oder langes Drücken: Befehle für die Note(n) bzw. die leere Stelle
+  onContext(grid, ({ x, y, target }) => {
+    focusArea = 'pr';
+    const el = target.closest('.nt'), n = el && r.notes[+el.dataset.i];
+    if (n && !selNotes.has(n)) { selNotes = new Set([n]); refresh(); }
+    const sel = () => [...selNotes], edit = f => () => { if (!selNotes.size) return; pushUndo(); f(sel()); refresh(); commit(); };
+    if (!n) {
+      openMenu(x, y, [
+        { label: 'Alle Noten auswählen', kbd: 'Strg+A', off: !r.notes.length, fn: () => { selNotes = new Set(r.notes); refresh(); } },
+        { label: 'Alle Noten quantisieren', kbd: 'Q', off: !r.notes.length, fn: () => { selNotes.clear(); doGroove('q'); } },
+        { head: 'Werkzeug' }, { chips: TOOLS.map(([k, l]) => ({ label: l, on: prTool === k, fn: () => eHead.querySelector(`[data-tool="${k}"]`)?.click() })) }]);
+      return;
+    }
+    const cnt = selNotes.size > 1 ? selNotes.size + ' Noten' : pads ? 'Pad ' + (n.p + 1) : noteName(n.p);
+    openMenu(x, y, [
+      { label: 'Duplizieren', fn: edit(ns => {
+        const a = Math.min(...ns.map(q => q.s)), z = Math.max(...ns.map(q => q.s + q.l)), d = Math.max(prSnap, Math.ceil((z - a) / prSnap - 1e-6) * prSnap);
+        const add = ns.filter(q => q.s + d < r.len - 1e-6).map(q => ({ ...q, s: q.s + d, l: Math.min(q.l, r.len - q.s - d) }));
+        if (!add.length) { toast('Dahinter ist in der Region kein Platz mehr. Verlängere die Region am rechten Rand.'); return; }
+        r.notes.push(...add); selNotes = new Set(add);
+      }) },
+      !pads && { label: 'Oktave höher', fn: edit(ns => ns.forEach(q => q.p = clamp(q.p + 12, Z.lo, Z.hi))) },
+      !pads && { label: 'Oktave tiefer', fn: edit(ns => ns.forEach(q => q.p = clamp(q.p - 12, Z.lo, Z.hi))) },
+      { label: 'Quantisieren', kbd: 'Q', fn: () => doGroove('q') },
+      { head: 'Länge' }, { chips: [[.25, '1/16'], [.5, '1/8'], [1, '1/4'], [2, '1/2']].map(([v, l]) => ({ label: l, on: sel().every(q => near(q.l, v)), fn: edit(ns => { ns.forEach(q => q.l = Math.min(v, r.len - q.s)); lastLen = v; }) })) },
+      { head: 'Anschlag' }, { chips: [[.35, 'leise'], [.6, 'mittel'], [.8, 'kräftig'], [1, 'voll']].map(([v, l]) => ({ label: l, on: sel().every(q => Math.abs(q.v - v) < .06), fn: edit(ns => ns.forEach(q => q.v = v)) })) },
+      '-', { label: selNotes.size > 1 ? selNotes.size + ' Noten löschen' : 'Note löschen', kbd: 'Entf', danger: true, fn: edit(ns => { r.notes = r.notes.filter(q => !selNotes.has(q)); selNotes.clear(); }) }], { title: cnt });
+  });
   const pAt = y => clamp(Z.hi - Math.floor(y / Z.rh), Z.lo, Z.hi);
   const sAt = x => Math.floor(x / Z.bw / prSnap + 1e-6) * prSnap;
   function createAt(x, y, e) {
-    const s = sAt(x); if (s >= r.len - 1e-6) return;
+    const s = sAt(x); if (s >= r.len + ext - 1e-6) return;
     pushUndo();
+    if (s >= r.len - 1e-6) {
+      // Hinter dem Ende gezeichnet: Region bis zum Ende dieses Takts verlängern
+      r.len = barLen(r.start, s + .01);
+      const n = { p: pAt(y), s, l: Math.min(lastLen, r.len - s), v: .8 };
+      r.notes.push(n); selNotes = new Set([n]); previewNote(tr, n.p); save(); renderArrange(); renderEditor(); return;
+    }
     const n = { p: pAt(y), s, l: Math.min(lastLen, r.len - s), v: .8 };
     r.notes.push(n); selNotes = new Set([n]); previewNote(tr, n.p); refresh();
     if (e) startDrag(e, n, 'draw'); else commit();
@@ -5432,9 +5755,9 @@ function drumStepAt(r, rel) {
 const PBS = [1, 2, 3, 4, 6, 8, 12, 16]; // wählbare Pattern-Längen in Takten
 function renderSteps(tr, r, bars) {
   const pb = r.pb || 1, [num] = drumSig(r), bt = drumBT(r), nb = drumBeats(r), bw = Math.round((pb <= 2 ? 136 : pb <= 4 ? 100 : 80) * bt);
-  eHead.innerHTML = `<input class="rn" id="rname" value="${esc(r.name)}" aria-label="Regionsname"><span class="note">${bars} Takte · ${drumSig(r).join('/')}</span>
-    <label class="note" title="So viele Takte lang ist das Pattern, bevor es sich wiederholt">Länge <select id="patLen">${PBS.map(n => `<option value="${n}" ${n === pb ? 'selected' : ''}>${n} Takt${n > 1 ? 'e' : ''}</option>`).join('')}</select></label>
-    <label class="note">Pattern <select id="patsel"><option value="">Wählen …</option>${patOrder().map(k => `<option value="${esc(k)}">${esc(patLabel(k))}</option>`).join('')}</select></label>
+  eHead.innerHTML = `<input class="rn" id="rname" value="${esc(r.name)}" aria-label="Regionsname"><span class="note">${bars} Takt${bars === '1' ? '' : 'e'} · ${drumSig(r).join('/')}</span>${String(drumSig(r)) !== String(sigAt(r.start)) ? `<button class="sbtn" id="patFit" title="Das Pattern hat noch die Taktart ${drumSig(r).join('/')}, an dieser Stelle im Song gilt ${sigAt(r.start).join('/')}">An ${sigAt(r.start).join('/')} anpassen</button>` : ''}
+    <label class="note" title="So viele Takte lang ist das Pattern, bevor es sich wiederholt">Länge <select id="patLen">${[...new Set([...PBS, pb])].sort((a, b) => a - b).map(n => `<option value="${n}" ${n === pb ? 'selected' : ''}>${n} Takt${n > 1 ? 'e' : ''}</option>`).join('')}</select></label>
+    <label class="note">Pattern <select id="patsel"><option value="">Wählen …</option>${patOrder(drumSig(r)).map(k => `<option value="${esc(k)}">${esc(patLabel(k))}</option>`).join('')}</select></label>
     <label class="note velctl afx" title="Jede zweite 16tel nach hinten schieben. 50 % = gerade, 66 % = Triolen-Gefühl">Swing <input type="range" id="dSwing" min="50" max="75" step="1" value="${r.swing || 50}"><output>${r.swing || 50} %</output></label>
     <label class="note velctl afx" title="Kleine Abweichungen in Zeit und Anschlag, damit es wie gespielt klingt">Humanize <input type="range" id="dHum" min="0" max="100" step="5" value="${r.human || 0}"><output>${r.human || 0} %</output></label>
     <span class="note hint">Klick = Schlag, ziehen = ganze Reihe, Shift = Akzent</span>`;
@@ -5457,7 +5780,7 @@ function renderSteps(tr, r, bars) {
     }).join('')}</div>`;
   }).join('')}</div></div>`).join('');
   eBody.innerHTML = `<div class="seq"><div class="seq-row seq-head"><span class="seq-sp"></span><div class="beats">${head}</div></div>${rows}
-    <p class="seq-tip">Mit gedrückter Maus über eine Reihe ziehen belegt alle Felder auf dem Weg, auf einem gesetzten Feld begonnen löscht das Ziehen. Klick auf einen Instrumentnamen öffnet den Drum-Editor mit Tonhöhe und Anschlag für jeden Schlag. Klick auf eine Zählzeit teilt sie in Triolen. Die Taktart stellst du oben im Display ein.</p></div>`;
+    <p class="seq-tip">Mit gedrückter Maus über eine Reihe ziehen belegt alle Felder auf dem Weg, auf einem gesetzten Feld begonnen löscht das Ziehen. Klick auf einen Instrumentnamen öffnet den Drum-Editor mit Tonhöhe und Anschlag für jeden Schlag. Klick auf eine Zählzeit teilt sie in Triolen. Mit Aufnahme (R) spielst du das Pattern live ein. Rechtsklick auf ein Feld: Anschlag wählen oder die Reihe füllen.</p></div>`;
   edState.pxb = 0;
   liveCells = { r, cols: Array.from({ length: nb * 4 }, (_, k) => [...eBody.querySelectorAll(`.cell[data-k="${k}"]`)]), last: -1 };
   const seq = eBody.querySelector('.seq');
@@ -5471,6 +5794,21 @@ function renderSteps(tr, r, bars) {
       save(); renderEditor(); renderArrange(); return;
     }
   };
+  // Rechtsklick oder langes Drücken auf einen Schritt: Anschlag wählen oder die ganze Reihe füllen
+  onContext(seq, ({ x, y, target }) => {
+    const c = target.closest('.cell'); if (!c) return false;
+    const d = c.dataset.d, k = +c.dataset.k, arr = r.steps[d], nm = DRUMS.find(q => q.id === d).name;
+    const done = f => () => { pushUndo(); f(); save(); renderEditor(); renderArrange(); };
+    const fill = test => done(() => { for (const sl of drumSlots(r)) if (test(sl) && !arr[sl.k]) arr[sl.k] = .7; });
+    openMenu(x, y, [
+      { head: 'Anschlag' }, { chips: [[0, 'aus'], [.4, 'leise'], [.7, 'normal'], [1, 'Akzent']].map(([v, l]) => ({ label: l, on: Math.abs((arr[k] || 0) - v) < .16, fn: done(() => { arr[k] = v; if (!v) r.pitch[d][k] = 0; else { ensureCtx(); playDrum(d, chan(tr).input, ctx.currentTime, v, pieceKit(tr, d), r.pitch[d][k]); } }) })) },
+      { head: 'Ganze Reihe' },
+      { label: 'Auf jede Zählzeit', fn: fill(sl => sl.k % 4 === 0) },
+      { label: 'Auf jede zweite Stelle', fn: fill(sl => sl.n === 3 ? sl.k % 4 === 0 : sl.k % 2 === 0) },
+      { label: 'Alle Stellen füllen', fn: fill(() => true) },
+      { label: 'Reihe leeren', danger: true, fn: done(() => { arr.fill(0); r.pitch[d].fill(0); }) },
+      '-', { label: `${nm}: Tonhöhe und Anschlag je Schlag …`, fn: () => { edState.piece = d; renderEditor(); } }], { title: nm });
+  });
   // Malen: Der erste Klick entscheidet, ob das Ziehen über die Reihe Schläge setzt oder löscht
   seq.onpointerdown = e => {
     const c = e.target.closest('.cell'); if (!c || e.button > 0) return;
@@ -5505,6 +5843,7 @@ function renderSteps(tr, r, bars) {
     if (!e.target.value) return;
     pushUndo(); Object.assign(r, drumRegion(e.target.value, r.start, r.len, pb), { id: r.id }); save(); render();
   };
+  if ($('#patFit')) $('#patFit').onclick = () => { pushUndo(); placeDrum(r); save(); render(); };
   $('#patLen').onchange = e => {
     pushUndo(); fitDrum(r, +e.target.value);
     r.len = Math.max(r.len, drumLen(r)); save(); render();
@@ -5637,9 +5976,32 @@ rowsEl.addEventListener('pointerdown', e => {
       markSelection();
     }
   }
+  if (row && e.target.closest('.tico')) trackDrag(e, row);
 });
+// Spur am Symbol nach oben oder unten ziehen: eine Linie zeigt, wo sie landet
+function trackDrag(e, row) {
+  const tr = findTrack(row.dataset.track), grip = e.target.closest('.tico'); if (!tr || e.button > 0) return;
+  const y0 = e.clientY, all = [...rowsEl.querySelectorAll('.track-row[data-track]')], mark = document.createElement('div');
+  let moved = false, to = -1;
+  mark.className = 'tdrop';
+  grip.setPointerCapture(e.pointerId);
+  grip.onpointermove = ev => {
+    if (!moved && Math.abs(ev.clientY - y0) < 6) return;
+    if (!moved) { moved = true; row.classList.add('tdrag'); rowsEl.appendChild(mark); }
+    to = all.findIndex(el => { const r = el.getBoundingClientRect(); return ev.clientY < r.top + r.height / 2; });
+    if (to < 0) to = all.length;
+    const ref = all[Math.min(to, all.length - 1)].getBoundingClientRect();
+    mark.style.top = ((to < all.length ? ref.top : ref.bottom) - rowsEl.getBoundingClientRect().top - 1) + 'px';
+  };
+  grip.onpointerup = grip.onpointercancel = ev => {
+    grip.onpointermove = grip.onpointerup = grip.onpointercancel = null;
+    mark.remove(); row.classList.remove('tdrag');
+    if (!moved || ev.type !== 'pointerup' || to < 0) return;
+    const i = P.tracks.indexOf(tr); moveTrack(tr, to > i ? to - 1 : to);
+  };
+}
 // Doppelklick (oder Doppeltippen) in eine leere Stelle: neue Region, die sofort im Editor aufgeht
-let laneTap = { t: 0 }, laneMade = 0;
+let laneTap = { t: 0 }, laneMade = 0, regTap = { t: 0 };
 function createRegionAt(lane, clientX) {
   const tr = findTrack(lane.dataset.track); if (!tr) return;
   laneMade = performance.now();
@@ -5647,12 +6009,14 @@ function createRegionAt(lane, clientX) {
   const x = clientX - lane.getBoundingClientRect().left, start = snapBar(x / ppb);
   pushUndo();
   const r = tr.type === 'drums'
-    ? drumRegion('Rock', start, 4 * BL())
-    : { id: uid(), name: 'Region', start, len: BL(), notes: [] };
-  tr.regions.push(r); selTrack = tr.id; selRegion = r.id; edTab = 'region'; save(); render();
+    ? drumRegion(PATTERNS[DEF_PAT[sigAt(start).join('/')]] ? DEF_PAT[sigAt(start).join('/')] : 'Rock', start, barStart(barNo(start) + 4) - start)
+    : { id: uid(), name: 'Region', start, len: BL(start), notes: [] };
+  tr.regions.push(r); selTrack = tr.id; selRegion = r.id; edTab = 'region'; edOpen = true; save(); render();
 }
 rowsEl.addEventListener('dblclick', e => {
   const lane = e.target.closest('.lane[data-track]');
+  // Doppelklick auf eine Region öffnet sie im Editor
+  if (lane && e.target.closest('.region[data-region]') && !e.target.closest('.fh')) { showEditor('region'); return; }
   if (!lane || e.target.closest('.region') || performance.now() - laneMade < 500) return;
   createRegionAt(lane, e.clientX);
 });
@@ -5688,15 +6052,11 @@ rowsEl.addEventListener('click', e => {
   const tr = findTrack(b.closest('[data-track]').dataset.track), act = b.dataset.act;
   if (act === 'mute' || act === 'solo') { tr[act] = !tr[act]; ensureCtx(); applyMix(); save(); renderArrange(); mixPaint(); }
   if (act === 'freeze') { useFrozen(tr) ? unfreezeTrack(tr) : freezeTrack(tr); return; }
-  if (act === 'del') {
-    pushUndo(); P.tracks = P.tracks.filter(t => t !== tr);
-    if (selTrack === tr.id) { selTrack = P.tracks[0]?.id || null; selRegion = null; }
-    applyMix(); save(); render(); toast(`Spur „${tr.name}“ gelöscht. Strg+Z holt sie zurück.`);
-  }
+  if (act === 'del') deleteTrack(tr);
   if (act === 'import') { importTarget = tr.id; $('#fileIn').click(); }
-  if (act === 'smp') { selTrack = tr.id; edTab = 'smp'; markSelection(); renderEditor(); }
+  if (act === 'smp') { selTrack = tr.id; markSelection(); showEditor('smp'); }
   if (act === 'lib') { selTrack = tr.id; markSelection(); setLib(true); $('#lib .lib-item.on')?.scrollIntoView({ block: 'center' }); }
-  if (act === 'eq' || act === 'fx') { selTrack = tr.id; edTab = act; markSelection(); renderEditor(); }
+  if (act === 'eq' || act === 'fx') { selTrack = tr.id; markSelection(); edOpen && edTab === act ? setEditor(false) : showEditor(act); }
   if (act === 'auto') { tr.showAuto = !tr.showAuto; save(); renderArrange(); }
 });
 function regionDrag(e, el) {
@@ -5716,7 +6076,9 @@ function regionDrag(e, el) {
   }
   const cl = e.target.classList, mode = stretchMode ? 'stretch' : cl.contains('fi') ? 'fi' : cl.contains('fo') ? 'fo' : cl.contains('rh') ? 'resize' : cl.contains('lh') ? 'trim' : 'move';
   const x0 = e.clientX, s0 = r.start, l0 = r.len, o0 = r.offset || 0, ph0 = r.phase || 0, notes0 = r.notes?.map(n => n.s), st0 = r.st || 1;
-  const snapOf = ev => ev.shiftKey ? 1 / 16 : ppb < 18 ? BL() : ppb < 60 ? BT() : .25;
+  // Raster je nach Zoom: Takt, Zählzeit oder 16tel (Umschalt = fein). Takte und Zählzeiten folgen der Taktart an der Stelle.
+  const snapOf = (ev, at) => ev.shiftKey ? 1 / 16 : ppb < 18 ? BL(at) : ppb < 60 ? BT(at) : .25;
+  const snapTo = (ev, b) => ev.shiftKey ? Math.round(b * 16) / 16 : ppb < 18 ? nearBar(b) : ppb < 60 ? nearBeat(b) : Math.round(b * 4) / 4;
   let moved = false, target = null;
   const y0 = e.clientY, lane0 = el.parentElement, top0 = lane0.getBoundingClientRect().top;
   el.setPointerCapture(e.pointerId);
@@ -5735,7 +6097,7 @@ function regionDrag(e, el) {
     if (!moved && Math.hypot(ev.clientX - x0, ev.clientY - y0) < 4) return;
     if (!moved) { pushUndo(); moved = true; if (mode === 'move') el.classList.add('dragging'); }
     if (mode === 'move') follow(ev);
-    const db = (ev.clientX - x0) / ppb, snap = snapOf(ev), total = r.len * spb();
+    const db = (ev.clientX - x0) / ppb, snap = snapOf(ev, mode === 'move' || mode === 'trim' ? s0 + db : s0 + l0 + db), total = r.len * spb();
     if (mode === 'fi' || mode === 'fo') {
       const x = clamp((ev.clientX - laneX) / ppb - r.start, 0, r.len) * spb();
       if (mode === 'fi') r.fi = Math.round(x * 100) / 100; else r.fo = Math.round((total - x) * 100) / 100;
@@ -5743,17 +6105,17 @@ function regionDrag(e, el) {
       drawRegion(el.querySelector('canvas'), tr, r);
       return;
     }
-    if (mode === 'resize') r.len = Math.max(snap, Math.round((l0 + db) / snap) * snap);
+    if (mode === 'resize') r.len = Math.max(snap, snapTo(ev, s0 + l0 + db) - s0);
     else if (mode === 'stretch') {
       // Time-Stretch: die Länge ändert sich, der Inhalt wird gedehnt statt abgeschnitten
-      const f = clamp(Math.max(snap, Math.round((l0 + db) / snap) * snap) / l0, .25 / st0, 4 / st0);
+      const f = clamp(Math.max(snap, snapTo(ev, s0 + l0 + db) - s0) / l0, .25 / st0, 4 / st0);
       r.st = Math.round(st0 * f * 1e4) / 1e4; if (Math.abs(r.st - 1) < 5e-4) delete r.st;
       r.len = l0 * f; drawRegion(el.querySelector('canvas'), tr, r);
       el.querySelector('.rname').textContent = `${r.name} · ${Math.round(stOf(r) * 100)} %`;
     }
     else if (mode === 'trim') {
       // Anfang kürzen: der Inhalt bleibt im Song an seiner Stelle
-      let ns = Math.round((s0 + db) / snap) * snap;
+      let ns = snapTo(ev, s0 + db);
       const minS = tr.type === 'audio' ? s0 - o0 * stOf(r) / spb() : 0;
       ns = clamp(ns, Math.max(0, minS), s0 + l0 - snap);
       const d = ns - s0;
@@ -5762,7 +6124,7 @@ function regionDrag(e, el) {
       else if (r.notes) { r.notes.forEach((n, i) => { n.s = notes0[i] - d; }); delete r.takes; delete r.take; }
       else r.phase = ph0 + d;
     }
-    else r.start = Math.max(0, Math.round((s0 + db) / snap) * snap);
+    else r.start = Math.max(0, snapTo(ev, s0 + db));
     el.style.left = r.start * ppb + 'px'; el.style.width = r.len * ppb + 'px';
     if (mode === 'trim') drawRegion(el.querySelector('canvas'), tr, r);
   };
@@ -5770,8 +6132,13 @@ function regionDrag(e, el) {
     el.onpointermove = el.onpointerup = el.onpointercancel = null;
     const t2 = target && findTrack(target.dataset.track);
     endDrag();
-    if (!moved) return;
+    if (!moved) {
+      // Am Touchscreen: zweimal tippen öffnet die Region im Editor
+      if (ev.type === 'pointerup' && ev.pointerType === 'touch') { const now = performance.now(); if (regTap.id === r.id && now - regTap.t < 420) { regTap = { t: 0 }; showEditor('region'); } else regTap = { id: r.id, t: now }; }
+      return;
+    }
     if (mode === 'move' && t2 && t2 !== tr) { tr.regions.splice(tr.regions.indexOf(r), 1); t2.regions.push(r); selTrack = t2.id; }
+    if (mode === 'move' && tr.type === 'drums' && placeDrum(r)) toast(`Pattern an ${drumSig(r).join('/')} angepasst.`);
     save(); render();
   };
 }
@@ -5842,6 +6209,7 @@ function autoDrag(e, lane) {
 }
 // Lineal: Klick setzt Abspielposition, Ziehen setzt den Cycle-Bereich
 rulerEl.addEventListener('pointerdown', e => {
+  if (e.button > 0 || e.target.closest('.sg')) return;
   const rect = rulerEl.getBoundingClientRect(), x0 = e.clientX - rect.left, b0 = x0 / ppb;
   let dragging = false;
   rulerEl.setPointerCapture(e.pointerId);
@@ -5850,12 +6218,13 @@ rulerEl.addEventListener('pointerdown', e => {
     if (!dragging && Math.abs(x - x0) < 5) return;
     dragging = true;
     const a = snapBar(Math.min(b0, x / ppb)), b = ceilBar(Math.max(b0, x / ppb));
-    P.loop = { on: true, start: Math.max(0, a), end: Math.max(a + BL(), b) };
+    P.loop = { on: true, start: Math.max(0, a), end: Math.max(a + BL(a), b) };
     renderArrange(); updateTransport();
   };
-  rulerEl.onpointerup = () => {
-    rulerEl.onpointermove = rulerEl.onpointerup = null;
+  rulerEl.onpointerup = rulerEl.onpointercancel = ev => {
+    rulerEl.onpointermove = rulerEl.onpointerup = rulerEl.onpointercancel = null;
     if (dragging) { save(); return; }
+    if (ev.type === 'pointercancel') return;
     const b = Math.max(0, Math.round(b0 * 4) / 4);
     if (playing) { stop(); playPos = b; play(); } else { playPos = b; updatePlayhead(); }
   };
@@ -5869,21 +6238,20 @@ $('#bRec').onclick = toggleRecord;
 $('#bLoop').onclick = () => { P.loop.on = !P.loop.on; save(); renderArrange(); updateTransport(); };
 $('#bMetro').onclick = () => { P.metro = !P.metro; save(); updateTransport(); };
 $('#bpm').onchange = e => setBpm(+e.target.value);
-$('#sigSel').innerHTML = SIGS.map(g => `<option>${g.join('/')}</option>`).join('');
-$('#sigSel').onchange = e => { setSig(e.target.value.split('/').map(Number)); e.target.blur(); };
-$('#lcdLu').onclick = () => { if (edTab !== 'mix') $('#bMix').click(); };
+$('#lcdLu').onclick = () => showEditor('mix');
 $('#masterVol').oninput = e => { P.master = +e.target.value; if (ctx) master.gain.setTargetAtTime(P.master, ctx.currentTime, .02); save(); mixPaint(); };
 $('#bUndo').onclick = undo;
 $('#bRedo').onclick = redo;
-$('#bHist').onclick = e => { e.stopPropagation(); histMenu.hidden = !histMenu.hidden; fileMenu.hidden = addMenu.hidden = devMenu.hidden = true; histPaint(); };
+$('#bHist').onclick = e => { e.stopPropagation(); histMenu.hidden = !histMenu.hidden; fileMenu.hidden = devMenu.hidden = true; histPaint(); };
 const fileMenu = $('#fileMenu');
-$('#bFile').onclick = e => { e.stopPropagation(); fileMenu.hidden = !fileMenu.hidden; addMenu.hidden = true; };
+$('#bFile').onclick = e => { e.stopPropagation(); fileMenu.hidden = !fileMenu.hidden; histMenu.hidden = devMenu.hidden = true; };
 fileMenu.onclick = e => {
   const b = e.target.closest('[data-file]'); if (!b) return;
   fileMenu.hidden = true;
   const act = b.dataset.file;
-  if (act === 'new') { if (playing) stop(); snapshot('vor „Neues Projekt“'); pushUndo(); P = emptyProject(); P.tracks.push(newTrack('drums'), newTrack('synth', { color: COLORS[1] })); fileHandle = null; selTrack = P.tracks[0].id; selRegion = null; applyMix(); save(); render(); toast('Neues Projekt. Strg+Z holt das alte zurück.'); }
-  if (act === 'demo') { if (playing) stop(); snapshot('vor dem Demo-Song'); pushUndo(); P = demoProject(); fileHandle = null; selTrack = P.tracks[0].id; selRegion = null; applyMix(); save(); render(); toast('Demo-Song geladen. Leertaste zum Abspielen.'); }
+  if (act === 'new') openNewProject();
+  if (act === 'demo') useTemplate('demo');
+  if (act === 'audio') { importTarget = null; $('#fileIn').click(); }
   if (act === 'open') openProject();
   if (act === 'save') saveProject(false);
   if (act === 'saveas') saveProject(true);
@@ -5895,18 +6263,10 @@ fileMenu.onclick = e => {
 $('#projIn').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) loadProjectFile(f); };
 let midiTarget = null;
 $('#midiIn').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) importMidi(f, midiTarget, null); };
-const addMenu = $('#addMenu');
-$('#bAdd').onclick = e => { e.stopPropagation(); addMenu.hidden = !addMenu.hidden; };
-document.addEventListener('click', () => { addMenu.hidden = true; devMenu.hidden = true; fileMenu.hidden = true; histMenu.hidden = true; });
-addMenu.onclick = e => {
-  const b = e.target.closest('[data-add]'); if (!b) return;
-  pushUndo(); const t = newTrack(b.dataset.add); P.tracks.push(t); selTrack = t.id; selRegion = null;
-  applyMix(); save(); render();
-};
+document.addEventListener('click', () => { devMenu.hidden = true; fileMenu.hidden = true; histMenu.hidden = true; });
 
 // Audio-Import
 let importTarget = null;
-$('#bImport').onclick = () => { importTarget = null; $('#fileIn').click(); };
 $('#fileIn').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) importFile(f, importTarget, null); };
 // Eigenes Sample: Datei wird zum spielbaren Instrument, der Grundton wird erkannt
 let smpTarget = null;
@@ -6010,6 +6370,7 @@ const held = new Map();
 document.addEventListener('keydown', e => {
   if (!tourEl.hidden) { tourKey(e); return; }
   if (!modal.hidden) { if (e.key === 'Escape') { e.preventDefault(); closeModal(); } return; }
+  if (!ctxEl.hidden) { if (e.key === 'Escape') { e.preventDefault(); closeMenu(); return; } closeMenu(); }
   if (e.key === 'F1') { e.preventDefault(); openSettings('keys'); return; }
   if ((e.ctrlKey || e.metaKey) && e.code === 'KeyS') { e.preventDefault(); saveProject(e.shiftKey); return; }
   if (e.target.closest('input:not([type=range]),select,textarea')) return;
@@ -6034,6 +6395,11 @@ document.addEventListener('keydown', e => {
   if (e.code === 'KeyR' && !e.repeat) { toggleRecord(); return; }
   if (e.code === 'KeyC' && !e.repeat) { $('#bLoop').click(); return; }
   if (e.code === 'KeyM' && !e.repeat) { $('#bMix').click(); return; }
+  if (e.code === 'KeyN' && !e.repeat) { toggleEditor('region'); return; }
+  if (e.code === 'KeyV' && !e.repeat && !(e.code in PADKEYS && findTrack(selTrack)?.type === 'sampler')) { toggleEditor('fx'); return; }
+  if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') { e.preventDefault(); stepBar(e.code === 'ArrowRight' ? 1 : -1); return; }
+  if ((e.code === 'ArrowUp' || e.code === 'ArrowDown') && !e.target.closest('input')) { e.preventDefault(); selectTrackBy(e.code === 'ArrowDown' ? 1 : -1); return; }
+  if (e.code === 'Home') { $('#bStart').click(); return; }
   if (e.code === 'KeyI' && !e.repeat) { $('#bLib').click(); return; }
   if (e.code === 'Delete' || e.code === 'Backspace') { e.preventDefault(); if (focusArea === 'mk' && selMarker) deleteMarker(selMarker); else deleteSelection(); return; }
   if (e.code === 'KeyB' && !e.repeat) { splitAtPlayhead(); return; }
@@ -6054,7 +6420,7 @@ window.addEventListener('blur', () => { [...held.keys()].forEach(liveNoteOff); }
 const GM_DRUMS = { 35: 'kick', 36: 'kick', 37: 'rim', 38: 'snare', 39: 'clap', 40: 'snare', 41: 'tom', 42: 'hat', 43: 'tom', 44: 'hat', 45: 'tom', 46: 'ohat', 47: 'tom', 48: 'tom', 49: 'crash', 50: 'tom', 51: 'ride', 52: 'crash', 53: 'ride', 55: 'crash', 56: 'cow', 57: 'crash', 59: 'ride', 54: 'shaker', 58: 'cow', 60: 'conga', 61: 'conga', 62: 'conga', 63: 'conga', 64: 'conga', 65: 'tom', 66: 'tom', 67: 'cow', 68: 'cow', 69: 'shaker', 70: 'shaker', 73: 'shaker', 74: 'shaker', 75: 'rim', 76: 'rim', 77: 'rim', 82: 'shaker' };
 function liveNoteOn(id, midi, vel) {
   const tr = findTrack(selTrack); if (!tr || held.has(id)) return;
-  if (useFrozen(tr)) { if (!liveNoteOn.warned) { liveNoteOn.warned = 1; toast('Die Spur ist eingefroren. Zum Spielen mit ❄ im Spurkopf auftauen.'); } return; }
+  if (useFrozen(tr)) { if (!liveNoteOn.warned) { liveNoteOn.warned = 1; toast('Die Spur ist eingefroren. Zum Spielen mit der Schneeflocke im Spurkopf auftauen.'); } return; }
   ensureCtx();
   if (tr.type === 'synth') {
     held.set(id, { v: noteOn(tr, chan(tr).input, midi, ctx.currentTime, vel), midi });
@@ -6070,7 +6436,7 @@ function liveNoteOn(id, midi, vel) {
     if (rec && rec.type === 'midi' && rec.track === tr.id && playing) recNoteStart(id, pad, vel);
   } else if (tr.type === 'drums') {
     const d = id.startsWith('midi') ? GM_DRUMS[midi] : DRUMS[midi - 36]?.id;
-    if (d) playDrum(d, chan(tr).input, ctx.currentTime, vel, pieceKit(tr, d));
+    if (d) { playDrum(d, chan(tr).input, ctx.currentTime, vel, pieceKit(tr, d)); if (rec && rec.type === 'drums' && rec.track === tr.id && playing) recDrumHit(d, vel); }
   }
 }
 function liveNoteOff(id) {
@@ -6131,7 +6497,7 @@ function deleteSelection() {
 function duplicateRegion() {
   const [tr, r] = findRegion(selRegion); if (!r) return;
   pushUndo();
-  const c = JSON.parse(JSON.stringify(r)); c.id = uid(); c.start = r.start + ceilBar(r.len);
+  const c = JSON.parse(JSON.stringify(r)); c.id = uid(); c.start = ceilBar(r.start + r.len); if (tr.type === 'drums') placeDrum(c);
   tr.regions.push(c); selRegion = c.id; save(); render();
 }
 
@@ -6172,7 +6538,7 @@ function frame() {
     const b = currentBeat();
     updatePlayhead();
     if (!P.loop.on && !rec && b >= songLen()) { stop(); playPos = 0; updatePlayhead(); }
-    if (rec && b > (P.bars - 2) * BL()) { P.bars += 8; renderArrange(); }
+    if (rec && b > barStart(P.bars - 2)) { P.bars += 8; renderArrange(); }
     updateGhost();
     if (rec && b < rec.countUntil) showCount(b); else if (!countEl.hidden) hideCount();
     followPlayhead(b);
@@ -6313,7 +6679,7 @@ function renderMixer() {
     const el = e.target.closest('.kn, .fader'); if (!el || e.button > 0) return;
     const p = mixParam(el, el.dataset.k); if (!p) return;
     e.preventDefault();
-    if (p.auto) { toast('Dieser Regler folgt der Automation. Ändern oder löschen kannst du sie mit „A“ im Spurkopf.'); return; }
+    if (p.auto) { toast('Dieser Regler folgt der Automation. Ändern oder löschen kannst du sie über das Kurven-Symbol im Spurkopf.'); return; }
     // Doppelklick (oder Doppeltippen) setzt zurück
     const now = performance.now();
     if (mixLast.el === el && now - mixLast.t < 350) { mixLast = {}; pushUndo(); p.set(p.def); p.commit?.(); save(); syncHeads(); mixPaint(); return; }
@@ -6360,7 +6726,7 @@ function renderMixer() {
     if (act === 'mute' || act === 'solo') { tr[act] = !tr[act]; ensureCtx(); applyMix(); save(); renderArrange(); mixPaint(); }
     if (act === 'eq' || act === 'fx') { edTab = act; renderEditor(); }
     if (act === 'lib') setLib(true);
-    if (act === 'smp') { edTab = 'smp'; renderEditor(); }
+    if (act === 'smp') { edTab = 'smp'; edOpen = true; renderEditor(); }
   };
 }
 // Mixer-Anzeige aus dem Projekt nachziehen (ohne Neuaufbau, damit Ziehen flüssig bleibt)
@@ -6416,7 +6782,7 @@ function updateMeters() {
 // ================= Bibliothek =================
 // Seitenleiste wie in Logic: zeigt passend zur ausgewählten Spur Sounds, Drumkits oder Pattern.
 const libEl = $('#lib');
-const narrow = () => window.innerWidth < 900;
+const narrow = () => window.innerWidth <= 900;
 let libOpen = (() => { try { const v = localStorage.getItem('klangwerk.lib'); if (v && !narrow()) return v === '1'; } catch (e) { } return !narrow(); })();
 let libQuery = '', libKey = '';
 // Ein einzelnes Instrument aus einem anderen Kit nehmen
@@ -6629,10 +6995,10 @@ libEl.addEventListener('click', e => {
   if (b.dataset.libAct === 'rec') { toggleRecord(); return; }
   if (b.dataset.libAct === 'usmp') { smpTarget = tr?.id; $('#smpIn').click(); return; }
   if (b.dataset.libAct === 'smpload') { smpTarget2 = tr?.id; $('#smpFileIn').click(); return; }
-  if (b.dataset.libAct === 'smpopen') { edTab = 'smp'; renderEditor(); return; }
+  if (b.dataset.libAct === 'smpopen') { edTab = 'smp'; edOpen = true; renderEditor(); return; }
   if (b.dataset.loop) { stopLoopPreview(); addRecent('l:' + b.dataset.loop); loadLoop(b.dataset.loop, tr?.id); return; }
   if (b.dataset.aloop) { stopLoopPreview(); addRecent('l:' + b.dataset.aloop); loopToAudio(b.dataset.aloop, tr?.id); return; }
-  if (b.dataset.src && tr) { tr.src = +b.dataset.src; smpUI.chop = tr.chops.find(c => c.buf === tr.srcs[tr.src].buf)?.id || null; edTab = 'smp'; save(); libKey = ''; renderLib(); renderEditor(); return; }
+  if (b.dataset.src && tr) { tr.src = +b.dataset.src; smpUI.chop = tr.chops.find(c => c.buf === tr.srcs[tr.src].buf)?.id || null; edTab = 'smp'; edOpen = true; save(); libKey = ''; renderLib(); renderEditor(); return; }
   if (!tr) return;
   const pick = () => { libEl.querySelectorAll('.lib-item.on').forEach(x => x !== b && !b.dataset.pat && x.classList.remove('on')); if (!b.dataset.pat) b.classList.add('on'); };
   if (b.dataset.wam) { setInstPlugin(tr, wamList().find(p => p.url === b.dataset.wam)); return; }
@@ -6655,7 +7021,7 @@ libEl.addEventListener('click', e => {
     const [rt, rr] = findRegion(selRegion);
     if (rt === tr) Object.assign(rr, drumRegion(b.dataset.pat, rr.start, rr.len, rr.pb), { id: rr.id, name: b.dataset.pat });
     else {
-      const start = ceilBar(Math.max(0, ...tr.regions.map(r => r.start + r.len))), r = drumRegion(b.dataset.pat, start, 4 * BL());
+      const start = ceilBar(Math.max(0, ...tr.regions.map(r => r.start + r.len))), r = drumRegion(b.dataset.pat, start, barStart(barNo(start) + 4) - start);
       tr.regions.push(r); selRegion = r.id;
     }
     edTab = 'region'; save(); render();
@@ -6683,11 +7049,7 @@ libEl.addEventListener('keydown', e => {
 // Am Handy liegt die Bibliothek über dem Arrangement: Tippen daneben schließt sie
 document.addEventListener('pointerdown', e => { if (libOpen && narrow() && !libEl.contains(e.target) && !e.target.closest('#bLib, [data-act="lib"], [data-mx="lib"]')) setLib(false); }, true);
 $('#bLib').onclick = () => setLib(!libOpen);
-$('#bMix').onclick = () => {
-  edTab = edTab === 'mix' ? 'region' : 'mix';
-  if (edTab === 'mix' && editorEl.offsetHeight < 390 && !narrow() && window.innerHeight > 760) editorEl.style.setProperty('--edh', '400px');
-  renderEditor();
-};
+
 
 // ================= Datei-Browser: MPC-Bibliothek und eigene Sample-Ordner =================
 // In der Windows-App liest Sound Groot Ordner direkt (preload.js) und findet die installierten MPC-Expansions von selbst.
@@ -6909,7 +7271,7 @@ async function xpmDrum(prog, insts, pname, load, cur) {
     tr.src = 0; normSampler(tr); first ||= tr;
   }
   applyMix();
-  selTrack = first.id; selRegion = null; edTab = 'smp'; libKey = '';
+  selTrack = first.id; selRegion = null; edTab = 'smp'; edOpen = true; libKey = '';
   save(); render();
   return `MPC-Kit „${pname}“ geladen${banks.length > 1 ? ` (${banks.length} Bänke als eigene Spuren)` : ''}. Pads mit Maus, Tasten 1–4, Q–R, A–F, ${padKey(0)}–V oder MIDI-Pads spielen.`;
 }
@@ -7081,10 +7443,9 @@ let zoomT = null, zoomFull = 0, pinch = null, follow = null, userScroll = 0;
 function layoutZoom() {
   const W = songLen() * ppb;
   rulerEl.style.width = W + 'px';
-  rulerEl.querySelectorAll('.bn').forEach(el => { el.style.left = el.dataset.b * BL() * ppb + 'px'; });
+  rulerEl.querySelectorAll('.bn').forEach(el => { el.style.left = barStart(+el.dataset.b) * ppb + 'px'; });
   const lb = rulerEl.querySelector('.loopband'); if (lb) { lb.style.left = P.loop.start * ppb + 'px'; lb.style.width = (P.loop.end - P.loop.start) * ppb + 'px'; }
-  const bg = `repeating-linear-gradient(90deg, #22252d 0 1px, transparent 1px ${ppb * BL()}px)`;
-  rowsEl.querySelectorAll('.lane').forEach(l => { l.style.width = W + 'px'; if (l.dataset.track) l.style.backgroundImage = bg; });
+  rowsEl.querySelectorAll('.lane').forEach(l => { l.style.width = W + 'px'; if (l.dataset.track || l.dataset.auto) setLaneBg(l); });
   rowsEl.querySelectorAll('.region[data-region]').forEach(el => { const [, r] = findRegion(el.dataset.region); if (r) { el.style.left = r.start * ppb + 'px'; el.style.width = Math.max(4, r.len * ppb) + 'px'; } });
   rowsEl.querySelectorAll('.alane').forEach(l => drawAuto(l, findTrack(l.dataset.auto)));
   renderMarkers();
@@ -7252,7 +7613,7 @@ function freezeSig(tr) {
   if (o.fx) o.fx = { ...o.fx, rev: 0, del: 0 };
   if (o.auto) o.auto = Object.fromEntries(Object.entries(o.auto).filter(([k]) => !['vol', 'pan', 'rev', 'del'].includes(k)));
   const sc = scSource(tr);
-  return hrand(JSON.stringify(o), P.bpm, sigOf().join('/'), sc ? JSON.stringify(sc.regions) : '').toFixed(12);
+  return hrand(JSON.stringify(o), P.bpm, JSON.stringify([P.sig, P.sigs]), sc ? JSON.stringify(sc.regions) : '').toFixed(12);
 }
 function useFrozen(tr) {
   if (!tr.frozen || freezing === tr.id) return false;
@@ -7286,7 +7647,7 @@ async function freezeTrack(tr, quiet) {
     if (!quiet) pushUndo();
     tr.frozen = { buf: id, sig: freezeSig(tr) };
     save(); applyMix();
-    toast(quiet ? `„${tr.name}“ ist wieder eingefroren.` : `„${tr.name}“ ist eingefroren. Instrument und Plugins ruhen, bis du ❄ wieder ausschaltest.`, 3500);
+    toast(quiet ? `„${tr.name}“ ist wieder eingefroren.` : `„${tr.name}“ ist eingefroren. Instrument und Plugins ruhen, bis du sie mit der Schneeflocke im Spurkopf wieder auftaust.`, 3500);
   } catch (e) { console.error(e); toast('Einfrieren fehlgeschlagen: ' + (e.message || e)); }
   finally { freezeBusy = null; renderArrange(); }
 }
@@ -7315,7 +7676,7 @@ async function cpuPoll() {
   const frozen = P.tracks.filter(t => useFrozen(t)).length;
   box.title = `Rechenlast der Audio-Engine: ${shown} % eines Prozessorkerns (Spitze zuletzt ${Math.round(cpuPeak)} %).`
     + (m.vst ? ` Dazu ${m.vst} VST3-Plugin${m.vst > 1 ? 's' : ''} in eigenen Prozessen.` : '')
-    + ` Wird es knapp, Spuren mit ❄ im Spurkopf einfrieren${frozen ? ` (${frozen} eingefroren)` : ''}.`;
+    + ` Wird es knapp, Spuren mit der Schneeflocke im Spurkopf einfrieren${frozen ? ` (${frozen} eingefroren)` : ''}.`;
 }
 setInterval(cpuPoll, 1000);
 
@@ -7421,7 +7782,7 @@ function openModal(html, { small, onClose } = {}) {
   modal.innerHTML = `<div class="mbox ${small ? 'small' : ''}" role="dialog" aria-modal="true">${html}</div>`;
   modal.hidden = false; modalClose = onClose || null;
   modal.querySelector('.mclose')?.addEventListener('click', closeModal);
-  fileMenu.hidden = addMenu.hidden = devMenu.hidden = histMenu.hidden = true;
+  fileMenu.hidden = devMenu.hidden = histMenu.hidden = true; closeMenu();
 }
 function closeModal() {
   if (modal.hidden) return;
@@ -7431,27 +7792,34 @@ function closeModal() {
 modal.addEventListener('pointerdown', e => { if (e.target === modal) closeModal(); });
 
 // ================= Einstellungen und Tastenkürzel =================
-const SG_VERSION = '1.5.0';
+const SG_VERSION = '1.6.0'; // wird beim Bauen aus package.json gesetzt (scripts/build.js)
 // Alle Tastenkürzel an einer Stelle: [Tasten, was passiert, Hinweis]. Daraus entsteht die Übersicht in den Einstellungen.
 const SHORTCUTS = [
   ['Abspielen und Aufnehmen', [
-    ['Leertaste', 'Abspielen / Stopp'], ['Enter', 'Zum Anfang (bei Cycle: zum Cycle-Anfang)'], ['R', 'Aufnahme auf der ausgewählten Spur', 'mit Vorzähler, einstellbar unter Geräte'],
+    ['Leertaste', 'Abspielen / Stopp'], ['Enter / Pos1', 'Zum Anfang (bei Cycle: zum Cycle-Anfang)'], ['Pfeil links / Pfeil rechts', 'Einen Takt zurück / vor'],
+    ['R', 'Aufnahme auf der ausgewählten Spur', 'Noten, Audio oder Drums (die Schläge landen im Pattern). Vorzähler mit dem Knopf „1234“'],
     ['C', 'Cycle (Schleife) an/aus', 'mit Cycle entsteht pro Durchgang ein eigener Take'], [', / .', 'Zum vorigen / nächsten Marker springen']]],
   ['Projekt', [
     ['Strg+S', 'Speichern'], ['Strg+Umschalt+S', 'Speichern unter …'], ['Strg+O', 'Projekt öffnen'], ['Strg+E', 'Audio exportieren', 'Mix oder Stems, WAV, FLAC oder MP3'],
     ['Strg+Z', 'Rückgängig', 'alle Schritte stehen im Verlauf neben den Pfeilen'], ['Strg+Umschalt+Z', 'Wiederholen', 'oder Strg+Y']]],
   ['Ansicht', [
-    ['M', 'Mixer ein/aus'], ['I', 'Bibliothek ein/aus'], ['Strg+Mausrad', 'Zoomen', 'im Arrangement und im Piano Roll, am Touchscreen mit zwei Fingern'],
+    ['N', 'Editor ein/aus', 'Piano Roll, Drum-Pattern oder Audio der ausgewählten Region'], ['V', 'Klang & Effekte der Spur ein/aus'], ['M', 'Mixer ein/aus'], ['I', 'Bibliothek ein/aus'],
+    ['Pfeil hoch / Pfeil runter', 'Spur darüber / darunter auswählen'], ['Rechtsklick', 'Menü mit den passenden Befehlen', 'am Touchscreen: lange drücken. Geht auf Regionen, Spuren, Noten, Drum-Feldern, Markern und im Lineal'], ['Strg+Mausrad', 'Zoomen', 'im Arrangement und im Piano Roll, am Touchscreen mit zwei Fingern'],
     ['F1 / ?', 'Diese Übersicht öffnen'], ['Esc', 'Dialog schließen']]],
   ['Regionen', [
-    ['Doppelklick', 'Neue Region in einer leeren Stelle der Spur'], ['Strg+D', 'Region duplizieren'], ['Strg+C / Strg+X', 'Region kopieren / ausschneiden'],
+    ['Doppelklick', 'Neue Region in einer leeren Stelle der Spur', 'auf eine Region: im Editor öffnen'], ['Strg+D', 'Region duplizieren'], ['Strg+C / Strg+X', 'Region kopieren / ausschneiden'],
     ['Strg+V', 'An der Abspielposition einfügen', 'auch auf eine andere Spur'], ['B / Strg+T', 'An der Abspielposition teilen'], ['Alt+Klick', 'Region an dieser Stelle teilen'],
     ['Entf / Rücktaste', 'Region, Note oder Marker löschen'], ['Umschalt+Ziehen', 'Feiner verschieben (ohne Takt-Raster)'],
     ['Alt+Ziehen', 'Audio dehnen, ohne die Tonhöhe zu ändern', 'am rechten Rand einer Audio-Region (Time-Stretch)']]],
   ['Piano Roll', [
-    ['Q', 'Noten quantisieren', 'mit Swing und Stärke aus „Groove“'], ['Strg+A', 'Alle Noten auswählen'], ['Umschalt+Klick', 'Mehrere Noten auswählen'], ['Alt+Klick', 'Note löschen']]],
+    ['Q', 'Noten quantisieren', 'mit Swing und Stärke aus „Groove“'], ['Strg+A', 'Alle Noten auswählen'], ['Umschalt+Klick', 'Mehrere Noten auswählen'], ['Alt+Klick', 'Note löschen'],
+    ['Rechtsklick auf eine Note', 'Duplizieren, Oktave, Länge, Anschlag, Löschen'], ['Klick hinter das Ende', 'Note setzen und die Region um einen Takt verlängern']]],
   ['Drum-Editor', [
-    ['Klicken und ziehen', 'Ganze Reihe füllen oder leeren'], ['Umschalt+Klick', 'Schlag mit Akzent (volle Lautstärke)']]],
+    ['Klicken und ziehen', 'Ganze Reihe füllen oder leeren'], ['Umschalt+Klick', 'Schlag mit Akzent (volle Lautstärke)'],
+    ['Rechtsklick auf ein Feld', 'Anschlag wählen (leise, normal, Akzent) oder die ganze Reihe füllen'], ['R', 'Pattern live einspielen', 'mit Cycle kommt in jeder Runde etwas dazu']]],
+  ['Taktart', [
+    ['Klick auf die Taktart oben', 'Taktart ändern oder einen Wechsel ab der Abspielposition einfügen'], ['Rechtsklick ins Lineal', 'Taktartwechsel an diesem Takt, Marker, Cycle'],
+    ['Klick auf ein Schild im Lineal', 'Taktartwechsel ändern oder entfernen']]],
   ['Automation', [
     ['Klick', 'Punkt setzen'], ['Ziehen', 'Kurve zeichnen oder Punkt verschieben'], ['Doppelklick / Alt+Klick', 'Punkt löschen'], ['Umschalt+Ziehen', 'Ohne Raster']]],
   ['Comping (Takes)', [
@@ -7463,11 +7831,22 @@ const SHORTCUTS = [
   ['Regler im Mixer und in den Effekten', [
     ['Ziehen', 'Wert ändern'], ['Umschalt+Ziehen', 'Feinere Schritte'], ['Mausrad', 'Wert ändern (mit Umschalt feiner)']]]
 ];
+const HELP_HTML = `<p>Doppelklicke (am Touchscreen: doppelt tippen) in eine leere Stelle einer Spur, um eine Region zu erstellen. Ein Klick auf eine Region öffnet sie hier im Editor.</p>
+      <p>Regionen verschiebst du mit der Maus, am rechten Rand änderst du die Länge, am linken Rand kürzt du den Anfang. Ein Doppelklick auf eine Region öffnet sie im Editor, ein Rechtsklick (am Touchscreen: lange drücken) zeigt alle Befehle. Löschen mit Entf. Ziehen im Lineal oben setzt den Cycle-Bereich.</p>
+      <p>Mit dem Kurven-Symbol im Spurkopf öffnest du die Automation: Lautstärke, Panorama, Filter, Hall und Delay als Kurve über die Zeit. Marker für Intro, Strophe, Refrain setzt du mit „+ Marker“ oder per Doppelklick in die Marker-Leiste.</p>
+      <p>In der Bibliothek (I) sind alle Klänge nach Instrumentenfamilie sortiert. „Echt“ zeigt nur aufgenommene Instrumente, ▶ spielt einen Sound vor, ohne ihn auszuwählen, und mit dem Stern landet er unter „Favoriten“. Mit „Eigenes Sample laden …“ machst du aus einer beliebigen Audiodatei ein spielbares Instrument.</p>
+      <p>Sampler wie eine MPC: Zieh eine Audiodatei ins Arrangement (rechte Hälfte) oder lege mit „+ Spur“ einen Sampler an. Sound Groot schneidet sie in Chops und legt sie auf 16 Pads. Jeden Chop kannst du stimmen, ein- und ausblenden, umdrehen und filtern. Gespielt wird mit Maus, Tasten oder Pad-Controller; R (auf der Sampler-Spur Umschalt+R) nimmt auf.</p>
+      <p>MPC Beats und andere DAWs: MIDI-Dateien (.mid) ziehst du ins Arrangement oder öffnest sie unter Datei. Noten werden zu Regionen, Drums zu Drum-Patterns, der MPC-Swing bleibt erhalten. „Als MIDI“ oben im Editor und „Song als MIDI exportieren“ gehen den Weg zurück. In der Bibliothek zeigt „Ordner“ deine Sample-Ordner; in der Windows-App findet Sound Groot die installierten MPC-Expansions selbst. MPC-Drumkits (.xpm) werden zur Sampler-Spur mit allen Pads, Keygroup-Programme zum spielbaren Instrument.</p>
+      <p>Groove: Im Piano Roll zieht „Quantisieren“ die Noten aufs Raster, unter „Groove“ stellst du Stärke, Swing und Humanize ein. Im Drum-Pattern gibt es Swing und Humanize pro Region. Audio-Regionen folgen auf Wunsch dem Songtempo, ohne dass sich die Tonhöhe ändert. Loops dafür liegen in der Bibliothek einer Audio-Spur.</p>
+      <p>Im Mixer (M) fasst du Spuren zu Gruppen zusammen, rechts zeigt der Master die Lautheit in LUFS. Unter Klang & Effekte kann der Kompressor per Sidechain von einer anderen Spur gesteuert werden, etwa damit die Kick den Bass kurz wegdrückt.</p>
+      <p>Taktartwechsel: Abspielposition auf den Takt setzen und oben in der Anzeige auf die Taktart klicken (oder Rechtsklick ins Lineal). Ab diesem Takt gilt die neue Taktart, im Lineal steht ein kleines Schild.</p>
+      <p>Drums live einspielen: Drum-Spur wählen, R drücken und die Pads spielen (Tasten A bis #, Bildschirm-Pads oder MIDI). Die Schläge landen im Pattern, mit Cycle kommt in jeder Runde etwas dazu.</p>
+      <p>Aufnahme (R) startet mit einem Takt Vorzähler. Ist der Cycle an, entsteht pro Durchgang ein eigener Take, den besten wählst du im Editor. Vorzähler und Latenzausgleich stellst du unter Geräte ein.</p>`;
 const kbHtml = k => k.split(' / ').map(p => p.split('+').map(x => `<kbd class="k">${esc(x)}</kbd>`).join('+')).join(' <span class="ctx">/</span> ');
 let setTab = 'keys';
 function openSettings(tab) {
   if (tab) setTab = tab;
-  const tabs = [['keys', 'Tastenkürzel'], ['general', 'Allgemein'], ['audio', 'Audio & MIDI'], ['about', 'Über Sound Groot']];
+  const tabs = [['keys', 'Tastenkürzel'], ['help', 'Anleitung'], ['general', 'Allgemein'], ['audio', 'Audio & MIDI'], ['about', 'Über Sound Groot']];
   openModal(`<div class="mhead"><h2>Einstellungen</h2><button class="mclose" aria-label="Schließen" title="Schließen (Esc)">×</button></div>
     <div class="mbody"><nav class="mnav">${tabs.map(([id, l]) => `<button data-st="${id}" class="${id === setTab ? 'on' : ''}">${l}</button>`).join('')}</nav><div class="mpane" id="setPane"></div></div>`);
   modal.querySelector('.mnav').onclick = e => {
@@ -7490,10 +7869,12 @@ function paintSettings() {
     $('#kbFind').oninput = e => paint(e.target.value);
     paint('');
     if (matchMedia('(pointer: fine)').matches) setTimeout(() => $('#kbFind')?.focus(), 60);
+  } else if (setTab === 'help') {
+    pane.innerHTML = `<h3>So geht's</h3>${HELP_HTML}`;
   } else if (setTab === 'general') {
     pane.innerHTML = `<h3>Einführung</h3>
-      <div class="optrow"><span>Kurze Tour durch Sound Groot<small>Zeigt in neun Schritten, wo was ist. Lief beim ersten Start automatisch.</small></span><button class="sbtn" id="stTour">Starten</button></div>
-      ${sgsys ? `<h3>Anzeige</h3><div class="optrow"><span>CPU-Anzeige in der Leiste<small>Rechenlast der Audio-Engine. Wird es knapp, Spuren mit ❄ einfrieren.</small></span><input type="checkbox" id="stCpu" ${cpuOn ? 'checked' : ''}></div>` : ''}
+      <div class="optrow"><span>Kurze Tour durch Sound Groot<small>Zeigt in zehn Schritten, wo was ist. Lief beim ersten Start automatisch.</small></span><button class="sbtn" id="stTour">Starten</button></div>
+      ${sgsys ? `<h3>Anzeige</h3><div class="optrow"><span>CPU-Anzeige in der Leiste<small>Rechenlast der Audio-Engine. Wird es knapp, Spuren einfrieren (Schneeflocke im Spurkopf).</small></span><input type="checkbox" id="stCpu" ${cpuOn ? 'checked' : ''}></div>` : ''}
       <h3>Export</h3>
       <div class="optrow"><span>Standard-Format<small>Wird im Export-Dialog (Strg+E) vorgewählt.</small></span><select id="stFmt">${Object.entries(XFMT).map(([k, v]) => `<option value="${k}" ${k === xPrefs.fmt ? 'selected' : ''}>${v[0]}</option>`).join('')}</select></div>
       <h3>Speichern</h3><p>Sound Groot sichert dein Projekt laufend im Hintergrund und alle zwei Minuten als Sicherung (Uhr-Symbol oben). Als Datei speicherst du mit Strg+S.</p>`;
@@ -7523,11 +7904,12 @@ $('#bSet').onclick = () => openSettings();
 const tourEl = $('#tour');
 const TOUR = [
   [null, 'Willkommen bei Sound Groot', 'In einer Minute zeigen wir dir die wichtigsten Stellen. Du kannst jederzeit überspringen und die Tour später unter Einstellungen (Zahnrad) wieder starten.'],
-  ['#bAdd', 'Spuren anlegen', 'Hier legst du neue Spuren an: Software-Instrument, Drummer mit Patterns, Audio für Mikrofon und Dateien oder einen Sampler mit 16 Pads wie bei der MPC.'],
+  ['#bAdd', 'Spuren anlegen', 'Das Plus über den Spuren legt eine neue Spur an: Software-Instrument, Drummer mit Patterns, Audio für Mikrofon und Dateien oder einen Sampler mit 16 Pads wie bei der MPC.'],
   ['#bLib', 'Klänge aus der Bibliothek', 'Die Bibliothek (Taste I) enthält alle Instrumente, Drum-Kits und Loops, sortiert nach Familie. ▶ hört rein, der Stern merkt sich Favoriten.'],
-  ['#arrange', 'Das Arrangement', 'Doppelklick in eine leere Stelle einer Spur erstellt eine Region. Verschieben mit der Maus, am Rand die Länge ändern. Im Spurkopf öffnet „A“ die Automation, ❄ friert eine Spur ein und spart Rechenleistung.'],
+  ['#arrange', 'Das Arrangement', 'Doppelklick in eine leere Stelle einer Spur erstellt eine Region. Verschieben mit der Maus, am Rand die Länge ändern. Ein Rechtsklick (am Touchscreen: lange drücken) zeigt überall die passenden Befehle. Spuren sortierst du um, indem du sie am Symbol links ziehst.'],
   ['.transport', 'Abspielen und Aufnehmen', 'Leertaste spielt ab, R nimmt auf, C schaltet den Cycle. Mit Cycle entsteht pro Durchgang ein Take, aus denen du im Editor die besten Stellen zusammensetzt.'],
-  ['#editor', 'Der Editor', 'Unten bearbeitest du die ausgewählte Region: Noten im Piano Roll, Drum-Patterns oder Audio. Über die Reiter kommst du zu Mixer, Kanal-EQ und Effekten.'],
+  ['#lcd', 'Anzeige: Position, Tempo, Taktart', 'Das Tempo tippst du direkt ein. Ein Klick auf die Taktart ändert sie, auch mitten im Song: Abspielposition auf den Takt setzen und die neue Taktart wählen.'],
+  ['#bEd', 'Der Editor', 'Dieser Knopf (oder ein Doppelklick auf eine Region) öffnet unten den Editor: Noten im Piano Roll, Drum-Patterns oder Audio. Über die Reiter kommst du zu Mixer, Kanal-EQ und Effekten.'],
   ['#bDev', 'MIDI-Keyboard und Mikrofon', 'Hier verbindest du dein MIDI-Keyboard, wählst den Audio-Eingang und misst die Latenz, damit Aufnahmen genau im Takt landen.'],
   ['#bFile', 'Speichern und Exportieren', 'Im Datei-Menü speicherst du Projekte und exportierst den Song als WAV, FLAC oder MP3, auf Wunsch jede Spur einzeln als Stem (Strg+E).'],
   ['#bSet', 'Einstellungen und Tastenkürzel', 'Hier findest du jederzeit alle Tastenkürzel übersichtlich (auch mit F1) und kannst diese Tour neu starten. Viel Spaß beim Musikmachen!']
@@ -7568,6 +7950,308 @@ function tourKey(e) {
   else if (e.key === 'ArrowLeft') { e.preventDefault(); if (tourAt) { tourAt--; tourStep(); } }
 }
 window.addEventListener('resize', () => { if (!tourEl.hidden) tourStep(); });
+
+// ================= Menüs: Rechtsklick, am Touchscreen lange drücken =================
+// items: '-' (Trennlinie), { head }, { note }, { chips: [{ label | color, on, fn }] } oder { label, kbd, fn, off, on, danger }
+const ctxEl = $('#ctxMenu');
+let ctxActs = [], ctxArm = 0, ctxClosed = 0, lpAt = 0, swallowClick = 0;
+function openMenu(x, y, items, o = {}) {
+  ctxActs = [];
+  const btn = it => { ctxActs.push(it.fn); return `<button role="menuitem" data-cx="${ctxActs.length - 1}" class="${it.on ? 'on' : ''} ${it.danger ? 'danger' : ''}" ${it.off ? 'disabled' : ''} ${it.color ? `style="--cc:${it.color}" aria-label="Farbe"` : ''} ${it.title ? `title="${esc(it.title)}"` : ''}>${it.color ? '' : esc(it.label)}${it.kbd ? `<kbd>${esc(it.kbd)}</kbd>` : ''}</button>`; };
+  ctxEl.innerHTML = (o.title ? `<div class="cx-t">${esc(o.title)}</div>` : '') + items.filter(Boolean).map(it =>
+    it === '-' ? '<hr>' : it.head ? `<div class="cx-h">${esc(it.head)}</div>` : it.note ? `<p class="cx-n">${esc(it.note)}</p>` : it.chips ? `<div class="cx-chips ${it.chips[0]?.color ? 'cols' : ''}">${it.chips.map(btn).join('')}</div>` : btn(it)).join('');
+  const sheet = innerWidth < 560;
+  ctxEl.classList.toggle('sheet', sheet); ctxEl.hidden = false;
+  if (sheet) ctxEl.style.left = ctxEl.style.top = '';
+  else { ctxEl.style.left = clamp(x, 8, Math.max(8, innerWidth - ctxEl.offsetWidth - 8)) + 'px'; ctxEl.style.top = clamp(y, 8, Math.max(8, innerHeight - ctxEl.offsetHeight - 8)) + 'px'; }
+  ctxEl.scrollTop = 0;
+}
+function closeMenu() { if (!ctxEl.hidden) { ctxEl.hidden = true; ctxEl.innerHTML = ''; ctxActs = []; ctxClosed = performance.now(); } }
+ctxEl.addEventListener('click', e => {
+  e.stopPropagation();
+  const b = e.target.closest('[data-cx]'); if (!b || b.disabled || performance.now() < ctxArm) return;
+  const f = ctxActs[+b.dataset.cx]; closeMenu(); f?.();
+});
+ctxEl.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('pointerdown', e => { if (!ctxEl.hidden && !ctxEl.contains(e.target) && performance.now() > ctxArm) closeMenu(); }, true);
+window.addEventListener('blur', closeMenu); window.addEventListener('resize', closeMenu);
+// Nach langem Drücken folgt beim Loslassen noch ein Klick: der soll nichts auslösen
+window.addEventListener('click', e => { if (performance.now() < swallowClick) { swallowClick = 0; e.stopPropagation(); e.preventDefault(); } }, true);
+// Rechtsklick oder langes Drücken auf el ruft fn({ x, y, target }) auf. Gibt fn false zurück, gab es dort nichts zu zeigen.
+function onContext(el, fn) {
+  el.addEventListener('contextmenu', e => {
+    if (performance.now() - lpAt < 900) { e.preventDefault(); return; } // Android meldet nach langem Drücken zusätzlich contextmenu
+    if (e.target.closest('input:not([type=range]),textarea')) return;
+    if (fn({ x: e.clientX, y: e.clientY, target: e.target }) !== false) e.preventDefault();
+  });
+  el.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'touch' || !e.isPrimary) return;
+    const x = e.clientX, y = e.clientY, id = e.pointerId, target = e.target;
+    const done = () => { clearTimeout(t); window.removeEventListener('pointermove', mv, true); window.removeEventListener('pointerup', done, true); window.removeEventListener('pointercancel', done, true); };
+    const mv = ev => { if (ev.pointerId === id && Math.hypot(ev.clientX - x, ev.clientY - y) > 9) done(); };
+    const t = setTimeout(() => {
+      done();
+      // Das Antippen kann den Inhalt neu gezeichnet haben (z. B. Noten): dann gilt, was jetzt unter dem Finger liegt
+      const tg = target.isConnected ? target : document.elementFromPoint(x, y);
+      if (!tg || !el.contains(tg) || tg.closest('input:not([type=range]),textarea') || fn({ x, y, target: tg, touch: true }) === false) return;
+      lpAt = performance.now(); ctxArm = Infinity; try { navigator.vibrate?.(8); } catch (e) { }
+      // Laufende Geste (Ziehen, Tippen) beenden; das Loslassen und der Klick danach gehören zum Menü
+      (target.isConnected ? target : el).dispatchEvent(new PointerEvent('pointercancel', { pointerId: id, bubbles: true, pointerType: 'touch' }));
+      const up = ev => { if (ev.pointerId !== id) return; window.removeEventListener('pointerup', up, true); window.removeEventListener('pointercancel', up, true); ev.stopPropagation(); ctxArm = performance.now() + 250; swallowClick = performance.now() + 350; };
+      window.addEventListener('pointerup', up, true); window.addEventListener('pointercancel', up, true);
+    }, 520);
+    window.addEventListener('pointermove', mv, true); window.addEventListener('pointerup', done, true); window.addEventListener('pointercancel', done, true);
+  });
+}
+// Kleiner Dialog für einen Namen
+function askText(title, value, cb) {
+  openModal(`<div class="mhead"><h2>${esc(title)}</h2><button class="mclose" aria-label="Schließen">×</button></div>
+    <form class="askf"><input id="askIn" value="${esc(value || '')}" maxlength="60" aria-label="${esc(title)}" autocomplete="off"><div class="mfoot"><button type="button" class="sbtn" data-no>Abbrechen</button><button class="sbtn pri">OK</button></div></form>`, { small: true });
+  const f = modal.querySelector('.askf'), inp = $('#askIn');
+  f.onsubmit = e => { e.preventDefault(); const v = inp.value.trim(); closeModal(); if (v && v !== value) cb(v); };
+  f.querySelector('[data-no]').onclick = closeModal;
+  setTimeout(() => { inp.focus(); inp.select(); }, 30);
+}
+
+// ---------- Spuren: anlegen, duplizieren, verschieben, löschen ----------
+const TRACK_TYPES = [
+  ['synth', 'Software-Instrument', 'Klaviere, Synthesizer, Bässe, Streicher und mehr. Spielen mit Maus, Tastatur oder MIDI-Keyboard, bearbeiten als Noten.'],
+  ['drums', 'Drummer', 'Schlagzeug als Pattern: Schritte anklicken oder live einspielen. Viele Kits und fertige Rhythmen.'],
+  ['audio', 'Audio', 'Gesang oder ein Instrument über das Mikrofon aufnehmen, Audiodateien und Loops verwenden.'],
+  ['sampler', 'Sampler', 'Eine Audiodatei in Stücke schneiden und auf 16 Pads spielen, wie bei einer MPC.']];
+function addTrack(type, extra) {
+  pushUndo(); const t = newTrack(type, extra); P.tracks.push(t); selTrack = t.id; selRegion = null;
+  applyMix(); save(); render();
+  rowsEl.querySelector(`.track-row[data-track="${t.id}"]`)?.scrollIntoView({ block: 'nearest' });
+  if ((type === 'synth' || type === 'drums') && !narrow()) setLib(true);
+  return t;
+}
+function openAddTrack() {
+  openModal(`<div class="mhead"><h2>Neue Spur</h2><button class="mclose" aria-label="Schließen" title="Schließen (Esc)">×</button></div>
+    <div class="tiles">${TRACK_TYPES.map(([k, n, d]) => `<button class="tile" data-add="${k}">${ICONS[k].replace('class="ticon"', 'class="tile-i"')}<b>${n}</b><span>${d}</span></button>`).join('')}</div>`, { small: true });
+  modal.querySelector('.tiles').onclick = e => { const b = e.target.closest('[data-add]'); if (!b) return; closeModal(); addTrack(b.dataset.add); };
+  if (matchMedia('(pointer: fine)').matches) modal.querySelector('.tile').focus();
+}
+function deleteTrack(tr) {
+  pushUndo(); P.tracks = P.tracks.filter(t => t !== tr);
+  if (selTrack === tr.id) { selTrack = P.tracks[0]?.id || null; selRegion = null; }
+  applyMix(); save(); render(); toast(`Spur „${tr.name}“ gelöscht. Strg+Z holt sie zurück.`);
+}
+function duplicateTrack(tr) {
+  pushUndo();
+  const c = JSON.parse(JSON.stringify(tr)); c.id = uid(); c.name = (tr.name + ' 2').slice(0, 32); delete c.frozen;
+  for (const r of c.regions) r.id = uid();
+  P.tracks.splice(P.tracks.indexOf(tr) + 1, 0, c); selTrack = c.id; selRegion = null;
+  applyMix(); save(); render(); toast(`Spur „${tr.name}“ dupliziert.`);
+}
+function moveTrack(tr, to) {
+  const i = P.tracks.indexOf(tr); to = clamp(to, 0, P.tracks.length - 1); if (i < 0 || i === to) return;
+  pushUndo(); P.tracks.splice(i, 1); P.tracks.splice(to, 0, tr); save(); renderArrange(); if (edOpen && edTab === 'mix') renderEditor();
+}
+function selectTrackBy(d) {
+  const i = P.tracks.findIndex(t => t.id === selTrack), t = P.tracks[clamp((i < 0 ? 0 : i) + d, 0, P.tracks.length - 1)]; if (!t || t.id === selTrack) return;
+  selTrack = t.id; selRegion = null; markSelection(); renderEditor();
+  rowsEl.querySelector(`.track-row[data-track="${t.id}"]`)?.scrollIntoView({ block: 'nearest' });
+}
+
+// ---------- Menüs im Arrangement ----------
+function regionMenu(tr, r) {
+  const b = currentBeat(), inside = b > r.start + .01 && b < r.start + r.len - .01;
+  return [
+    { label: 'Im Editor öffnen', kbd: 'Doppelklick', fn: () => showEditor('region') }, '-',
+    { label: 'Ausschneiden', kbd: 'Strg+X', fn: () => copyRegion(true) }, { label: 'Kopieren', kbd: 'Strg+C', fn: () => copyRegion(false) },
+    { label: 'Duplizieren', kbd: 'Strg+D', fn: duplicateRegion },
+    { label: 'An der Abspielposition teilen', kbd: 'B', off: !inside, fn: splitAtPlayhead },
+    { label: 'Umbenennen …', fn: () => askText('Region umbenennen', r.name, v => { pushUndo(); r.name = v; save(); render(); }) },
+    tr.type !== 'audio' && { label: 'Als MIDI-Datei speichern', fn: () => exportMidi(r.id) },
+    tr.type === 'audio' && audioBuffers.has(r.buf) && { label: 'In Sampler umwandeln (Chops auf Pads)', fn: () => regionToSampler(tr, r) },
+    { label: 'Cycle auf diese Region', fn: () => { P.loop = { on: true, start: r.start, end: r.start + r.len }; save(); renderArrange(); updateTransport(); } },
+    '-', { label: 'Löschen', kbd: 'Entf', danger: true, fn: () => { focusArea = 'arr'; deleteSelection(); } }];
+}
+function laneMenu(tr, lane, x) {
+  const b = Math.max(0, (x - lane.getBoundingClientRect().left) / ppb), at = snapBar(b);
+  return [
+    tr.type === 'audio' ? { label: 'Audiodatei importieren …', fn: () => { importTarget = tr.id; $('#fileIn').click(); } } : { label: `Neue Region ab Takt ${barNo(b) + 1}`, kbd: 'Doppelklick', fn: () => createRegionAt(lane, x) },
+    { label: `Einfügen ab Takt ${barNo(b) + 1}`, kbd: 'Strg+V', off: !clipboard || clipboard.type !== tr.type, fn: () => { if (playing) stop(); playPos = at; updatePlayhead(); pasteRegion(); } },
+    { label: 'Abspielposition hierher', fn: () => jumpTo(Math.round(b * 4) / 4) },
+    tr.type !== 'drums' && { label: 'Auf dieser Spur aufnehmen', kbd: 'R', off: !!rec, fn: () => toggleRecord() }];
+}
+function trackMenu(tr) {
+  const i = P.tracks.indexOf(tr);
+  return [
+    { label: 'Umbenennen …', fn: () => askText('Spur umbenennen', tr.name, v => { pushUndo(); tr.name = v.slice(0, 32); save(); render(); }) },
+    { label: 'Duplizieren', fn: () => duplicateTrack(tr) },
+    { head: 'Farbe' }, { chips: COLORS.map(c => ({ color: c, on: c === tr.color, fn: () => { pushUndo(); tr.color = c; save(); render(); } })) }, '-',
+    tr.type !== 'audio' && { label: tr.type === 'sampler' ? 'Pads & Chops' : 'Klang in der Bibliothek wählen', fn: () => { if (tr.type === 'sampler') showEditor('smp'); else { setLib(true); $('#lib .lib-item.on')?.scrollIntoView({ block: 'center' }); } } },
+    { label: 'Klang & Effekte', kbd: 'V', fn: () => showEditor('fx') }, { label: 'Kanal-EQ', fn: () => showEditor('eq') },
+    { label: tr.showAuto ? 'Automation ausblenden' : 'Automation zeigen', fn: () => { tr.showAuto = !tr.showAuto; save(); renderArrange(); } },
+    { label: useFrozen(tr) ? 'Auftauen' : 'Einfrieren (spart Rechenleistung)', fn: () => useFrozen(tr) ? unfreezeTrack(tr) : freezeTrack(tr) }, '-',
+    { label: 'Nach oben', off: i <= 0, fn: () => moveTrack(tr, i - 1) }, { label: 'Nach unten', off: i >= P.tracks.length - 1, fn: () => moveTrack(tr, i + 1) },
+    { label: 'Neue Spur …', fn: openAddTrack }, '-',
+    { label: 'Spur löschen', danger: true, fn: () => deleteTrack(tr) }];
+}
+onContext(rowsEl, ({ x, y, target }) => {
+  if (target.closest('.alane, .auto-row')) return false;
+  const row = target.closest('.track-row[data-track]'), tr = row && findTrack(row.dataset.track); if (!tr) return false;
+  const reg = target.closest('.region[data-region]'), lane = target.closest('.lane');
+  focusArea = 'arr';
+  if (reg) {
+    const [, r] = findRegion(reg.dataset.region); if (!r) return false;
+    const ch = selRegion !== r.id; selTrack = tr.id; selRegion = r.id; if (edTab !== 'mix') edTab = 'region'; markSelection(); if (ch) renderEditor();
+    openMenu(x, y, regionMenu(tr, r), { title: r.name });
+  } else {
+    if (selTrack !== tr.id) { selTrack = tr.id; selRegion = null; markSelection(); renderEditor(); }
+    if (lane) openMenu(x, y, laneMenu(tr, lane, x), { title: tr.name }); else openMenu(x, y, trackMenu(tr), { title: tr.name });
+  }
+});
+// Taktart-Menü: ab Takt bar (0 = Songanfang)
+function sigItems(bar, head) {
+  const seg = sigSegs().filter(s => s.bar <= bar).at(-1), own = seg.bar === bar;
+  return [{ head: head || (bar ? `Taktart ab Takt ${bar + 1}` : 'Taktart ab Songanfang') },
+    { chips: SIGS.map(g => ({ label: g.join('/'), on: String(g) === String(seg.sig), fn: () => setSig(g, bar) })) },
+    bar && own ? { label: `Taktartwechsel an Takt ${bar + 1} entfernen`, danger: true, fn: () => setSig(null, bar) } : null];
+}
+function openSigMenu(anchor) {
+  if (performance.now() - ctxClosed < 250) return;
+  const b = currentBeat(), seg = segAt(b), n = barNo(b), r = anchor.getBoundingClientRect(), items = sigItems(seg.bar);
+  if (n !== seg.bar) items.push('-', ...sigItems(n, `Taktartwechsel ab Takt ${n + 1} (Abspielposition)`));
+  else items.push({ note: 'Für einen Taktartwechsel mitten im Song die Abspielposition auf den Takt setzen (Klick ins Lineal) und hier wählen. Oder Rechtsklick ins Lineal.' });
+  openMenu(r.left, r.bottom + 6, items);
+}
+$('#sigBtn').onclick = e => { e.stopPropagation(); openSigMenu(e.currentTarget); };
+rulerEl.addEventListener('click', e => { const s = e.target.closest('.sg'); if (!s) return; e.stopPropagation(); if (performance.now() - ctxClosed < 250) return; const r = s.getBoundingClientRect(); openMenu(r.left, r.bottom + 4, sigItems(+s.dataset.sigbar)); });
+onContext(rulerEl, ({ x, y }) => {
+  const b = Math.max(0, (x - rulerEl.getBoundingClientRect().left) / ppb), n = barNo(b);
+  openMenu(x, y, [
+    { label: `Abspielposition auf Takt ${n + 1}`, fn: () => jumpTo(barStart(n)) },
+    { label: `Cycle auf Takt ${n + 1}`, fn: () => { P.loop = { on: true, start: barStart(n), end: barStart(n + 1) }; save(); renderArrange(); updateTransport(); } },
+    { label: P.loop.on ? 'Cycle ausschalten' : 'Cycle einschalten', kbd: 'C', fn: () => $('#bLoop').click() },
+    { label: `Marker an Takt ${n + 1}`, fn: () => addMarker(barStart(n)) }, '-', ...sigItems(n)]);
+});
+onContext(mlaneEl, ({ x, y, target }) => {
+  const el = target.closest('.mk'), m = el && P.markers.find(q => q.id === el.dataset.mk);
+  if (!m) { const b = (x - mlaneEl.getBoundingClientRect().left) / ppb; openMenu(x, y, [{ label: `Marker an Takt ${barNo(b) + 1}`, fn: () => addMarker(b) }]); return; }
+  const ms = markersSorted(), nx = ms[ms.indexOf(m) + 1];
+  openMenu(x, y, [
+    { label: 'Hierher springen', fn: () => jumpTo(m.b) },
+    { label: 'Umbenennen …', fn: () => askText('Marker umbenennen', m.name, v => { pushUndo(); m.name = v.slice(0, 40); save(); renderMarkers(); }) },
+    { label: 'Cycle auf diesen Teil', kbd: 'Umschalt+Klick', fn: () => { P.loop = { on: true, start: m.b, end: nx ? nx.b : Math.max(m.b + BL(m.b), ceilBar(songLen())) }; save(); renderArrange(); updateTransport(); } },
+    { head: 'Farbe' }, { chips: MK_COLORS.map(c => ({ color: c, on: c === m.color, fn: () => { pushUndo(); m.color = c; save(); renderMarkers(); } })) }, '-',
+    { label: 'Marker löschen', danger: true, fn: () => deleteMarker(m.id) }], { title: m.name });
+});
+
+// ---------- Leiste: Editor ein/aus, Takt vor/zurück, Vorzähler, Anzeige ----------
+function setEditor(open, tab) {
+  if (tab) edTab = tab;
+  edOpen = open; try { localStorage.setItem('klangwerk.edopen', open ? '1' : '0'); } catch (e) { }
+  if (open && edTab === 'mix' && editorEl.offsetHeight < 390 && !narrow() && window.innerHeight > 760) editorEl.style.setProperty('--edh', '400px');
+  renderEditor();
+}
+function showEditor(tab) { setEditor(true, tab); }
+function toggleEditor(tab) {
+  if ((tab === 'fx' || tab === 'eq') && !findTrack(selTrack)) { toast('Wähle zuerst eine Spur aus.'); return; }
+  const same = tab === 'region' ? edTab === 'region' || edTab === 'smp' : tab === 'fx' ? edTab === 'fx' || edTab === 'eq' : edTab === tab;
+  setEditor(!(edOpen && same), tab);
+}
+$('#bEd').onclick = () => toggleEditor('region');
+$('#bSmart').onclick = () => toggleEditor('fx');
+$('#bMix').onclick = () => toggleEditor('mix');
+function stepBar(dir) {
+  const b = currentBeat(), n = barNo(b);
+  jumpTo(dir > 0 ? barStart(n + 1) : b - barStart(n) > (playing ? .6 : .01) ? barStart(n) : barStart(Math.max(0, n - 1)));
+}
+$('#bBack').onclick = () => stepBar(-1);
+$('#bFwd').onclick = () => stepBar(1);
+$('#bCount').onclick = () => {
+  const on = (P.countIn ?? 1) > 0;
+  if (on) { recPrefs.count = P.countIn ?? 1; saveRecPrefs(); P.countIn = 0; } else P.countIn = recPrefs.count || 1;
+  save(); updateTransport(); renderRecSettings();
+  toast(P.countIn ? `Vorzähler an: ${P.countIn} Takt${P.countIn > 1 ? 'e' : ''} vor jeder Aufnahme.` : 'Vorzähler aus: Die Aufnahme startet sofort.');
+};
+let lcdTime = false; try { lcdTime = localStorage.getItem('klangwerk.lcd') === 'time'; } catch (e) { }
+const lcdToggle = () => { lcdTime = !lcdTime; try { localStorage.setItem('klangwerk.lcd', lcdTime ? 'time' : 'bars'); } catch (e) { } lcdShown = ''; updatePlayhead(); };
+$('#lcdPosBox').onclick = lcdToggle;
+$('#lcdPosBox').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); lcdToggle(); } };
+$('#pname').onclick = () => askText('Projektname', P.name || 'Mein Song', v => { P.name = v; save(); updateTitle(); });
+$('#bAdd').onclick = openAddTrack;
+
+// ---------- Schnellhilfe: erklärt, worüber die Maus gerade fährt ----------
+const qhEl = $('#qhelp');
+let qhOn = false; try { qhOn = localStorage.getItem('klangwerk.qh') === '1'; } catch (e) { }
+const QH = [
+  ['.region', 'Region', 'Ziehen verschiebt sie (auch auf eine andere Spur gleicher Art), am rechten Rand änderst du die Länge, am linken kürzt du den Anfang. Doppelklick öffnet den Editor, Rechtsklick zeigt alle Befehle.'],
+  ['.alane', 'Automation', 'Klick setzt einen Punkt, Ziehen zeichnet eine Kurve, Doppelklick auf einen Punkt löscht ihn. Den Parameter wählst du links.'],
+  ['.lane', 'Spur', 'Doppelklick in eine leere Stelle erstellt eine Region. Dateien aus dem Explorer oder der Bibliothek kannst du hierher ziehen. Rechtsklick zeigt weitere Befehle.'],
+  ['.thead', 'Spurkopf', 'Klick wählt die Spur aus: Bibliothek, Editor und Tastatur beziehen sich immer auf die ausgewählte Spur. Am Symbol links ziehst du die Spur nach oben oder unten. Rechtsklick: Umbenennen, Farbe, Duplizieren, Löschen.'],
+  ['.ruler', 'Lineal', 'Klick setzt die Abspielposition. Ziehen legt den Cycle-Bereich fest (gelber Balken), der beim Abspielen und Aufnehmen wiederholt wird. Rechtsklick: Marker und Taktartwechsel.'],
+  ['.mlane', 'Marker', 'Marker gliedern den Song in Intro, Strophe, Refrain. Doppelklick setzt einen Marker, Klick springt hin, Ziehen verschiebt ihn.'],
+  ['.pr-grid', 'Noten', 'Mit dem Zeichnen-Werkzeug setzt ein Klick eine Note, Ziehen bestimmt ihre Länge. Noten verschiebst du mit der Maus, am rechten Rand änderst du die Länge. Rechtsklick auf eine Note zeigt alle Befehle.'],
+  ['.pr-keys', 'Klaviatur', 'Klick spielt den Ton an.'],
+  ['.cell', 'Schritt im Drum-Pattern', 'Klick setzt oder löscht einen Schlag, Ziehen füllt die Reihe. Umschalt+Klick setzt einen Akzent. Rechtsklick: Anschlag wählen oder die Reihe füllen.'],
+  ['.vl', 'Anschlag', 'Jeder Balken ist die Anschlagstärke einer Note. Hochziehen macht sie lauter.'],
+  ['.strip', 'Kanalzug', 'Fader für die Lautstärke, darüber Panorama und die Sends für Hall und Delay. M schaltet stumm, S spielt nur diese Spur.'],
+  ['.pad, .kb-pad', 'Pad', 'Antippen spielt den Klang. Während der Aufnahme landet jeder Schlag im Pattern.'],
+  ['.kb-keys', 'Bildschirm-Keyboard', 'Spielt die ausgewählte Spur. Weiter unten angeschlagen klingt lauter.'],
+  ['.lib-item', 'Bibliothek', 'Klick wählt diesen Klang für die ausgewählte Spur. Das Dreieck spielt ihn nur an, der Stern merkt ihn als Favorit.'],
+  ['.eq-graph', 'Kanal-EQ', 'Jeder Punkt ist ein Band: nach oben oder unten ziehen hebt oder senkt diesen Frequenzbereich, seitlich ziehen verschiebt ihn.'],
+  ['.lcd', 'Anzeige', 'Abspielposition, Tempo und Taktart. Tempo: Zahl anklicken und eintippen. Taktart: anklicken und wählen.']];
+function setQh(on) {
+  qhOn = on; qhEl.hidden = !on; $('#bHelp').classList.toggle('on', on);
+  try { localStorage.setItem('klangwerk.qh', on ? '1' : '0'); } catch (e) { }
+}
+$('#bHelp').onclick = () => { setQh(!qhOn); if (qhOn && !matchMedia('(hover: hover)').matches) toast('Die Schnellhilfe erklärt, was du antippst.'); };
+let qhLast = null;
+document.addEventListener('pointerover', e => {
+  if (!qhOn || !e.target.closest || qhEl.contains(e.target)) return;
+  const tEl = e.target.closest('[title]:not([title=""])'), area = QH.find(q => e.target.closest(q[0])), aEl = area && e.target.closest(area[0]);
+  // Das genauere Ziel gewinnt: ein Knopf mit eigener Erklärung vor dem Bereich, in dem er liegt
+  const useT = tEl && (!aEl || aEl.contains(tEl) || !tEl.contains(aEl));
+  const key = useT ? tEl : aEl; if (!key || key === qhLast) return; qhLast = key;
+  let head, text;
+  if (useT) {
+    const t = tEl.getAttribute('title'), m = t.match(/^([^:.]{2,34}): (.+)$/s);
+    head = m ? m[1] : (tEl.getAttribute('aria-label') || tEl.textContent.trim().replace(/\s+/g, ' ').slice(0, 30) || 'Schnellhilfe'); text = m ? m[2] : t;
+    if (head === text) head = 'Schnellhilfe';
+  } else [, head, text] = area;
+  qhEl.innerHTML = `<b>${esc(head)}</b><p>${esc(text)}</p>`;
+});
+setQh(qhOn);
+
+// ---------- Neues Projekt aus einer Vorlage ----------
+const TEMPLATES = [
+  ['leer', 'Leeres Projekt', 'Ein Drummer und ein Instrument. Der schnellste Start.', 110, [['drums', 'Drummer', 0], ['synth', 'Instrument', 1, { preset: 'epiano' }]]],
+  ['song', 'Songwriter', 'Drummer, Bass, Klavier und zwei Audio-Spuren für Gesang und Gitarre.', 100, [['drums', 'Drummer', 0, { kit: 'acoustic' }, 'Pop'], ['synth', 'Bass', 1, { preset: 'ebass' }], ['synth', 'Klavier', 2, { preset: 'piano' }], ['audio', 'Gesang', 4], ['audio', 'Gitarre', 6]]],
+  ['beat', 'Hip-Hop', 'Boom-Bap-Kit, 808-Bass, Lo-Fi Keys und ein Sampler mit 16 Pads.', 90, [['drums', 'Drums', 0, { kit: 'boombap' }, 'Hip-Hop'], ['synth', '808', 1, { preset: 'b808' }], ['synth', 'Keys', 3, { preset: 'lofikeys' }], ['sampler', 'Sampler', 5]]],
+  ['elektro', 'Elektronisch', '909-Kit mit House-Beat, Synth-Bass, Fläche und Lead.', 124, [['drums', 'Drums', 0, { kit: 'k909' }, 'House'], ['synth', 'Bass', 1, { preset: 'bass' }], ['synth', 'Fläche', 2, { preset: 'pad' }], ['synth', 'Lead', 3, { preset: 'supersaw' }]]],
+  ['keys', 'Klavier', 'Ein Flügel und das Bildschirm-Keyboard: einfach spielen und aufnehmen.', 100, [['synth', 'Klavier', 1, { preset: 'piano' }]]],
+  ['band', 'Aufnahme', 'Vier Audio-Spuren für Mikrofon und Instrumente, Metronom an.', 100, [['audio', 'Gesang', 4], ['audio', 'Gitarre', 6], ['audio', 'Bass', 1], ['audio', 'Audio 4', 2]]],
+  ['demo', 'Demo-Song', 'Ein fertiges Beispiel zum Anhören und Umbauen.']];
+function templateProject(key) {
+  if (key === 'demo') return demoProject();
+  const [, , , bpm, tracks] = TEMPLATES.find(t => t[0] === key), p = emptyProject();
+  p.bpm = bpm;
+  for (const [type, name, col, extra, pat] of tracks) {
+    const t = newTrack(type, { name, color: COLORS[col], ...extra });
+    if (pat) t.regions.push(drumRegion(pat, 0, 16, 1, [4, 4]));
+    p.tracks.push(t);
+  }
+  return p;
+}
+function useTemplate(key) {
+  if (playing) stop();
+  snapshot('vor „Neues Projekt“'); pushUndo();
+  P = templateProject(key); P.name = key === 'demo' ? 'Demo-Song' : 'Mein Song';
+  fileHandle = null; selTrack = P.tracks[0]?.id || null; selRegion = null; playPos = 0;
+  applyMix(); save(); render();
+  if (key === 'keys') setKb(true);
+  toast(key === 'demo' ? 'Demo-Song geladen. Leertaste zum Abspielen.' : 'Neues Projekt. Strg+Z holt das alte zurück.');
+}
+function openNewProject() {
+  openModal(`<div class="mhead"><h2>Neues Projekt</h2><button class="mclose" aria-label="Schließen" title="Schließen (Esc)">×</button></div>
+    <div class="tiles tpl">${TEMPLATES.map(([k, n, d]) => `<button class="tile" data-tpl="${k}"><b>${n}</b><span>${d}</span></button>`).join('')}</div>
+    <div class="mfoot"><span class="note">Dein jetziger Song bleibt als Sicherung im Verlauf (Uhr-Symbol).</span></div>`, { small: true });
+  modal.querySelector('.tiles').onclick = e => { const b = e.target.closest('[data-tpl]'); if (!b) return; closeModal(); useTemplate(b.dataset.tpl); };
+}
 
 window.addEventListener('resize', () => { renderArrange(); renderKb(); });
 P = load();
