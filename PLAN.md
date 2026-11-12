@@ -208,17 +208,41 @@ Bekannte Grenzen:
 - Korrektur: Der LUFS-Messer (seit 1.0) zeigte rund 1,6 LU zu wenig an (Hochpass-Güte der K-Gewichtung falsch angegeben). Jetzt stimmt er mit ffmpeg überein
 - Neue Sounds: **13 Instrumente** aus dem FluidR3-GM-Soundfont (CC-BY 3.0): Jazz-Gitarre, Fingerbass, Slap-Bass 2, Sopransaxofon, Pfeifen, Streicher 2, Synth-Streicher 2, Synth-Bläser 2, Pad Chor, Regen, Soundtrack, Goblins, Melodic Tom
 
+## Version 1.6 (fertig): Taktartwechsel, Drums live einspielen, Bedienung nach GarageBand-Art
+
+- **Taktartwechsel mitten im Song**: Abspielposition auf den Takt setzen und oben in der Anzeige auf die Taktart klicken, oder Rechtsklick ins Lineal. Ab diesem Takt gilt die neue Taktart, im Lineal steht ein Schild (Klick ändert oder entfernt den Wechsel). Lineal, Taktstriche, Metronom, Vorzähler, Positionsanzeige, Einrasten und der Piano Roll folgen dem Wechsel. Alles dahinter bleibt im selben Takt, Drum-Patterns werden am Wechsel geteilt und umgebaut. MIDI-Export und -Import behalten die Wechsel
+- **Drums live einspielen**: Drum-Spur wählen, R drücken, spielen (Tasten A bis #, Bildschirm-Pads, MIDI-Keyboard). Jeder Schlag landet auf dem nächsten Platz im Pattern, mit Anschlagstärke. Im Cycle füllt sich das Pattern Runde für Runde, ohne Cycle wächst es Takt für Takt mit (bis 16 Takte)
+- **Menüs per Rechtsklick, am Touchscreen lange drücken**: auf Regionen (Öffnen, Ausschneiden, Kopieren, Duplizieren, Teilen, Umbenennen, Cycle, Löschen), in leeren Spuren, auf Spurköpfen (Umbenennen, Duplizieren, Farbe, Automation, Einfrieren, Reihenfolge, Löschen), auf Noten im Piano Roll (Duplizieren, Oktave, Länge, Anschlag), auf Feldern im Drum-Pattern (Anschlag, Reihe füllen oder leeren), auf Markern und im Lineal. Am Handy erscheinen die Menüs als Blatt von unten
+- **Leiste neu geordnet** wie in GarageBand: links Bibliothek, Schnellhilfe, Klang & Effekte und Editor, in der Mitte Transport (mit Takt vor/zurück) und Anzeige, daneben Cycle, Vorzähler und Metronom, rechts Mixer, Keyboard und Master-Lautstärke
+- **Editor ein- und ausblenden** (Knopf mit dem Stift, Taste N, Doppelklick auf eine Region). Eingeklappt gehört der ganze Platz dem Arrangement; am Handy startet er eingeklappt
+- **Neue Spur** über das Plus oberhalb der Spuren, mit Auswahl-Kacheln und Erklärung. **Neues Projekt** aus Vorlagen: Leer, Songwriter, Hip-Hop, Elektronisch, Klavier, Aufnahme, Demo-Song
+- **Spurkopf**: großes Symbol in der Spurfarbe (daran ziehen sortiert die Spuren um), Klangname über die ganze Breite, Symbole statt Buchstaben für Einfrieren und Automation. Spuren lassen sich duplizieren und einfärben
+- **Schnellhilfe** (Fragezeichen): erklärt alles, worüber die Maus fährt
+- **Anzeige**: Klick auf die Position wechselt zwischen Takt und Zeit; Projektname anklicken zum Umbenennen
+- **Piano Roll**: zwei Takte hinter dem Regionsende bleiben bemalbar, eine Note dort verlängert die Region
+- Neue Tasten: N (Editor), V (Klang & Effekte), Pfeil links/rechts (Takt zurück/vor), Pfeil hoch/runter (Spur wählen), Pos1 (Anfang)
+- **Handy**: Leiste in zwei schlanken Zeilen (quer in einer), Spurname bleibt lesbar, selten gebrauchte Knöpfe stehen im Menü; Doppeltippen auf eine Region öffnet den Editor
+- Der leere Editor zeigt Startkarten statt einer Textwand; die Anleitung steht in den Einstellungen unter „Anleitung“
+- Behobene Fehler:
+  - Tempo ändern während des Abspielens spielte die Noten der nächsten 0,12 Sekunden doppelt
+  - Marker rasteten beim Ziehen immer auf 4 Viertel, auch in 3/4 oder 6/8
+  - Die Einstellungen zeigten Version 1.5.0 statt der echten Versionsnummer (kommt jetzt beim Bauen aus `package.json`)
+  - „1 Takte“ im Editor; Ziehen im Lineal blieb nach einem abgebrochenen Fingerzeig hängen
+  - Beim MIDI-Export bekamen 808-Bass und Riser unpassende GM-Programme
+- Neue Sounds: **11 Klänge** aus dem FluidR3-GM-Soundfont (CC-BY 3.0): Heller Flügel, Synth-Tom, Becken rückwärts, Meeresrauschen, Vogelzwitschern, Applaus, Hubschrauber, Telefon, Schuss, Atemgeräusch, Gitarren-Griffgeräusch. Neue Familie „Geräusche & Effekte“. Damit hat jedes der 128 General-MIDI-Programme einen eigenen Klang (231 Klänge insgesamt)
+- Grenzen: Ein Drum-Pattern hat genau eine Taktart; aus MIDI-Dateien importierte Drums werden an Taktartwechseln nicht automatisch geteilt. Tempowechsel im Song gibt es noch nicht
+
 ## Grundsatz
 
 Jedes Update bringt auch neue Sounds mit.
 
 ## Fahrplan
 
-1. **Als Nächstes**: Taktartwechsel mitten im Song, Drums live über Pads einspielen, Touch-Gesten im Piano Roll (langes Drücken für Menüs), Feinschliff nach Tests auf dem iPhone
+1. **Als Nächstes**: Tempowechsel im Song (Tempo-Spur), Regionen loopen durch Ziehen an der oberen rechten Ecke, mehrere Regionen gleichzeitig auswählen, Test auf einem echten iPhone (bisher nur im emulierten Browser geprüft)
 
 ## Starten
 
-- Windows: `SoundGroot-1.5.0-win.zip` entpacken, `Sound Groot.exe` starten
+- Windows: `SoundGroot-1.6.0-win.zip` entpacken, `Sound Groot.exe` starten
 - iPhone/Browser: https://erikos47.github.io/Klangwerk/ öffnen, dann „Zum Home-Bildschirm“
 - Entwicklung: `npm install`, dann `npm start`
 - Windows-Build: `npm run dist:win`
