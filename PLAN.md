@@ -232,6 +232,20 @@ Bekannte Grenzen:
 - Neue Sounds: **11 Klänge** aus dem FluidR3-GM-Soundfont (CC-BY 3.0): Heller Flügel, Synth-Tom, Becken rückwärts, Meeresrauschen, Vogelzwitschern, Applaus, Hubschrauber, Telefon, Schuss, Atemgeräusch, Gitarren-Griffgeräusch. Neue Familie „Geräusche & Effekte“. Damit hat jedes der 128 General-MIDI-Programme einen eigenen Klang (231 Klänge insgesamt)
 - Grenzen: Ein Drum-Pattern hat genau eine Taktart; aus MIDI-Dateien importierte Drums werden an Taktartwechseln nicht automatisch geteilt. Tempowechsel im Song gibt es noch nicht
 
+## Version 1.7 (fertig): VST-Plugins laden (auch .dll), 13 eigene Effekte, Sidechain mit einem Klick
+
+- **Ältere VST-Plugins (.dll, „VST2“) laufen jetzt** in der Windows-App, zusätzlich zu VST3. Viele freie Plugins und z. B. MPC Beats gibt es nur in diesem Format. Voraussetzung: 64 Bit. Instrumente und Effekte, eigene Fenster, Zustand im Projekt, Automation, Export und Absturzschutz funktionieren wie bei VST3
+- **Plugins finden**: Gesucht wird zusätzlich in den üblichen VST2-Ordnern (`Programme\VSTPlugins`, `Programme\Steinberg\VSTPlugins`, `Gemeinsame Dateien\VST2` …). Neu: „Plugin-Datei hinzufügen …“ für eine einzelne .vst3 oder .dll, und Plugin-Dateien oder Ordner lassen sich aus dem Explorer in „Klang & Effekte“ ziehen. Ob eine .dll überhaupt ein Plugin ist, liest Sound Groot am Dateikopf ab, ohne sie auszuführen
+- **Klare Meldungen statt „nichts gefunden“**: Fehlt der Plugin-Host in der Installation, sagt die App das und wo er erwartet wird. Nicht ladbare Plugins stehen mit Grund in der Liste (32 Bit, fehlende DLL, Absturz beim Laden). Zeitüberschreitungen (jetzt 60 statt 30 Sekunden) werden beim nächsten Start noch einmal versucht. Im Browser steht ein Hinweis, warum VST dort nicht geht
+- **Der Plugin-Host liegt jetzt im Projekt** (`native/bin/sg-vst3host.exe`), damit jeder Windows-Build ihn enthält. Die neue GitHub-Action „Windows-App“ baut bei jedem Merge auf main den Host mit MSVC, testet ihn (VST3 und VST2) und veröffentlicht die fertige App als Release `v<Version>`
+- **13 eigene Effekt-Plugins** („Sound Groot“ in der Liste „Einfügen“): Limiter, Plattenhall, Chorus, Flanger, Phaser, Tremolo & Auto-Pan, Auto-Wah, Bandsättigung, Bitcrusher, Lo-Fi (Vinyl), Stereo-Breite, Noise Gate, Transienten. Sie laufen ohne Internet in der Windows-App, im Browser und auf dem iPhone, sind automatisierbar und werden mitexportiert
+- **Sidechain mit zwei Klicks**: Rechtsklick auf den Spurkopf → „Sidechain (Pumpen) einrichten …“ → Auslöser-Spur wählen. (Die Sidechain-Kompression selbst gibt es seit 1.0 im Kompressor jeder Spur.)
+- 10 neue Drum-Patterns: Disco, Motown, Techno, Breakbeat, Halftime, Dembow, Samba, Lo-Fi, Two-Step, Soul
+- Korrektur: In der Windows-App rutschte die Master-Lautstärke mit eingeschalteter CPU-Anzeige in eine zweite Zeile
+- Neue Sounds: **9 echte Instrumente** aus der VCSL (CC0): Flügel (Steinway), Konzertharfe, Glasharfe (Weingläser), Sopran- und Tenor-Blockflöte, Mbira (tief), Cembalo französisch und italienisch, kleine Okarina. **3 neue Drum-Kits** (gemeinfrei): TR-808 tief & lang, TR-808 kurz & knackig, LinnDrum 2. Jetzt 240 Klänge und 29 Kits
+- Grenzen: nur 64-Bit-Plugins; Sammel-Plugins mit mehreren Effekten in einer .dll (z. B. Waves-Shell) und Plugins mit Kopierschutz-Dongle können scheitern. VST-Plugins bekommen weiterhin nur den Haupt-Stereo-Eingang (kein eigener Sidechain-Eingang im Plugin)
+- Technik: VST2 wird über eine eigene Beschreibung der Binärschnittstelle angesprochen (`native/vst3host/vst2abi.h`), ohne Code aus dem alten Steinberg-SDK
+
 ## Grundsatz
 
 Jedes Update bringt auch neue Sounds mit.
@@ -242,7 +256,7 @@ Jedes Update bringt auch neue Sounds mit.
 
 ## Starten
 
-- Windows: `SoundGroot-1.6.0-win.zip` entpacken, `Sound Groot.exe` starten
+- Windows: `SoundGroot-1.7.0-win.zip` entpacken (von der Seite „Releases“ auf GitHub), `Sound Groot.exe` starten
 - iPhone/Browser: https://erikos47.github.io/Klangwerk/ öffnen, dann „Zum Home-Bildschirm“
 - Entwicklung: `npm install`, dann `npm start`
 - Windows-Build: `npm run dist:win`

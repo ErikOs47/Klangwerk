@@ -794,6 +794,7 @@ body { -webkit-touch-callout: none; }
 .lcd-sig { cursor: pointer; }
 .bar > .spacer { margin: 0 -5px; }
 .mini.master input[type=range] { width: 72px; }
+@media (max-width: 1620px) { .lcd-cpu:not([hidden]) ~ .lcd-lufs { display: none !important; } }
 @media (max-width: 1700px) { .brand span { display: none; } .views .lbl { display: none; } }
 @media (max-width: 1500px) { .bar .tbtn .lbl { display: none; } .pname { max-width: 96px; } .bar { gap: 8px; } .lcd > div { padding: 0 10px; } .seg .tbtn { min-width: 32px; padding: 0 8px; } .master .meter { display: none; } }
 @media (max-width: 1280px) { .pname, .lcd-lufs { display: none !important; } }
@@ -1213,6 +1214,10 @@ const KITS = {
   // Neu in v1.2 (smpldsnds/drum-machines, gemeinfrei)
   s_drumtraks: { name: 'Drumtraks (echt)', smp: 'drumtraks', fb: 'electro', lbl: { shaker: 'Cabasa', conga: 'Tom tief' } },
   s_808mini: { name: '808 Mini (echt)', smp: '808mini', fb: 'k808', has: 'kick snare clap hat ohat tom crash ride conga', lbl: { clap: 'Snare hell', conga: 'Tom hoch' } },
+  // Neu in v1.7: zwei weitere Stimmungen der TR-808 und die anderen Klänge der LinnDrum
+  s_tr808deep: { name: 'TR-808 tief & lang (echt)', smp: 'tr808deep', fb: 'k808', lbl: { rim: 'Clave', conga: 'Conga tief', tom: 'Tom tief' } },
+  s_tr808tight: { name: 'TR-808 kurz & knackig (echt)', smp: 'tr808tight', fb: 'k808', lbl: { conga: 'Conga hoch', tom: 'Tom hoch' } },
+  s_lm2alt: { name: 'LinnDrum 2 (echt)', smp: 'lm2alt', fb: 'electro', lbl: { shaker: 'Tamburin', rim: 'Stick', conga: 'Conga hoch', tom: 'Tom hoch' } },
   perc:     { name: 'Percussion', kick: { f0: 90, f1: 55, sweep: .05, dec: .5, g: 1 }, snare: { hp: 2000, dec: .1, tone: .7, tf: 330 }, clap: { bp: 1800, dec: .2 }, hat: { hp: 5500, dec: .04 }, tom: { f0: 240, f1: 180, dec: .45 }, rim: { f: 2400, dec: .05 }, cow: { f1: 720, f2: 1080, dec: .25 }, shaker: { bp: 5000, dec: .12, att: .02 }, conga: { f0: 400, f1: 360, dec: .35, slap: .4 } }
 };
 const DRUMS = [
@@ -1239,6 +1244,17 @@ const PATTERNS = {
   'Bossa Nova':{ kick: 'x..xx..xx..xx..x', rim: 'x..x..x...x..x..', shaker: 'xxXxxxXxxxXxxxXx', ride: 'x.x.x.x.x.x.x.x.' },
   'Afrobeat':  { kick: 'X..x..x...X..x..', rim: '....x..x....x...', shaker: 'x.xxx.xxx.xxx.xx', conga: 'x..x.x..x..x.x..', cow: 'x.x.xx.x.x.xx.x.' },
   'Drum & Bass': { kick: 'X.........X.....', snare: '....X.......X..x', hat: 'x.x.x.x.x.x.x.x.', ride: '..x...x...x...x.' },
+  // Neu in v1.7
+  'Disco':     { kick: 'X...X...X...X...', snare: '....X.......X...', hat: 'x.x.x.x.x.x.x.x.', ohat: '..X...X...X...X.', clap: '....x.......x...' },
+  'Motown':    { kick: 'X.....x.X..x....', snare: 'x...X...x...X...', hat: 'x.x.x.x.x.x.x.x.', shaker: 'xxxxxxxxxxxxxxxx' },
+  'Techno':    { kick: 'X...X...X...X...', clap: '....X.......X...', hat: '..x...x...x...x.', ride: 'x.x.x.x.x.x.x.x.', rim: '...x..x....x..x.' },
+  'Breakbeat': { kick: 'X.x.......X.....', snare: '....X..x.x..X...', hat: 'x.x.x.x.x.x.x.x.', ohat: '..........x.....' },
+  'Halftime':  { kick: 'X.....x...x.....', snare: '........X.......', hat: 'x.x.x.x.x.x.xxxx', rim: '....x.......x...' },
+  'Dembow':    { kick: 'X...X...X...X...', snare: '...X..X....X..X.', hat: 'x.x.x.x.x.x.x.x.', shaker: '..x...x...x...x.' },
+  'Samba':     { kick: 'X..xX..xX..xX..x', rim: 'x.x..x.x.x.x..x.', shaker: 'XxxXXxxXXxxXXxxX', conga: '..x.x...x.x.x...', cow: 'x..x..x...x..x..' },
+  'Lo-Fi':     { kick: 'X......x.x......', snare: '....X.......X...', hat: 'x.x.x.x.x.x.x.x.', rim: '..x.......x....x', shaker: '....x.......x...' },
+  'Two-Step':  { kick: 'X.........x.....', snare: '....X.......X...', hat: 'x.xxx.x.x.xxx.x.', ohat: '......x.......x.' },
+  'Soul':      { kick: 'X..x....X.x.....', snare: '....X.......X..x', hat: 'x.x.x.x.x.x.x.x.', cow: '........x.......', clap: '............x...' },
   // Neu in v1.1: andere Taktarten (ein Zeichen = eine 16tel)
   'Walzer':        { sig: [3, 4], kick: 'X...........', snare: '....x...x...', hat: 'x.x.x.x.x.x.' },
   'Ballade 3/4':   { sig: [3, 4], kick: 'X.....x.....', snare: '........X...', hat: 'x.x.x.x.x.x.', ohat: '..........x.' },
@@ -1804,23 +1820,29 @@ const SAMPLED = {
   'gm-fretnoise': ['Gitarren-Griffgeräusch', { r: .2, prev: 60 }], 'gm-breath': ['Atemgeräusch', { hold: 1, a: .03, r: .3, prev: 60 }],
   'gm-seashore': ['Meeresrauschen', { hold: 1, a: .3, r: 1.2, prev: 60 }], 'gm-birds': ['Vogelzwitschern', { hold: 1, a: .02, r: .5, prev: 60 }],
   'gm-telephone': ['Telefon', { hold: 1, a: .005, r: .2, prev: 60 }], 'gm-helicopter': ['Hubschrauber', { hold: 1, a: .2, r: .8, prev: 60 }],
-  'gm-applause': ['Applaus', { hold: 1, a: .15, r: 1, prev: 60 }], 'gm-gunshot': ['Schuss', { r: .5, prev: 60 }]
+  'gm-applause': ['Applaus', { hold: 1, a: .15, r: 1, prev: 60 }], 'gm-gunshot': ['Schuss', { r: .5, prev: 60 }],
+  // Neu in v1.7: weitere Aufnahmen aus der VCSL (CC0)
+  'grand-steinway': ['Flügel (Steinway)', { r: .5, level: .5 }], 'concert-harp': ['Konzertharfe', { r: .9, prev: 64 }],
+  'wine-glasses': ['Glasharfe (Weingläser)', { hold: 1, a: .12, r: 1.2, prev: 72 }],
+  'soprano-recorder': ['Blockflöte (Sopran)', { hold: 1, a: .03, r: .15, prev: 84 }], 'tenor-recorder': ['Blockflöte (Tenor, Vibrato)', { hold: 1, a: .03, r: .15, prev: 67 }],
+  'mbira-low': ['Mbira (tief)', { r: .6, prev: 52 }], 'harpsichord-french': ['Cembalo (französisch)', { r: .3 }], 'harpsichord-italian': ['Cembalo (italienisch)', { r: .3 }],
+  'ocarina-small': ['Okarina (klein)', { hold: 1, a: .03, r: .2, prev: 84 }]
 };
 for (const [id, [name, o]] of Object.entries(SAMPLED))
   PRESETS['s_' + id] = { cat: 'Echte Instrumente', name, smp: id, hold: !!o.hold, prev: o.prev, env: { a: o.a || .002, d: 1, s: 1, r: o.r }, cut: 20000, level: o.level || (o.hold ? .38 : .48) };
 PRESETS.user = { cat: 'Eigene Samples', name: 'Eigenes Sample', smp: 'user', env: { a: .002, d: 1, s: 1, r: .25 }, cut: 20000, level: .9 };
 // Bibliothek: Synth-Klänge und Aufnahmen stehen gemeinsam nach Instrumentenfamilie sortiert (Reihenfolge = Anzeige)
 const FAMS = [
-  ['Klavier & Tasten', 'piano epiano tines honky wurli toypiano lofikeys clav harpsi s_piano s_upright-piano s_grand-kawai s_upright-knight s_fm-piano s_tx-piano s_harpsichord s_harpsichord-lute s_clavisynth s_gm-epiano s_gm-honky s_gm-clavinet s_gm-egrand s_gm-epiano2 s_gm-brightpiano'],
+  ['Klavier & Tasten', 'piano epiano tines honky wurli toypiano lofikeys clav harpsi s_piano s_upright-piano s_grand-kawai s_upright-knight s_fm-piano s_tx-piano s_harpsichord s_harpsichord-lute s_clavisynth s_gm-epiano s_gm-honky s_gm-clavinet s_gm-egrand s_gm-epiano2 s_gm-brightpiano s_grand-steinway s_harpsichord-french s_harpsichord-italian'],
   ['Orgel & Akkordeon', 'organ church accordion s_organ s_harmonium s_renaissance-organ s_pipe-organ s_gm-drawbar s_gm-rockorgan s_gm-accordion s_gm-bandoneon s_gm-percorgan'],
-  ['Gitarre & Zupfinstrumente', 'guitar harp acgtr nylon egtr dist banjo twelve ukulele mandolin s_guitar-acoustic s_guitar-nylon s_guitar-electric s_harp s_folk-harp s_strumstick s_psaltery-pluck s_gm-guitar-clean s_gm-guitar-muted s_gm-overdrive s_gm-distortion s_gm-banjo s_gm-dulcimer s_gm-harmonics s_gm-guitar-jazz'],
+  ['Gitarre & Zupfinstrumente', 'guitar harp acgtr nylon egtr dist banjo twelve ukulele mandolin s_guitar-acoustic s_guitar-nylon s_guitar-electric s_harp s_folk-harp s_strumstick s_psaltery-pluck s_gm-guitar-clean s_gm-guitar-muted s_gm-overdrive s_gm-distortion s_gm-banjo s_gm-dulcimer s_gm-harmonics s_gm-guitar-jazz s_concert-harp'],
   ['Bass', 'bass ebass sub b808 acid reese upright slap wobble fmbass moog s_bass-electric s_contrabass s_gm-acbass s_gm-fretless s_gm-slap s_gm-pickbass s_gm-synthbass s_gm-synthbass2 s_gm-basslead s_gm-fingerbass s_gm-slap2'],
   ['Streicher', 'strings pizz cello violin tutti s_cello s_violin s_psaltery s_gm-viola s_gm-strings s_gm-tremolo s_gm-pizz s_gm-synthstrings s_gm-strings2 s_gm-synthstrings2'],
   ['Blechbläser', 'brass trumpet synbrass s_trumpet s_trombone s_french-horn s_tuba s_gm-brass s_gm-mutedtpt s_gm-synthbrass s_gm-synthbrass2'],
-  ['Holzbläser & Flöten', 'flute sax clarinet oboe harmonica whistle s_flute s_clarinet s_saxophone s_bassoon s_tenor-sax s_saxello s_harmonica s_harmonica-chrom s_ocarina s_recorder s_bass-recorder s_gm-altosax s_gm-barisax s_gm-oboe s_gm-englhorn s_gm-piccolo s_gm-bottle s_gm-sopsax s_gm-whistle'],
-  ['Mallets, Glocken & Pauken', 'celesta marimba vibes musicbox bell glock tubular s_xylophone s_vibraphone s_vibes-soft s_marimba s_balafon s_glockenspiel s_tubular-glock s_tubular-bells s_hand-chimes s_gm-celesta s_gm-musicbox s_gm-crystal s_gm-timpani s_gm-tinkle s_gm-agogo s_gm-woodblock s_gm-taiko s_gm-melodic-tom s_gm-synthdrum'],
+  ['Holzbläser & Flöten', 'flute sax clarinet oboe harmonica whistle s_flute s_clarinet s_saxophone s_bassoon s_tenor-sax s_saxello s_harmonica s_harmonica-chrom s_ocarina s_recorder s_bass-recorder s_gm-altosax s_gm-barisax s_gm-oboe s_gm-englhorn s_gm-piccolo s_gm-bottle s_gm-sopsax s_gm-whistle s_soprano-recorder s_tenor-recorder s_ocarina-small'],
+  ['Mallets, Glocken & Pauken', 'celesta marimba vibes musicbox bell glock tubular s_xylophone s_vibraphone s_vibes-soft s_marimba s_balafon s_glockenspiel s_tubular-glock s_tubular-bells s_hand-chimes s_gm-celesta s_gm-musicbox s_gm-crystal s_gm-timpani s_gm-tinkle s_gm-agogo s_gm-woodblock s_gm-taiko s_gm-melodic-tom s_gm-synthdrum s_wine-glasses'],
   ['Chor & Flächen', 'pad glass choir darkpad shimmer vox s_gm-choir s_gm-oohs s_gm-pad-warm s_gm-pad-halo s_gm-pad-newage s_gm-synthvox s_gm-polysynth s_gm-pad-bowed s_gm-pad-metal s_gm-pad-sweep s_gm-atmosphere s_gm-brightness s_gm-echoes s_gm-scifi s_gm-pad-choir s_gm-rain s_gm-soundtrack s_gm-goblins'],
-  ['Weltmusik', 'sitar koto steeldrum panflute kalimba s_kalimba s_kalimba-tz s_mbira s_nyunga s_dan-tranh s_gm-steeldrum s_gm-sitar s_gm-koto s_gm-shamisen s_gm-shakuhachi s_gm-panflute s_gm-bagpipe s_gm-fiddle s_gm-shanai'],
+  ['Weltmusik', 'sitar koto steeldrum panflute kalimba s_kalimba s_kalimba-tz s_mbira s_nyunga s_dan-tranh s_gm-steeldrum s_gm-sitar s_gm-koto s_gm-shamisen s_gm-shakuhachi s_gm-panflute s_gm-bagpipe s_gm-fiddle s_gm-shanai s_mbira-low'],
   ['Lead & Synth', 'lead square supersaw pluck arp chip hoover sweep riser s_gm-orchhit s_gm-lead-square s_gm-lead-saw s_gm-calliope s_gm-chiff s_gm-charang s_gm-lead-voice s_gm-fifths'],
   ['Geräusche & Effekte', 's_gm-revcymbal s_gm-seashore s_gm-birds s_gm-applause s_gm-helicopter s_gm-telephone s_gm-gunshot s_gm-breath s_gm-fretnoise']
 ];
@@ -7831,7 +7853,7 @@ function closeModal() {
 modal.addEventListener('pointerdown', e => { if (e.target === modal) closeModal(); });
 
 // ================= Einstellungen und Tastenkürzel =================
-const SG_VERSION = '1.6.0'; // wird beim Bauen aus package.json gesetzt (scripts/build.js)
+const SG_VERSION = '1.7.0'; // wird beim Bauen aus package.json gesetzt (scripts/build.js)
 // Alle Tastenkürzel an einer Stelle: [Tasten, was passiert, Hinweis]. Daraus entsteht die Übersicht in den Einstellungen.
 const SHORTCUTS = [
   ['Abspielen und Aufnehmen', [
@@ -7877,7 +7899,8 @@ const HELP_HTML = `<p>Doppelklicke (am Touchscreen: doppelt tippen) in eine leer
       <p>Sampler wie eine MPC: Zieh eine Audiodatei ins Arrangement (rechte Hälfte) oder lege mit „+ Spur“ einen Sampler an. Sound Groot schneidet sie in Chops und legt sie auf 16 Pads. Jeden Chop kannst du stimmen, ein- und ausblenden, umdrehen und filtern. Gespielt wird mit Maus, Tasten oder Pad-Controller; R (auf der Sampler-Spur Umschalt+R) nimmt auf.</p>
       <p>MPC Beats und andere DAWs: MIDI-Dateien (.mid) ziehst du ins Arrangement oder öffnest sie unter Datei. Noten werden zu Regionen, Drums zu Drum-Patterns, der MPC-Swing bleibt erhalten. „Als MIDI“ oben im Editor und „Song als MIDI exportieren“ gehen den Weg zurück. In der Bibliothek zeigt „Ordner“ deine Sample-Ordner; in der Windows-App findet Sound Groot die installierten MPC-Expansions selbst. MPC-Drumkits (.xpm) werden zur Sampler-Spur mit allen Pads, Keygroup-Programme zum spielbaren Instrument.</p>
       <p>Groove: Im Piano Roll zieht „Quantisieren“ die Noten aufs Raster, unter „Groove“ stellst du Stärke, Swing und Humanize ein. Im Drum-Pattern gibt es Swing und Humanize pro Region. Audio-Regionen folgen auf Wunsch dem Songtempo, ohne dass sich die Tonhöhe ändert. Loops dafür liegen in der Bibliothek einer Audio-Spur.</p>
-      <p>Im Mixer (M) fasst du Spuren zu Gruppen zusammen, rechts zeigt der Master die Lautheit in LUFS. Unter Klang & Effekte kann der Kompressor per Sidechain von einer anderen Spur gesteuert werden, etwa damit die Kick den Bass kurz wegdrückt.</p>
+      <p>Im Mixer (M) fasst du Spuren zu Gruppen zusammen, rechts zeigt der Master die Lautheit in LUFS. Sidechain (das „Pumpen“): Rechtsklick auf den Spurkopf → „Sidechain einrichten“ und die Spur wählen, die diese Spur wegdrücken soll, etwa die Drums für den Bass. Wie stark, stellst du unter Klang & Effekte im Kompressor ein.</p>
+      <p>Plugins: Unter Klang & Effekte → „Einfügen“ stehen 13 eigene Effekte (Limiter, Plattenhall, Chorus, Flanger, Phaser, Tremolo, Auto-Wah, Bandsättigung, Bitcrusher, Lo-Fi, Stereo-Breite, Noise Gate, Transienten). In der Windows-App kommen deine VST-Plugins dazu: VST3 (.vst3) und ältere VST-Plugins (.dll), jeweils 64 Bit. Sound Groot sucht in den üblichen Ordnern; liegt ein Plugin woanders, füge den Ordner oder die Datei hinzu oder zieh die Datei aus dem Explorer ins Fenster. Was sich nicht laden lässt, steht mit Grund in der Liste.</p>
       <p>Taktartwechsel: Abspielposition auf den Takt setzen und oben in der Anzeige auf die Taktart klicken (oder Rechtsklick ins Lineal). Ab diesem Takt gilt die neue Taktart, im Lineal steht ein kleines Schild.</p>
       <p>Drums live einspielen: Drum-Spur wählen, R drücken und die Pads spielen (Tasten A bis #, Bildschirm-Pads oder MIDI). Die Schläge landen im Pattern, mit Cycle kommt in jeder Runde etwas dazu.</p>
       <p>Aufnahme (R) startet mit einem Takt Vorzähler. Ist der Cycle an, entsteht pro Durchgang ein eigener Take, den besten wählst du im Editor. Vorzähler und Latenzausgleich stellst du unter Geräte ein.</p>`;
@@ -7931,10 +7954,10 @@ function paintSettings() {
     const v = $('#stVst'); if (v) v.onclick = () => { vstMul = 1; try { localStorage.setItem('klangwerk.vstbuf', 1); } catch (e) { } if (ctx) vstRelat(); paintSettings(); toast('VST-Puffer zurückgesetzt.'); };
   } else {
     pane.innerHTML = `<h3>Sound Groot ${SG_VERSION}</h3>
-      <p>${sgsys || sgvst ? 'Windows-App' : 'Web-App im Browser'}. Eine DAW nach Logic-Vorbild: Spuren, Instrumente, Drum-Patterns, Sampler, Mixer, Plugins (WAM 2.0${sgvst ? ', VST3' : ''}).</p>
+      <p>${sgsys || sgvst ? 'Windows-App' : 'Web-App im Browser'}. Eine DAW nach Logic-Vorbild: Spuren, Instrumente, Drum-Patterns, Sampler, Mixer, Plugins (eigene Effekte, WAM 2.0${sgvst ? ', VST3 und VST2' : ''}).</p>
       <h3>Klänge</h3>
       <p>Instrument-Samples: <a href="https://github.com/nbrosowsky/tonejs-instruments" target="_blank" rel="noopener">tonejs-instruments</a> von Nicholas Brosowsky (CC-BY 3.0). Weitere Instrumente, Percussion und Loops: <a href="https://github.com/sgossner/VCSL" target="_blank" rel="noopener">Versilian Community Sample Library</a> (CC0). General-MIDI-Klänge: FluidR3 GM von Frank Wen über <a href="https://github.com/gleitz/midi-js-soundfonts" target="_blank" rel="noopener">midi-js-soundfonts</a> (CC-BY 3.0).</p>
-      <h3>Technik</h3><p>MP3-Export mit lamejs (LGPL). Plugins der Sequencer Party (MIT). VST3 SDK von Steinberg (MIT).</p>`;
+      <h3>Technik</h3><p>MP3-Export mit lamejs (LGPL). Plugins der Sequencer Party (MIT). VST3 SDK von Steinberg (MIT). VST ist eine Marke der Steinberg Media Technologies GmbH.</p>`;
   }
 }
 $('#bSet').onclick = () => openSettings();
@@ -8115,14 +8138,36 @@ function laneMenu(tr, lane, x) {
     { label: 'Abspielposition hierher', fn: () => jumpTo(Math.round(b * 4) / 4) },
     tr.type !== 'drums' && { label: 'Auf dieser Spur aufnehmen', kbd: 'R', off: !!rec, fn: () => toggleRecord() }];
 }
-function trackMenu(tr) {
-  const i = P.tracks.indexOf(tr);
+// Sidechain mit einem Klick: Der Kompressor dieser Spur hört auf eine andere Spur und drückt den Klang bei jedem Schlag kurz weg
+// (typisch: die Kick macht dem Bass Platz, das „Pumpen“). srcId = null schaltet es wieder aus.
+function setSidechain(tr, srcId) {
+  ensureCtx();
+  const fx = fxOf(tr), src = srcId && findTrack(srcId);
+  if (src && scLoops(tr, src)) { toast(`Das ergäbe eine Schleife: „${tr.name}“ steuert schon „${src.name}“.`); return; }
+  pushUndo();
+  if (src) Object.assign(fx.comp, fx.comp.sc ? {} : COMP_PRESETS['Pumpen (Sidechain)'], { on: true, sc: src.id });
+  else { delete fx.comp.sc; fx.comp.on = false; }
+  applyFx(tr); save(); renderArrange(); if (edOpen) renderEditor();
+  if (src && !ctx.sgReady) loadWorklet().then(() => applyMix(), () => toast('Sidechain braucht AudioWorklet, das dieser Browser nicht hat.'));
+  toast(src ? `Sidechain an: „${src.name}“ drückt „${tr.name}“ bei jedem Schlag kurz weg. Wie stark, stellst du unter Klang & Effekte im Kompressor ein.` : `Sidechain auf „${tr.name}“ ist aus.`, 5000);
+}
+function sidechainMenu(tr, x, y) {
+  const cur = fxOf(tr).comp.on && fxOf(tr).comp.sc, others = P.tracks.filter(t => t !== tr);
+  openMenu(x, y, [
+    { note: 'Wähle die Spur, die diese Spur wegdrücken soll. Meist ist das die Drum-Spur: Bei jedem Kick macht der Bass oder die Fläche kurz Platz.' },
+    ...others.map(t => ({ label: (t.id === cur ? '● ' : '') + t.name, on: t.id === cur, fn: () => setSidechain(tr, t.id) })),
+    !others.length && { note: 'Dafür braucht es eine zweite Spur.' },
+    cur && '-', cur && { label: 'Sidechain ausschalten', danger: true, fn: () => setSidechain(tr, null) }], { title: 'Sidechain für ' + tr.name });
+}
+function trackMenu(tr, x = 0, y = 0) {
+  const i = P.tracks.indexOf(tr), sc = fxOf(tr).comp.on && findTrack(fxOf(tr).comp.sc);
   return [
     { label: 'Umbenennen …', fn: () => askText('Spur umbenennen', tr.name, v => { pushUndo(); tr.name = v.slice(0, 32); save(); render(); }) },
     { label: 'Duplizieren', fn: () => duplicateTrack(tr) },
     { head: 'Farbe' }, { chips: COLORS.map(c => ({ color: c, on: c === tr.color, fn: () => { pushUndo(); tr.color = c; save(); render(); } })) }, '-',
     tr.type !== 'audio' && { label: tr.type === 'sampler' ? 'Pads & Chops' : 'Klang in der Bibliothek wählen', fn: () => { if (tr.type === 'sampler') showEditor('smp'); else { setLib(true); $('#lib .lib-item.on')?.scrollIntoView({ block: 'center' }); } } },
     { label: 'Klang & Effekte', kbd: 'V', fn: () => showEditor('fx') }, { label: 'Kanal-EQ', fn: () => showEditor('eq') },
+    { label: sc ? `Sidechain: von „${sc.name}“ …` : 'Sidechain (Pumpen) einrichten …', fn: () => sidechainMenu(tr, x, y) },
     { label: tr.showAuto ? 'Automation ausblenden' : 'Automation zeigen', fn: () => { tr.showAuto = !tr.showAuto; save(); renderArrange(); } },
     { label: useFrozen(tr) ? 'Auftauen' : 'Einfrieren (spart Rechenleistung)', fn: () => useFrozen(tr) ? unfreezeTrack(tr) : freezeTrack(tr) }, '-',
     { label: 'Nach oben', off: i <= 0, fn: () => moveTrack(tr, i - 1) }, { label: 'Nach unten', off: i >= P.tracks.length - 1, fn: () => moveTrack(tr, i + 1) },
@@ -8140,7 +8185,7 @@ onContext(rowsEl, ({ x, y, target }) => {
     openMenu(x, y, regionMenu(tr, r), { title: r.name });
   } else {
     if (selTrack !== tr.id) { selTrack = tr.id; selRegion = null; markSelection(); renderEditor(); }
-    if (lane) openMenu(x, y, laneMenu(tr, lane, x), { title: tr.name }); else openMenu(x, y, trackMenu(tr), { title: tr.name });
+    if (lane) openMenu(x, y, laneMenu(tr, lane, x), { title: tr.name }); else openMenu(x, y, trackMenu(tr, x, y), { title: tr.name });
   }
 });
 // Taktart-Menü: ab Takt bar (0 = Songanfang)
