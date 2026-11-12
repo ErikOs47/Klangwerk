@@ -606,7 +606,10 @@ input.st-gname:focus { outline: 1px solid var(--accent); border-radius: 4px; }
 .card.plug small.bad { color: #ff7b72; border-color: #ff7b7255; }
 .pl-url summary { cursor: pointer; font-size: 12px; color: var(--muted); }
 .pl-url[open] summary { margin-bottom: 6px; }
-.pl-url > div { display: flex; gap: 6px; }
+.pl-url > div { display: flex; gap: 6px; flex-wrap: wrap; }
+.pl-fail { margin: 4px 0 0; padding-left: 18px; font-size: 11.5px; line-height: 1.5; color: var(--muted); }
+.pl-fail b { color: var(--fg); font-weight: 600; }
+.hint.warn b { color: var(--fg); }
 .pl-url input { flex: 1; min-width: 0; height: 26px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel-2); color: var(--fg); padding: 0 8px; font-size: 12px; }
 .pl-url .hint { margin-top: 6px !important; }
 .pl-own { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
@@ -4952,7 +4955,7 @@ function wamFail(name, url, e) {
   console.warn('Plugin', url, e);
   if (wamFailed.has(url)) return;
   wamFailed.add(url);
-  if (isVst(url)) toast(sgvst ? `VST3-Plugin „${name}“ konnte nicht geladen werden: ${e?.message || e}` : `„${name}“ ist ein VST3-Plugin und läuft nur in der Windows-App.`, 5000);
+  if (isVst(url)) toast(sgvst ? `VST-Plugin „${name}“ konnte nicht geladen werden: ${String(e?.message || e).replace(/^Error invoking remote method '[^']*': (Error: )?/, '')}` : `„${name}“ ist ein VST-Plugin und läuft nur in der Windows-App.`, 6000);
   else toast(`Plugin „${name}“ konnte nicht geladen werden${/^https?:/.test(url) ? '. Ist das Gerät online und der Link richtig?' : '.'}`, 4500);
 }
 // Inserts und Instrument einer Spur an die Liste anpassen. Läuft nacheinander pro Kanalzug, damit sich Änderungen nicht überholen.
@@ -5048,7 +5051,10 @@ const vstById = new Map(), vstLoad = new WeakMap();
 let vstMul = (() => { try { return clamp(+localStorage.getItem('klangwerk.vstbuf') || 1, 1, 4); } catch (e) { return 1; } })();
 const isVst = url => typeof url === 'string' && url.startsWith('vst3:');
 const vstParse = url => { const i = url.indexOf('|'); return { cid: url.slice(5, i), path: url.slice(i + 1) }; };
-const vstList = () => vstPlugs.map(p => ({ url: `vst3:${p.cid}|${p.path}`, name: p.name, vendor: p.vendor, inst: p.inst, vst: true }));
+const vstList = () => vstPlugs.map(p => ({ url: `vst3:${p.cid}|${p.path}`, name: p.name, vendor: p.vendor, inst: p.inst, vst: true, v2: !!p.v2 }));
+// VST3 oder das ältere Format (Version 2, .dll)? Steht am Pfad.
+const vstKind = url => /\.dll$/i.test(url || '') ? 'VST2' : 'VST3';
+let vstState = null; // { ok } oder { ok: false, why: 'os' | 'host', exe }
 const vstNodes = c => [...vstById.values()].filter(i => i.ctx === c);
 // Puffer live: mindestens das Doppelte des Audio-Puffers des Systems plus Reserve, auf 128 gerundet (meist 10–25 ms)
 function vstLat(c) {
@@ -5132,7 +5138,7 @@ function vstModule(c) {
   return p;
 }
 async function vstCreate(c, url, state) {
-  if (!sgvst) throw new Error('VST3 gibt es nur in der Windows-App');
+  if (!sgvst) throw new Error('VST-Plugins gibt es nur in der Windows-App');
   const { cid, path } = vstParse(url), known = vstPlugs.find(p => p.cid === cid && p.path === path) || vstPlugs.find(p => p.cid === cid);
   await vstModule(c);
   // Auf einem anderen PC kann dasselbe Plugin woanders liegen: dann über die Klassen-ID finden
@@ -5229,7 +5235,7 @@ function vstCrash(inst, code) {
     for (const [id, i] of c.plugs) if (i === inst) { c.plugs.set(id, null); c.sig = ''; syncPlugins(t); }
     if (c.inst === inst) c.inst = null;
   }
-  toast(`VST3-Plugin „${inst.vst.name}“ ist abgestürzt${code ? ` (Code ${code})` : ''}. Sound Groot läuft weiter, das Plugin ist überbrückt. Klick auf den Namen startet es neu.`, 6500);
+  toast(`VST-Plugin „${inst.vst.name}“ ist abgestürzt${code ? ` (Code ${code})` : ''}. Sound Groot läuft weiter, das Plugin ist überbrückt. Klick auf den Namen startet es neu.`, 6500);
   if (edTab === 'fx') renderEditor();
 }
 function vstRetry(tr, key) {
@@ -5243,35 +5249,57 @@ async function vstRefresh(force) {
   if (!sgvst || vstBusy) return;
   vstBusy = true; if (edTab === 'fx') renderEditor();
   try { vstInfo = await sgvst.list(force); vstPlugs = vstInfo.plugs; }
-  catch (e) { console.warn(e); toast('VST3-Plugins konnten nicht gesucht werden.'); }
+  catch (e) { console.warn(e); toast('VST-Plugins konnten nicht gesucht werden.'); }
   vstBusy = false; if (edTab === 'fx') renderEditor();
 }
 if (sgvst) {
-  sgvst.available().then(ok => { if (ok) vstRefresh(false); });
+  (sgvst.status ? sgvst.status() : sgvst.available().then(ok => ({ ok }))).then(st => { vstState = st; if (st.ok) vstRefresh(false); else if (edTab === 'fx') renderEditor(); });
   sgvst.onEvent((id, msg) => {
     const inst = vstById.get(id); if (!inst) return;
     if (msg === 'edited' || msg === 'closed') { inst.dirty = true; clearTimeout(vstSaveT); vstSaveT = setTimeout(wamSaveStates, msg === 'closed' ? 0 : 800); }
     if (msg.startsWith('latency ')) { inst.vst.latency = +msg.slice(8) || 0; inst.lat = inst.base + inst.vst.latency; applyPdc(inst.ctx); }
   });
   sgvst.onExit((id, code) => { const inst = vstById.get(id); if (inst) vstCrash(inst, code); });
-  sgvst.onProgress(p => { if (p.total > 1 || p.done === 0) toast(`VST3-Plugins werden gesucht … ${p.done + 1}/${p.total}: ${p.name}`, 4000); });
+  sgvst.onProgress(p => { if (p.total > 1 || p.done === 0) toast(`VST-Plugins werden geprüft … ${p.done + 1}/${p.total}: ${p.name}`, 4000); });
 }
-// Ordner mit .dll, aber ohne .vst3: dort liegen fast immer VST2-Plugins (z. B. MPC Beats, wenn nur VST2 installiert wurde)
-function vstDllHint() {
-  const v2 = (vstInfo?.dirInfo || []).filter(i => !i.vst3 && i.dll);
-  if (!v2.length) return '';
-  return `<p class="hint warn">In ${v2.map(i => `„${esc(i.dir.split(/[\\/]/).pop())}“`).join(', ')} liegen nur .dll-Dateien, also VST2-Plugins. Sound Groot lädt nur VST3 (.vst3). Bei MPC Beats: Installer erneut starten und die VST3-Version mitinstallieren, sie landet dann in „Programme\\Gemeinsame Dateien\\VST3“.</p>`;
+// Plugin-Dateien oder Ordner hinzufügen: über den Dateidialog (paths = null) oder ins Fenster gezogen
+async function vstAddFiles(paths) {
+  if (!sgvst?.addFile) return;
+  vstBusy = true; if (edTab === 'fx') renderEditor();
+  let r = null;
+  try { r = await sgvst.addFile(paths); } catch (e) { console.warn(e); toast('Das Plugin konnte nicht hinzugefügt werden.'); }
+  vstBusy = false;
+  if (r) {
+    const before = new Set(vstPlugs.map(p => p.cid + p.path)), fresh = r.plugs.filter(p => !before.has(p.cid + p.path));
+    vstInfo = r; vstPlugs = r.plugs;
+    const bad = r.failed.filter(f => (paths || []).includes(f.path));
+    toast(fresh.length ? `${fresh.length === 1 ? `„${fresh[0].name}“` : fresh.length + ' Plugins'} hinzugefügt. Du findest ${fresh.length === 1 ? 'es' : 'sie'} jetzt unter „Einfügen“${fresh.some(p => p.inst) ? ' bzw. „Instrument-Plugin“' : ''}.` : bad.length ? `„${bad[0].path.split(/[\\/]/).pop()}“ lässt sich nicht laden: ${bad[0].error}` : 'Kein neues Plugin gefunden. Wähle eine .vst3- oder .dll-Datei (64 Bit) oder den Ordner, in dem sie liegt.', 6000);
+  }
+  if (edTab === 'fx') renderEditor();
+}
+// Plugin-Dateien aus dem Explorer ins Fenster ziehen (nur in der Windows-App)
+if (sgvst?.pathOf) {
+  const isPlug = e => [...(e.dataTransfer?.items || [])].some(i => i.kind === 'file') && edTab === 'fx';
+  window.addEventListener('dragover', e => { if (isPlug(e) && e.target.closest?.('#editor')) e.preventDefault(); });
+  window.addEventListener('drop', e => {
+    if (!isPlug(e) || !e.target.closest?.('#editor')) return;
+    const paths = [...e.dataTransfer.files].map(f => sgvst.pathOf(f)).filter(p => p && (/\.(vst3|dll)$/i.test(p) || !/\.[a-z0-9]{1,5}$/i.test(p)));
+    if (!paths.length) return;
+    e.preventDefault(); e.stopPropagation(); vstAddFiles(paths);
+  }, true);
 }
 function vstCard() {
-  if (!sgvst) return '';
-  const n = vstPlugs.length, failed = vstInfo?.failed || [];
-  return `<details class="pl-url pl-vst"${vstBusy || !n ? ' open' : ''}><summary>VST3-Plugins auf diesem PC${n ? ` <small>${n}</small>` : ''}</summary>
-    <p class="hint">${vstBusy ? 'Suche läuft …' : n ? `${n} gefunden, in den Listen unter „VST3“. Jedes läuft abgeschirmt: stürzt eins ab, läuft Sound Groot weiter.` : 'Noch keine gefunden. Gesucht wird in „Programme\\Gemeinsame Dateien\\VST3“ und in eigenen Ordnern.'}</p>
-    <div><button class="sbtn" data-pl="vscan" ${vstBusy ? 'disabled' : ''}>Neu suchen</button><button class="sbtn" data-pl="vdir" ${vstBusy ? 'disabled' : ''}>Ordner hinzufügen …</button>${vstMul > 1 ? '<button class="sbtn" data-pl="vbuf" title="Nach Aussetzern wurde der Puffer vergrößert. Kleiner heißt weniger Verzögerung, aber eher Knackser.">Puffer verkleinern</button>' : ''}</div>
-    ${ctx && n ? `<p class="hint">Puffer für VST3: ${Math.round(vstLat(ctx) / ctx.sampleRate * 1000)} ms (wird ausgeglichen, alle Spuren bleiben synchron).</p>` : ''}
-    ${vstInfo?.own?.length ? `<p class="hint">Eigene Ordner (hier wird gesucht, das sind keine Plugins):</p><div class="pl-own">${vstInfo.own.map(d => { const i = vstInfo.dirInfo?.find(x => x.dir === d); return `<span title="${esc(d)}">📁 ${esc(d.split(/[\\/]/).pop())}${i ? ` <small>${i.vst3} VST3</small>` : ''}<button data-pl="vrm" data-dir="${esc(d)}" title="Ordner entfernen">×</button></span>`; }).join('')}</div>` : ''}
-    ${vstDllHint()}
-    ${failed.length ? `<p class="hint">Nicht ladbar (${failed.length}): ${failed.map(f => `<span title="${esc(f.error)}">${esc(f.path.split(/[\\/]/).pop())}</span>`).join(', ')}</p>` : ''}</details>`;
+  // Im Browser und auf dem iPhone gibt es kein VST: kurz sagen, warum, statt nichts zu zeigen
+  if (!sgvst) return `<details class="pl-url pl-vst"><summary>VST-Plugins vom PC</summary><p class="hint">VST-Plugins (.vst3 und .dll) laufen nur in der Windows-App von Sound Groot. Ein Browser darf keine Programme vom PC laden. Hier funktionieren die eingebauten Effekte und Web-Plugins (WAM).</p></details>`;
+  if (vstState && !vstState.ok) return `<details class="pl-url pl-vst" open><summary>VST-Plugins auf diesem PC</summary><p class="hint warn">${vstState.why === 'host' ? `In dieser Installation fehlt der Plugin-Host <b>sg-vst3host.exe</b>${vstState.exe ? ` (erwartet unter ${esc(vstState.exe)})` : ''}. Ohne ihn lädt Sound Groot keine VST-Plugins. Lade die fertige Windows-App von der Seite „Releases“ des Projekts auf GitHub (dort ist er enthalten)${vstState.packaged ? '' : ' oder baue ihn mit „npm run build:vst3host“'}.` : 'VST-Plugins gibt es nur unter Windows.'}</p></details>`;
+  const n = vstPlugs.length, n2 = vstPlugs.filter(p => p.v2).length, failed = vstInfo?.failed || [], base = p => esc(p.split(/[\\/]/).pop());
+  const own = [...(vstInfo?.own || []).map(d => [d, 1]), ...(vstInfo?.files || []).map(d => [d, 0])];
+  return `<details class="pl-url pl-vst"${vstBusy || !n || failed.length ? ' open' : ''}><summary>VST-Plugins auf diesem PC${n ? ` <small>${n}</small>` : ''}</summary>
+    <p class="hint">${vstBusy ? 'Suche läuft …' : n ? `${n} gefunden (${n - n2} VST3, ${n2} VST2). Sie stehen oben unter „Einfügen“${vstPlugs.some(p => p.inst) ? ' und, wenn es Instrumente sind, bei einer Instrument-Spur unter „Instrument-Plugin“' : ''}. Jedes läuft abgeschirmt: stürzt eins ab, läuft Sound Groot weiter.` : 'Noch keine gefunden. Sound Groot lädt VST3 (.vst3) und ältere VST-Plugins (.dll), jeweils 64 Bit. Gesucht wird in den üblichen Ordnern („Gemeinsame Dateien\\VST3“, „Programme\\VSTPlugins“ …). Liegen deine Plugins woanders: Ordner oder Datei hinzufügen, oder die Datei aus dem Explorer hierher ziehen.'}</p>
+    <div><button class="sbtn" data-pl="vscan" ${vstBusy ? 'disabled' : ''} title="Alle Ordner neu durchsuchen und jedes Plugin neu prüfen">Neu suchen</button><button class="sbtn" data-pl="vdir" ${vstBusy ? 'disabled' : ''}>Ordner hinzufügen …</button><button class="sbtn" data-pl="vfile" ${vstBusy ? 'disabled' : ''} title="Eine einzelne .vst3- oder .dll-Datei wählen">Plugin-Datei hinzufügen …</button>${vstMul > 1 ? '<button class="sbtn" data-pl="vbuf" title="Nach Aussetzern wurde der Puffer vergrößert. Kleiner heißt weniger Verzögerung, aber eher Knackser.">Puffer verkleinern</button>' : ''}</div>
+    ${ctx && n ? `<p class="hint">Puffer für VST-Plugins: ${Math.round(vstLat(ctx) / ctx.sampleRate * 1000)} ms (wird ausgeglichen, alle Spuren bleiben synchron).</p>` : ''}
+    ${own.length ? `<p class="hint">Eigene Ordner und Dateien (hier wird zusätzlich gesucht):</p><div class="pl-own">${own.map(([d, dir]) => { const i = dir && vstInfo.dirInfo?.find(x => x.dir === d); return `<span title="${esc(d)}">${dir ? '📁' : '🧩'} ${base(d)}${i ? ` <small>${i.missing ? 'nicht gefunden' : i.vst3 + i.vst2 + ' Plugins'}</small>` : ''}<button data-pl="vrm" data-dir="${esc(d)}" title="Aus der Liste entfernen (die Datei bleibt auf dem PC)">×</button></span>`; }).join('')}</div>` : ''}
+    ${failed.length ? `<p class="hint warn">Nicht ladbar (${failed.length}):</p><ul class="pl-fail">${failed.map(f => `<li><b>${base(f.path)}</b> ${esc(f.error)}</li>`).join('')}</ul>` : ''}</details>`;
 }
 
 function addInsert(tr, p) {
@@ -5354,11 +5382,14 @@ function pluginCards(tr) {
   const fx = wamList().filter(p => !p.inst), insts = wamList().filter(p => p.inst), c = chans.get(tr.id);
   const opt = (p, sel) => `<option value="${esc(p.url)}" ${sel ? 'selected' : ''}>${esc(p.name)}${p.vendor ? ' · ' + esc(p.vendor) : ''}</option>`;
   // Web-Plugins und VST3 getrennt gruppieren
-  const opts = (list, sel) => { const w = list.filter(p => !p.vst), v = list.filter(p => p.vst), o = l => l.map(p => opt(p, p.url === sel)).join(''); return v.length ? `<optgroup label="Web-Plugins (WAM)">${o(w)}</optgroup><optgroup label="VST3 auf diesem PC">${o(v)}</optgroup>` : o(w); };
+  const opts = (list, sel) => {
+    const o = l => l.map(p => opt(p, p.url === sel)).join(''), grp = (label, l) => l.length ? `<optgroup label="${label}">${o(l)}</optgroup>` : '';
+    return grp('Sound Groot', list.filter(p => p.sg)) + grp('Web-Plugins (WAM)', list.filter(p => !p.vst && !p.sg)) + grp('VST3 auf diesem PC', list.filter(p => p.vst && !p.v2)) + grp('VST2 auf diesem PC (.dll)', list.filter(p => p.v2));
+  };
   const status = inst => inst === undefined ? '<small>lädt</small>' : inst === null ? '<small class="bad">fehlt</small>' : '';
   const rows = (tr.ins || []).map((s, i, a) => `<div class="pl-row ${s.on ? '' : 'off'}" data-slot="${s.id}">
       <input type="checkbox" data-pl="on" ${s.on ? 'checked' : ''} title="Ein/Aus" aria-label="${esc(s.name)} ein/aus">
-      <button class="pl-name" data-pl="open" title="${isVst(s.url) && c?.plugs.get(s.id) === null ? 'Neu starten' : 'Oberfläche öffnen'}">${esc(s.name)}${isVst(s.url) ? '<small>VST3</small>' : ''}${status(c?.plugs.get(s.id))}</button>
+      <button class="pl-name" data-pl="open" title="${isVst(s.url) && c?.plugs.get(s.id) === null ? 'Neu starten' : 'Oberfläche öffnen'}">${esc(s.name)}${isVst(s.url) ? `<small>${vstKind(s.url)}</small>` : ''}${status(c?.plugs.get(s.id))}</button>
       <button data-pl="up" ${i ? '' : 'disabled'} title="Weiter nach vorn in der Kette">↑</button><button data-pl="down" ${i < a.length - 1 ? '' : 'disabled'} title="Weiter nach hinten">↓</button><button data-pl="del" title="Entfernen">×</button></div>`).join('');
   const own = wamOwn.length ? `<div class="pl-own">${wamOwn.map((p, i) => `<span>${esc(p.name)}${p.inst ? ' <small>Instrument</small>' : ''}<button data-pl="forget" data-i="${i}" title="Aus der Liste entfernen">×</button></span>`).join('')}</div>` : '';
   return `${tr.type === 'synth' ? `<section class="card plug"><h3>Instrument-Plugin</h3>
@@ -5392,6 +5423,7 @@ function pluginEvents(tr, box) {
     if (act === 'vscan') vstRefresh(true);
     if (act === 'vbuf') { vstMul = 1; try { localStorage.removeItem('klangwerk.vstbuf'); } catch (e) { } if (ctx) vstRelat(); renderEditor(); }
     if (act === 'vdir') sgvst.addDir().then(r => { if (r) { vstInfo = r; vstPlugs = r.plugs; renderEditor(); } });
+    if (act === 'vfile') vstAddFiles(null);
     if (act === 'vrm') sgvst.removeDir(b.dataset.dir).then(r => { vstInfo = r; vstPlugs = r.plugs; renderEditor(); });
     if (act === 'del' || act === 'up' || act === 'down') {
       pushUndo();

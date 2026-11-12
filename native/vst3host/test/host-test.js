@@ -1,13 +1,14 @@
 // Prüft sg-vst3host mit den Test-Plugins: Laden, Noten -> Klang, Effekt, Zustand, Parameter-Automation, Editor, Absturzschutz.
-// Aufruf (Linux mit Wine): node native/vst3host/test/host-test.js <host.exe> <testplug.vst3 als Windows-Pfad>
+// Aufruf (Linux mit Wine): node native/vst3host/test/host-test.js <host.exe> <testplug.vst3 als Windows-Pfad> [<testsynth2.dll> <testgain2.dll>]
+// Mit den beiden .dll werden zusätzlich die älteren VST-Plugins (Version 2) geprüft.
 // Unter Windows läuft der Host direkt (so in der GitHub-Action).
 const { spawn } = require('child_process');
-const [exe, plug] = process.argv.slice(2);
+const [exe, plug, synth2, gain2] = process.argv.slice(2);
 const runner = process.platform === 'win32' ? '' : process.env.HOST_RUNNER ?? 'wine';
 const SR = 48000, N = 128;
 
-function start(cid) {
-  const args = [exe, '--run', plug, '--cid', cid, '--sr', String(SR), '--token', 'abc123', '--title', 'Test'];
+function start(cid, file = plug) {
+  const args = [exe, '--run', file, '--cid', cid, '--sr', String(SR), '--token', 'abc123', '--title', 'Test'];
   const p = runner ? spawn(runner, args) : spawn(args[0], args.slice(1));
   let buf = '', waiters = [], events = [];
   p.stdout.on('data', d => {
@@ -106,4 +107,48 @@ const ok = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m); if (!c) process
   // Unbekanntes Plugin
   const b = start('00000000000000000000000000000000');
   ok(JSON.parse(await b.line()).error, 'Fehlende Klasse meldet Fehler');
+  if (synth2 && gain2) await vst2();
 })();
+
+// Ältere VST-Plugins (Version 2, .dll): gleicher Ablauf über dieselbe Schnittstelle
+async function vst2() {
+  const CID = '56535432000000005347325300000000';
+  const s = start(CID, synth2);
+  const ready = JSON.parse(await s.line());
+  ok(ready.ready && ready.inst && ready.outs === 2 && ready.editor && ready.name === 'SG Testsynth2', 'VST2-Synth geladen: ' + JSON.stringify(ready));
+  const c = await ws(ready.port);
+  let r = await c.send(packet(0, 0, null, []));
+  ok(rms(new Float32Array(r, 8)) === 0, 'VST2: Stille ohne Note');
+  r = await c.send(packet(1, 0, null, [[0, 0x90, 69, 127]]));
+  ok(Math.abs(rms(new Float32Array(r, 8, N)) - 0.5 / Math.SQRT2) < 0.05, 'VST2: Note an -> Sinus, RMS ' + rms(new Float32Array(r, 8, N)).toFixed(3));
+  const st = await s.cmd('getstate');
+  ok(/^\d+ ok \S+/.test(st), 'VST2: Zustand gelesen');
+  const blob = Buffer.from(st.split(' ')[2], 'base64'); blob.writeFloatLE(1.0, 9);
+  ok((await s.cmd('setstate ' + blob.toString('base64'))).endsWith('ok'), 'VST2: Zustand gesetzt');
+  r = await c.send(packet(2, 0, null, []));
+  ok(Math.abs(rms(new Float32Array(r, 8, N)) - 1 / Math.SQRT2) < 0.05, 'VST2: Zustand wirkt, RMS ' + rms(new Float32Array(r, 8, N)).toFixed(3));
+  r = await c.send(packet(3, 0, null, [], 1 | 2));
+  ok(rms(new Float32Array(r, 8)) === 0, 'VST2: Alle Noten aus');
+  if (process.env.DISPLAY || process.platform === 'win32') {
+    ok((await s.cmd('edit')).endsWith('ok'), 'VST2: Editor geöffnet');
+    await new Promise(r => setTimeout(r, 800));
+    ok((await s.cmd('close')).endsWith('ok'), 'VST2: Editor geschlossen');
+  }
+  c.close();
+  ok((await s.cmd('quit')).endsWith('ok'), 'VST2: Beendet');
+
+  const g = start('56535432000000005347324700000000', gain2);
+  const gr = JSON.parse(await g.line());
+  ok(gr.ready && !gr.inst && gr.ins === 2, 'VST2-Gain geladen');
+  const gc = await ws(gr.port);
+  const inp = new Float32Array(2 * N).fill(0.25);
+  r = await gc.send(packet(0, 2, inp, []));
+  ok(Math.abs(new Float32Array(r, 8)[5] - 0.25) < 1e-6, 'VST2: Gain 0,5 -> Signal unverändert');
+  const pl = await g.cmd('params'), params = JSON.parse(pl.slice(pl.indexOf('[')));
+  ok(params.length === 1 && params[0].id === 0 && params[0].n === 'Gain' && Math.abs(params[0].v - 0.5) < 1e-6, 'VST2: Parameterliste ' + JSON.stringify(params));
+  r = await gc.send(packet(1, 2, inp, [[0, 1, 0, 1.0]]));
+  ok(Math.abs(new Float32Array(r, 8)[5] - 0.5) < 1e-6, 'VST2: Automation Gain 1,0 -> Signal ×2');
+  gc.close(); g.p.stdin.end();
+  const code = await new Promise(r => g.p.on('exit', r));
+  ok(code === 0, 'VST2: Host endet, wenn Sound Groot weg ist');
+}

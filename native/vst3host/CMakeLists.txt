@@ -1,4 +1,5 @@
-# VST3-Host für Sound Groot (nur Windows). Baut gegen das Steinberg VST3 SDK (MIT-Lizenz seit Version 3.8),
+# VST-Host für Sound Groot (nur Windows): VST3 und ältere VST-Plugins (Version 2, .dll).
+# Baut gegen das Steinberg VST3 SDK (MIT-Lizenz seit Version 3.8),
 # ohne dessen eigene CMake-Skripte: nur die Dateien, die ein Host braucht.
 #   cmake -S native/vst3host -B build/vst3host -DVST3_SDK_DIR=<Pfad zum vst3sdk>
 # scripts/build-vst3host.sh holt das SDK und baut unter Linux mit MinGW, die GitHub-Action unter Windows mit MSVC.
@@ -89,4 +90,13 @@ if(SG_TESTPLUG)
   if(NOT MSVC)
     target_link_options(sg-testplug PRIVATE -static -static-libgcc -static-libstdc++)
   endif()
+  # Dasselbe im älteren VST-Format (Version 2, .dll): ein Effekt und ein Instrument
+  foreach(v gain synth)
+    add_library(sg-testplug2-${v} MODULE test/sg-testplug2.cpp)
+    set_target_properties(sg-testplug2-${v} PROPERTIES PREFIX "" SUFFIX ".dll")
+    if(NOT MSVC)
+      target_link_options(sg-testplug2-${v} PRIVATE -static -static-libgcc -static-libstdc++)
+    endif()
+  endforeach()
+  target_compile_definitions(sg-testplug2-synth PRIVATE SYNTH)
 endif()

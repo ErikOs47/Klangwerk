@@ -1,7 +1,8 @@
-// sg-vst3host: lädt genau ein VST3-Plugin in einem eigenen Prozess, damit ein abstürzendes Plugin Sound Groot nicht mitreißt.
+// sg-vst3host: lädt genau ein VST-Plugin in einem eigenen Prozess, damit ein abstürzendes Plugin Sound Groot nicht mitreißt.
+// Geladen werden VST3 (.vst3) und ältere VST-Plugins der Version 2 (.dll, 64 Bit).
 //
-//   sg-vst3host --scan <Pfad.vst3>                 Listet die Klangklassen des Moduls als JSON-Zeilen und beendet sich.
-//   sg-vst3host --run <Pfad.vst3> --cid <ID> --sr <Abtastrate> --token <Zufallswort> [--title <Fenstertitel>]
+//   sg-vst3host --scan <Pfad.vst3|.dll>            Listet die Klangklassen des Moduls als JSON-Zeilen und beendet sich.
+//   sg-vst3host --run <Pfad.vst3|.dll> --cid <ID> --sr <Abtastrate> --token <Zufallswort> [--title <Fenstertitel>]
 //
 // Im Modus --run gilt:
 //   - Die erste Zeile auf stdout ist {"ready":true,"port":…,…} oder {"error":"…"}.
@@ -37,6 +38,7 @@
 #include "pluginterfaces/vst/ivstmidicontrollers.h"
 #include "pluginterfaces/vst/ivstprocesscontext.h"
 #include "pluginterfaces/vst/ivstevents.h"
+#include "vst2abi.h"
 
 #include <atomic>
 #include <cmath>
@@ -168,9 +170,9 @@ static int32 gMidiMap[16][130];           // MIDI-CC (0–127), Aftertouch (128)
 static int gInCh = 0, gOutCh = 0;
 static std::atomic<int32> gLatency{0};
 static HWND gMsgWnd = nullptr, gEditWnd = nullptr;
-static IPtr<IPlugView> gView;
 static std::string gTitle = "Plugin";
 static std::atomic<bool> gEditNote{false};
+static IPtr<IPlugView> gView;
 static std::mutex gAutoMx;                // Automation aus Sound Groot: letzte Werte, damit die Plugin-Oberfläche mitläuft
 static std::map<ParamID, double> gAutoVals;
 
@@ -192,6 +194,151 @@ class ComponentHandler : public U::ImplementsNonDestroyable<U::Directly<ICompone
   }
 };
 static ComponentHandler gHandler;
+
+// ---------------------------------------------------------------- VST2 (.dll)
+// Ältere Plugins haben statt der VST3-Schnittstellen eine C-Struktur mit Funktionszeigern (siehe vst2abi.h).
+// Alles Übrige (WebSocket, Befehle, Fenster) teilt sich der Host mit VST3.
+enum { WM_CMD = WM_APP + 1, WM_EOF = WM_APP + 2, WM_V2SIZE = WM_APP + 3 };
+static bool isDll(const std::string& p) {
+  if (p.size() < 4) return false;
+  std::string e = p.substr(p.size() - 4); for (auto& c : e) c = (char)tolower((unsigned char)c);
+  return e == ".dll";
+}
+namespace v2 {
+using namespace v2abi;
+static AEffect* fx = nullptr;
+static HMODULE lib = nullptr;
+static TimeInfo ti{};
+static bool wasPlaying = false;
+static std::vector<std::vector<float>> inBuf, outBuf;
+static std::vector<float*> inPtr, outPtr;
+static MidiEvent evStore[kMaxEvents];
+static Events evList;
+
+static intptr_t hostCb(AEffect*, int32_t op, int32_t index, intptr_t value, void* ptr, float) {
+  switch (op) {
+    case amAutomate: gEditNote = true; return 0;
+    case amVersion: return 2400;
+    case amGetTime: return (intptr_t)&ti;
+    case amSizeWindow: if (gMsgWnd) PostMessageW(gMsgWnd, WM_V2SIZE, (WPARAM)index, (LPARAM)value); return 1;
+    case amGetSampleRate: return (intptr_t)gRate;
+    case amGetBlockSize: return kMaxBlock;
+    case amGetAutomationState: return 1;
+    case amGetVendorString: case amGetProductString: if (ptr) strcpy((char*)ptr, "Sound Groot"); return 1;
+    case amGetVendorVersion: return 1700;
+    case amCanDo: {
+      static const char* yes[] = {"sendVstEvents", "sendVstMidiEvent", "sendVstTimeInfo", "receiveVstEvents", "receiveVstMidiEvent", "sizeWindow", "startStopProcess"};
+      if (ptr) for (auto y : yes) if (!strcmp((const char*)ptr, y)) return 1;
+      return 0;
+    }
+    case amGetLanguage: return 2;
+    case amUpdateDisplay: case amEndEdit: gEditNote = true; return 1;
+    case amBeginEdit: return 1;
+  }
+  return 0;
+}
+static intptr_t disp(int32_t op, int32_t index = 0, intptr_t value = 0, void* ptr = nullptr, float opt = 0) { return fx->dispatcher(fx, op, index, value, ptr, opt); }
+// Texte der Plugins kommen in der Windows-Codepage, Sound Groot rechnet mit UTF-8
+static std::string text(int32_t op, int32_t index = 0) {
+  char b[512] = {0}; disp(op, index, 0, b); b[255] = 0;
+  wchar_t w[512]; int n = MultiByteToWideChar(CP_ACP, 0, b, -1, w, 512);
+  std::string s = n > 0 ? narrow(w) : "";
+  while (!s.empty() && (unsigned char)s.back() <= ' ') s.pop_back();
+  size_t a = 0; while (a < s.size() && (unsigned char)s[a] <= ' ') a++;
+  return s.substr(a);
+}
+static std::string load(const std::string& path) {
+  lib = LoadLibraryExW(widen(path).c_str(), nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
+  if (!lib) {
+    DWORD e = GetLastError();
+    if (e == ERROR_BAD_EXE_FORMAT) return "32-Bit-Plugin (Sound Groot lädt nur 64-Bit-Plugins)";
+    return "DLL ließ sich nicht laden (Windows-Fehler " + std::to_string(e) + (e == ERROR_MOD_NOT_FOUND ? ", eine benötigte DLL fehlt)" : ")");
+  }
+  typedef AEffect* (*Entry)(HostCallback);
+  Entry en = (Entry)(void*)GetProcAddress(lib, "VSTPluginMain");
+  if (!en) en = (Entry)(void*)GetProcAddress(lib, "main");
+  if (!en) return "Kein VST-Plugin";
+  fx = en(hostCb);
+  if (!fx || fx->magic != kMagic) { fx = nullptr; return "Kein VST-Plugin"; }
+  return "";
+}
+static std::string plugName(const std::string& path) {
+  std::string n = text(effGetEffectName); if (n.empty()) n = text(effGetProductString);
+  if (n.empty()) { size_t a = path.find_last_of("\\/"), b = path.rfind('.'); n = path.substr(a == std::string::npos ? 0 : a + 1, b - (a == std::string::npos ? 0 : a + 1)); }
+  return n;
+}
+static bool isSynth() { return (fx->flags & fIsSynth) || disp(effGetPlugCategory) == kCategSynth; }
+static int scan(const std::string& path) {
+  std::string err = load(path);
+  if (!err.empty()) { sendLine("{\"error\":" + jsonStr(err) + "}"); return 1; }
+  disp(effOpen);
+  if (disp(effGetPlugCategory) == kCategShell) { sendLine("{\"error\":\"Sammel-Plugin (mehrere Plugins in einer DLL) wird nicht unterstützt\"}"); return 1; }
+  if (!(fx->flags & fCanReplacing) || fx->numOutputs < 1) { sendLine("{\"error\":\"Plugin ist zu alt oder hat keinen Audio-Ausgang\"}"); return 1; }
+  char cid[40]; snprintf(cid, sizeof cid, "5653543200000000%08X00000000", (unsigned)fx->uniqueID);
+  bool inst = isSynth();
+  sendLine(std::string("{\"cid\":\"") + cid + "\",\"name\":" + jsonStr(plugName(path)) + ",\"vendor\":" + jsonStr(text(effGetVendorString)) +
+           ",\"version\":" + jsonStr(std::to_string(fx->version)) + ",\"sub\":" + (inst ? "\"Instrument\"" : "\"Fx\"") + ",\"inst\":" + (inst ? "true" : "false") + ",\"v2\":true}");
+  // Manche Plugins hängen oder stürzen beim Schließen: das Ergebnis steht schon da
+  std::thread([] { Sleep(2000); ExitProcess(0); }).detach();
+  disp(effClose);
+  return 0;
+}
+static std::string setup(const std::string& path) {
+  std::string err = load(path); if (!err.empty()) return err;
+  disp(effOpen);
+  if (!(fx->flags & fCanReplacing)) return "Plugin ist zu alt (kein processReplacing)";
+  if (fx->numOutputs < 1) return "Plugin hat keinen Audio-Ausgang";
+  disp(effSetSampleRate, 0, 0, nullptr, (float)gRate);
+  disp(effSetBlockSize, 0, kMaxBlock);
+  disp(effSetProcessPrecision, 0, 0);
+  inBuf.assign(std::max(0, fx->numInputs), std::vector<float>(kMaxBlock, 0.f));
+  outBuf.assign(fx->numOutputs, std::vector<float>(kMaxBlock, 0.f));
+  for (auto& b : inBuf) inPtr.push_back(b.data());
+  for (auto& b : outBuf) outPtr.push_back(b.data());
+  if (inPtr.empty()) inPtr.push_back(nullptr);
+  disp(effMainsChanged, 0, 1);
+  disp(effStartProcess);
+  gInCh = fx->numInputs; gOutCh = fx->numOutputs; gLatency = fx->initialDelay;
+  return "";
+}
+static bool process(const uint8_t* p, size_t n, std::vector<uint8_t>& out);
+static std::string getState() {
+  std::vector<uint8_t> blob = {'S', 'G', 'V', '2', 0, 0, 0, 0, 0};
+  std::lock_guard<std::mutex> lk(procMx);
+  int32_t prog = (int32_t)disp(effGetProgram); memcpy(blob.data() + 5, &prog, 4);
+  if (fx->flags & fProgramChunks) {
+    void* d = nullptr; intptr_t sz = disp(effGetChunk, 0, 0, &d);
+    blob[4] = 1; if (d && sz > 0) blob.insert(blob.end(), (uint8_t*)d, (uint8_t*)d + sz);
+  } else for (int32_t i = 0; i < fx->numParams; i++) { float v = fx->getParameter(fx, i); blob.insert(blob.end(), (uint8_t*)&v, (uint8_t*)&v + 4); }
+  return b64enc(blob.data(), blob.size());
+}
+static bool setState(const std::string& b64) {
+  auto blob = b64dec(b64);
+  if (blob.size() < 9 || memcmp(blob.data(), "SGV2", 4) != 0) return false;
+  std::lock_guard<std::mutex> lk(procMx);
+  int32_t prog; memcpy(&prog, blob.data() + 5, 4);
+  if (blob[4] == 1) { if (blob.size() > 9) disp(effSetChunk, 0, (intptr_t)(blob.size() - 9), blob.data() + 9); }
+  else {
+    if (prog >= 0 && prog < fx->numPrograms) disp(effSetProgram, 0, prog);
+    for (int32_t i = 0; i < fx->numParams && 9 + (size_t)i * 4 + 4 <= blob.size(); i++) { float v; memcpy(&v, blob.data() + 9 + (size_t)i * 4, 4); fx->setParameter(fx, i, v); }
+  }
+  return true;
+}
+static std::string paramList() {
+  std::string o = "[";
+  for (int32_t i = 0; i < fx->numParams && i < 1024; i++) {
+    float v = fx->getParameter(fx, i);
+    char num[96]; snprintf(num, sizeof num, "%d,\"d\":%.6g,\"v\":%.6g,\"s\":0", i, v, v);
+    std::string nm = text(effGetParamName, i); if (nm.empty()) nm = "Parameter " + std::to_string(i + 1);
+    o += std::string(i ? "," : "") + "{\"id\":" + num + ",\"n\":" + jsonStr(nm) + ",\"u\":" + jsonStr(text(effGetParamLabel, i)) + "}";
+  }
+  return o + "]";
+}
+static void shutdown() {
+  std::lock_guard<std::mutex> lk(procMx);
+  disp(effStopProcess); disp(effMainsChanged, 0, 0); disp(effClose); fx = nullptr;
+}
+}  // namespace v2
 
 static int busChannels(BusDirection dir) {
   if (gComp->getBusCount(kAudio, dir) < 1) return 0;
@@ -259,6 +406,7 @@ static inline double rdf64(const uint8_t* p) { double v; memcpy(&v, p, 8); retur
 //  danach float32-Samples, Kanal für Kanal
 // Antwort: u32 Blocknummer, u16 Frames, u8 Ausgangskanäle, u8 frei, dann float32-Samples Kanal für Kanal.
 static bool processPacket(const uint8_t* p, size_t n, std::vector<uint8_t>& out) {
+  if (v2::fx) return v2::process(p, n, out);
   if (n < 40) return false;
   uint32_t seq = rd32(p); int frames = rd16(p + 4), nIn = p[6], flags = p[7];
   int nEv = rd16(p + 32);
@@ -319,6 +467,53 @@ static bool processPacket(const uint8_t* p, size_t n, std::vector<uint8_t>& out)
   if (gProc->process(gData) != kResultOk) return true;   // Stille zurückgeben
   auto& ob = gData.outputs[0];
   for (int c = 0; c < 2; c++) memcpy(o + (size_t)c * frames, ob.channelBuffers32[std::min(c, outCh - 1)], frames * 4);
+  return true;
+}
+
+// Dasselbe Paket für ein VST2-Plugin: MIDI als Ereignisliste, Automation direkt als Parameterwert
+bool v2::process(const uint8_t* p, size_t n, std::vector<uint8_t>& out) {
+  if (n < 40) return false;
+  uint32_t seq = rd32(p); int frames = rd16(p + 4), nIn = p[6], flags = p[7], nEv = rd16(p + 32);
+  if (frames < 1 || frames > kMaxBlock || n < 40 + (size_t)nEv * 8 + (size_t)nIn * frames * 4) return false;
+  const float* in = (const float*)(p + 40 + nEv * 8);
+  out.assign(8 + (size_t)2 * frames * 4, 0);
+  memcpy(out.data(), &seq, 4); memcpy(out.data() + 4, &frames, 2); out[6] = 2;
+  float* o = (float*)(out.data() + 8);
+
+  std::lock_guard<std::mutex> lk(procMx);
+  if (!fx) return true;
+  int ne = 0;
+  auto midi = [&](int off, int st, int d1, int d2) {
+    if (ne >= kMaxEvents) return;
+    MidiEvent& e = evStore[ne]; memset(&e, 0, sizeof e);
+    e.type = 1; e.byteSize = (int32_t)sizeof(MidiEvent); e.deltaFrames = off;
+    e.midiData[0] = (char)st; e.midiData[1] = (char)d1; e.midiData[2] = (char)d2;
+    evList.events[ne++] = &e;
+  };
+  if (flags & 2) for (int ch = 0; ch < 16; ch++) { midi(0, 0xB0 | ch, 123, 0); midi(0, 0xB0 | ch, 120, 0); }
+  for (int i = 0; i < nEv; i++) {
+    const uint8_t* e = p + 40 + i * 8; int off = std::min<int>(rd16(e), frames - 1);
+    if (e[2] == 0x01) {
+      if (++i >= nEv) break;
+      int32_t id = (int32_t)rd32(e + 8); float v; memcpy(&v, e + 12, 4);
+      if (id >= 0 && id < fx->numParams) fx->setParameter(fx, id, std::min(1.f, std::max(0.f, v)));
+      continue;
+    }
+    midi(off, e[2], e[3], e[4]);
+  }
+  double tempo = rdf64(p + 8), ppq = rdf64(p + 16), num = p[34] ? p[34] : 4, den = p[35] ? p[35] : 4, bar = num * 4 / den;
+  bool playing = flags & 1;
+  ti.samplePos = rdf64(p + 24); ti.sampleRate = gRate; ti.tempo = tempo > 0 ? tempo : 120; ti.ppqPos = ppq;
+  ti.barStartPos = std::floor(ppq / bar) * bar; ti.timeSigNumerator = (int32_t)num; ti.timeSigDenominator = (int32_t)den;
+  ti.flags = tPpqValid | tTempoValid | tBarsValid | tTimeSigValid | (playing ? tPlaying : 0) | (playing != wasPlaying ? tChanged : 0);
+  wasPlaying = playing;
+  if (ne) { evList.numEvents = ne; evList.reserved = 0; disp(effProcessEvents, 0, 0, &evList); }
+  for (size_t c = 0; c < inBuf.size(); c++) {
+    if (nIn > 0 && c < 2) memcpy(inBuf[c].data(), in + (size_t)std::min<int>((int)c, nIn - 1) * frames, frames * 4);
+    else memset(inBuf[c].data(), 0, frames * 4);
+  }
+  fx->processReplacing(fx, inPtr.data(), outPtr.data(), frames);
+  for (int c = 0; c < 2; c++) memcpy(o + (size_t)c * frames, outBuf[std::min<size_t>(c, outBuf.size() - 1)].data(), frames * 4);
   return true;
 }
 
@@ -391,6 +586,7 @@ static void netThread(SOCKET ls, std::string token) {
 
 // ---------------------------------------------------------------- Zustand
 static std::string getState() {
+  if (v2::fx) return v2::getState();
   MemoryStream cs, es;
   { std::lock_guard<std::mutex> lk(procMx); gComp->getState(&cs); }
   if (gCtrl) gCtrl->getState(&es);
@@ -402,6 +598,7 @@ static std::string getState() {
   return b64enc(blob.data(), blob.size());
 }
 static bool setState(const std::string& b64) {
+  if (v2::fx) return v2::setState(b64);
   auto blob = b64dec(b64);
   if (blob.size() < 12 || memcmp(blob.data(), "SGV3", 4) != 0) return false;
   uint32_t n1 = rd32(blob.data() + 4); if (8 + (size_t)n1 + 4 > blob.size()) return false;
@@ -440,6 +637,7 @@ class PlugFrame : public U::ImplementsNonDestroyable<U::Directly<IPlugFrame>> {
 };
 static PlugFrame gFrame;
 static void closeEditor() {
+  if (v2::fx && gEditWnd) { KillTimer(gMsgWnd, 2); v2::disp(v2abi::effEditClose); }
   if (gView) { gView->setFrame(nullptr); gView->removed(); gView = nullptr; }
   if (gEditWnd) { HWND w = gEditWnd; gEditWnd = nullptr; DestroyWindow(w); sendLine("- closed"); }
 }
@@ -459,8 +657,29 @@ static LRESULT CALLBACK editProc(HWND w, UINT m, WPARAM wp, LPARAM lp) {
   }
   return DefWindowProcW(w, m, wp, lp);
 }
+static void fitClient(int w, int h) {
+  RECT wr{0, 0, w, h};
+  AdjustWindowRectEx(&wr, (DWORD)GetWindowLongPtrW(gEditWnd, GWL_STYLE), FALSE, 0);
+  SetWindowPos(gEditWnd, nullptr, 0, 0, wr.right - wr.left, wr.bottom - wr.top, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
+}
+// VST2: Das Plugin zeichnet seine Oberfläche in unser Fenster und will regelmäßig angestoßen werden
+static std::string openEditorV2() {
+  using namespace v2abi;
+  if (!(v2::fx->flags & fHasEditor)) return "Plugin hat keine Oberfläche";
+  gEditWnd = CreateWindowExW(0, L"SGVst3Editor", widen(gTitle).c_str(), kEditStyle, CW_USEDEFAULT, CW_USEDEFAULT, 400, 300, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
+  if (!gEditWnd) return "Fenster konnte nicht erstellt werden";
+  Rect* r = nullptr; v2::disp(effEditGetRect, 0, 0, &r);
+  if (r && r->right > r->left && r->bottom > r->top) fitClient(r->right - r->left, r->bottom - r->top);
+  v2::disp(effEditOpen, 0, 0, gEditWnd);
+  r = nullptr; v2::disp(effEditGetRect, 0, 0, &r);
+  if (r && r->right > r->left && r->bottom > r->top) fitClient(r->right - r->left, r->bottom - r->top);
+  SetTimer(gMsgWnd, 2, 30, nullptr);
+  ShowWindow(gEditWnd, SW_SHOWNORMAL); SetForegroundWindow(gEditWnd);
+  return "";
+}
 static std::string openEditor() {
   if (gEditWnd) { ShowWindow(gEditWnd, SW_RESTORE); SetForegroundWindow(gEditWnd); return ""; }
+  if (v2::fx) return openEditorV2();
   if (!gCtrl) return "Plugin hat keine Oberfläche";
   gView = owned(gCtrl->createView(ViewType::kEditor));
   if (!gView || gView->isPlatformTypeSupported(kPlatformTypeHWND) != kResultTrue) { gView = nullptr; return "Plugin hat keine Oberfläche"; }
@@ -478,6 +697,7 @@ static std::string openEditor() {
 
 // Automatisierbare Parameter für die Automation in Sound Groot (höchstens 1024, ohne versteckte und nur lesbare)
 static std::string paramList() {
+  if (v2::fx) return v2::paramList();
   std::string o = "[";
   if (gCtrl) for (int32 i = 0, n = 0; i < gCtrl->getParameterCount() && n < 1024; i++) {
     ParameterInfo pi{}; if (gCtrl->getParameterInfo(i, pi) != kResultOk) continue;
@@ -489,7 +709,6 @@ static std::string paramList() {
 }
 
 // ---------------------------------------------------------------- Steuerung über stdin
-enum { WM_CMD = WM_APP + 1, WM_EOF = WM_APP + 2 };
 static void handleCommand(const std::string& line) {
   size_t a = line.find(' '); std::string id = line.substr(0, a), rest = a == std::string::npos ? "" : line.substr(a + 1);
   size_t b = rest.find(' '); std::string cmd = rest.substr(0, b), arg = b == std::string::npos ? "" : rest.substr(b + 1);
@@ -505,6 +724,8 @@ static void handleCommand(const std::string& line) {
 static LRESULT CALLBACK msgProc(HWND w, UINT m, WPARAM wp, LPARAM lp) {
   if (m == WM_CMD) { std::string* s = (std::string*)lp; handleCommand(*s); delete s; return 0; }
   if (m == WM_EOF) { PostQuitMessage(0); return 0; }
+  if (m == WM_V2SIZE) { if (gEditWnd && wp > 0 && lp > 0) fitClient((int)wp, (int)lp); return 0; }
+  if (m == WM_TIMER && wp == 2) { if (v2::fx && gEditWnd) v2::disp(v2abi::effEditIdle); return 0; }
   if (m == WM_TIMER) {
     if (gEditNote.exchange(false)) sendLine("- edited");
     // Automatisierte Werte auch in der Plugin-Oberfläche zeigen
@@ -528,7 +749,8 @@ static int run(const std::string& path, const std::string& cid, const std::strin
 
   static HostApplication hostApp;
   PluginContextFactory::instance().setPluginContext(&hostApp);
-  std::string err = setup(path, cid);
+  const bool old = isDll(path);
+  std::string err = old ? v2::setup(path) : setup(path, cid);
   if (!err.empty()) { sendLine("{\"error\":" + jsonStr(err) + "}"); return 1; }
 
   WSADATA wd; WSAStartup(MAKEWORD(2, 2), &wd);
@@ -538,11 +760,15 @@ static int run(const std::string& path, const std::string& cid, const std::strin
   if (bind(ls, (sockaddr*)&sa, sizeof sa) || listen(ls, 2) || getsockname(ls, (sockaddr*)&sa, &sl)) { sendLine("{\"error\":\"Kein lokaler Port frei\"}"); return 1; }
   std::thread(netThread, ls, token).detach();
 
-  bool editor = false;
-  if (gCtrl) if (auto v = owned(gCtrl->createView(ViewType::kEditor))) editor = true;
-  auto& ci = gProvider->getClassInfo();
-  sendLine(std::string("{\"ready\":true,\"port\":") + std::to_string(ntohs(sa.sin_port)) + ",\"name\":" + jsonStr(ci.name()) +
-           ",\"vendor\":" + jsonStr(ci.vendor()) + ",\"inst\":" + (hasWord(ci.subCategoriesString(), "Instrument") ? "true" : "false") +
+  bool editor = false, inst = false; std::string pname, pvendor;
+  if (old) { editor = v2::fx->flags & v2abi::fHasEditor; inst = v2::isSynth(); pname = v2::plugName(path); pvendor = v2::text(v2abi::effGetVendorString); }
+  else {
+    if (gCtrl) if (auto v = owned(gCtrl->createView(ViewType::kEditor))) editor = true;
+    auto& ci = gProvider->getClassInfo();
+    pname = ci.name(); pvendor = ci.vendor(); inst = hasWord(ci.subCategoriesString(), "Instrument");
+  }
+  sendLine(std::string("{\"ready\":true,\"port\":") + std::to_string(ntohs(sa.sin_port)) + ",\"name\":" + jsonStr(pname) +
+           ",\"vendor\":" + jsonStr(pvendor) + ",\"inst\":" + (inst ? "true" : "false") +
            ",\"ins\":" + std::to_string(gInCh) + ",\"outs\":" + std::to_string(gOutCh) + ",\"latency\":" + std::to_string(gLatency.load()) +
            ",\"editor\":" + (editor ? "true" : "false") + "}");
 
@@ -559,12 +785,13 @@ static int run(const std::string& path, const std::string& cid, const std::strin
   MSG m;
   while (GetMessageW(&m, nullptr, 0, 0) > 0) { TranslateMessage(&m); DispatchMessageW(&m); }
   closeEditor();
+  // Manche Plugins hängen beim Aufräumen; der Prozess endet ohnehin, also nicht ewig warten
+  std::thread([] { Sleep(3000); ExitProcess(0); }).detach();
+  if (old) { v2::shutdown(); ExitProcess(0); }
   {
     std::lock_guard<std::mutex> lk(procMx);
     gProc->setProcessing(false); gComp->setActive(false);
   }
-  // Manche Plugins hängen beim Aufräumen; der Prozess endet ohnehin, also nicht ewig warten
-  std::thread([] { Sleep(3000); ExitProcess(0); }).detach();
   gData.unprepare(); gProc = nullptr; gCtrl = nullptr; gComp = nullptr; gProvider = nullptr; gModule.reset();
   ExitProcess(0);
 }
@@ -583,8 +810,8 @@ int wmain(int argc, wchar_t** argv) {
   }
   // Ein abstürzendes Plugin soll keinen Windows-Fehlerdialog öffnen, Sound Groot merkt das Prozessende selbst
   SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX | SEM_NOOPENFILEERRORBOX);
-  if (mode == "--scan" && !path.empty()) return scan(path);
+  if (mode == "--scan" && !path.empty()) return isDll(path) ? v2::scan(path) : scan(path);
   if (mode == "--run" && !path.empty() && !token.empty() && gRate > 0) return run(path, cid, token);
-  fprintf(stderr, "Aufruf: sg-vst3host --scan <Pfad.vst3> | --run <Pfad.vst3> --cid <ID> --sr <Rate> --token <Wort>\n");
+  fprintf(stderr, "Aufruf: sg-vst3host --scan <Pfad.vst3|.dll> | --run <Pfad.vst3|.dll> --cid <ID> --sr <Rate> --token <Wort>\n");
   return 2;
 }
