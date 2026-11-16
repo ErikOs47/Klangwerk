@@ -33,6 +33,6 @@ module.exports = async p => {
     const c = p.locator('.cell').nth(5); if (await c.count()) { const cb = await c.boundingBox(); await tap(cb.x + 10, cb.y + 10); await hold(cb.x + 10, cb.y + 10); console.log('Feld-Menü:', await p.locator('#ctxMenu button').count()); await tap(200, 100); }
     await tap(...await center('.edx')); console.log('Editor wieder zu:', await p.locator('#editor').isHidden());
   });
-  await step('drehen', async () => { await p.setViewportSize({ width: 844, height: 390 }); await p.waitForTimeout(500); const bar = await p.locator('.bar').boundingBox(); console.log('quer: Leiste', Math.round(bar.height), 'px hoch | sichtbare Spuren:', await p.evaluate(() => [...document.querySelectorAll('.track-row[data-track]')].filter(e => { const r = e.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; }).length)); await p.screenshot({ path: 'ph2.png' }); await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(400); });
-  await p.screenshot({ path: 'ph1.png' });
+  await step('drehen', async () => { await p.setViewportSize({ width: 844, height: 390 }); await p.waitForTimeout(500); const bar = await p.locator('.bar').boundingBox(); console.log('quer: Leiste', Math.round(bar.height), 'px hoch | sichtbare Spuren:', await p.evaluate(() => [...document.querySelectorAll('.track-row[data-track]')].filter(e => { const r = e.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; }).length)); await p.screenshot({ path: __dirname + '/out/ph2.png' }); await p.setViewportSize({ width: 390, height: 844 }); await p.waitForTimeout(400); });
+  await p.screenshot({ path: __dirname + '/out/ph1.png' });
 };

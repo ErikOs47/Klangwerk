@@ -1,7 +1,7 @@
 module.exports = async p => {
   await p.locator('.track-row[data-track] .tico').nth(1).click({ button: 'right' }); await p.waitForTimeout(150);
   await p.locator('#ctxMenu button', { hasText: 'Sidechain' }).click(); await p.waitForTimeout(200);
-  await p.screenshot({ path: 'sc1.png' });
+  await p.screenshot({ path: __dirname + '/out/sc1.png' });
   await p.locator('#ctxMenu button', { hasText: 'Drummer' }).click(); await p.waitForTimeout(600);
   console.log('Toast:', await p.textContent('#toast'));
   await p.keyboard.press('v'); await p.waitForTimeout(300);
