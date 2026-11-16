@@ -928,6 +928,8 @@ body { -webkit-touch-callout: none; }
   .marker-row .corner { height: 22px; }
 }
 .lcd b { white-space: nowrap; }
+/* Sperre während Export und Einfrieren: liegt über allem außer Dialogen und Hinweisen */
+#busy { position: fixed; inset: 0; z-index: 89; cursor: progress; background: #0000; }
 /* Handy hochkant: im schmalen Spurkopf bleibt Platz für den Namen; Einfrieren, Automation und Löschen stehen im Menü (lange drücken) */
 @media (max-width: 700px) { .thead .sm.fz, .thead .sm.ab, .thead .sm.x, .thead .eqb { display: none; } .tname { font-size: 12.5px; } }
 </style>
@@ -1061,6 +1063,7 @@ body { -webkit-touch-callout: none; }
 <div id="grvMenu" class="menu devmenu grvmenu" hidden></div>
 <div id="ctxMenu" class="menu ctx" hidden role="menu"></div>
 <div id="qhelp" class="qhelp" hidden><b>Schnellhilfe</b><p>Fahre mit der Maus über einen Knopf, eine Spur oder eine Region.</p></div>
+<div id="busy" hidden aria-hidden="true"></div>
 <div id="toast" hidden></div>
 <div id="banner" hidden><span></span><div class="bn-acts"></div></div>
 <div class="modal" id="modal" hidden></div>
@@ -1367,7 +1370,40 @@ function fitDrum(r, pb = r.pb || 1, sig = sigAt(r.start)) {
   return true;
 }
 // Ältere Projekte: Schläge 1/2 (normal/Akzent) in Anschlag 0,7/1 umrechnen, Tonhöhen und Triolen ergänzen
+// Bringt ein geladenes Projekt in Ordnung: fehlende Felder ergänzen, Unbrauchbares aussortieren. So lassen sich auch ältere
+// und beschädigte Dateien öffnen, ohne dass danach etwas abstürzt. Was gar kein Projekt ist, wird abgelehnt.
 function normProject(p) {
+  if (!p || typeof p !== 'object' || Array.isArray(p)) throw new Error('Kein Projekt');
+  const num = (v, d) => Number.isFinite(+v) && v !== null && v !== '' ? +v : d, arr = v => Array.isArray(v) ? v : [];
+  // Gültige Einträge behalten; ist alles gültig, bleibt dieselbe Liste (andere Stellen halten sie fest)
+  const keep = (v, ok) => { const a = arr(v); return a.every(ok) ? a : a.filter(ok); };
+  p.bpm = clamp(Math.round(num(p.bpm, 96)), 40, 240); p.bars = Math.max(16, Math.round(num(p.bars, 16)));
+  p.master = clamp(num(p.master, .8), 0, 1);
+  if (!Array.isArray(p.sig) || !SIGS.some(g => String(g) === String(p.sig))) delete p.sig;
+  if (!p.loop || typeof p.loop !== 'object' || !(num(p.loop.end, 0) > num(p.loop.start, 0)) || num(p.loop.start, 0) < 0) p.loop = { on: false, start: 0, end: 16 };
+  p.loop = { on: !!p.loop.on, start: +p.loop.start, end: +p.loop.end };
+  p.markers = arr(p.markers).filter(m => m && typeof m === 'object' && Number.isFinite(+m.b) && +m.b >= 0).map(m => ({ ...m, id: m.id || uid(), b: +m.b, name: String(m.name ?? 'Marker').slice(0, 40), color: m.color || '#8fa3c8' }));
+  p.tracks = keep(p.tracks, t => t && typeof t === 'object' && ['synth', 'drums', 'audio', 'sampler'].includes(t.type));
+  p.tracks.forEach((t, i) => {
+    t.id ||= uid(); t.name = String(t.name ?? 'Spur ' + (i + 1)).slice(0, 40); t.color ||= COLORS[i % COLORS.length];
+    t.vol = clamp(num(t.vol, .8), 0, 1); t.pan = clamp(num(t.pan, 0), -1, 1); t.mute = !!t.mute; t.solo = !!t.solo;
+    t.regions = keep(t.regions, r => r && typeof r === 'object' && Number.isFinite(+r.start) && +r.len > 0);
+    for (const r of t.regions) {
+      r.id ||= uid(); r.start = Math.max(0, +r.start); r.len = +r.len; r.name = String(r.name ?? 'Region');
+      if (t.type === 'synth' || t.type === 'sampler') {
+        r.notes = keep(r.notes, n => n && typeof n === 'object' && Number.isFinite(+n.s) && Number.isFinite(+n.p) && +n.l > 0);
+        for (const n of r.notes) { n.s = +n.s; n.p = +n.p; n.l = +n.l; n.v = clamp(num(n.v, .8), .01, 1); }
+      }
+      if (t.type === 'drums') {
+        if (!r.steps || typeof r.steps !== 'object') r.steps = {};
+        if (r.pitch && typeof r.pitch !== 'object') delete r.pitch;
+        if (r.trip && !Array.isArray(r.trip)) delete r.trip;
+        if (r.sig && !(Array.isArray(r.sig) && SIGS.some(g => String(g) === String(r.sig)))) delete r.sig;
+        r.pb = clamp(Math.round(num(r.pb, 1)), 1, 16);
+        for (const k of Object.keys(r.steps)) if (!Array.isArray(r.steps[k])) delete r.steps[k];
+      }
+    }
+  });
   for (const t of p.tracks) if (t.type === 'drums') for (const r of t.regions) {
     if (!r.v2) { for (const d of DRUMS) r.steps[d.id] = (r.steps[d.id] || Array(16).fill(0)).map(v => v === 2 ? 1 : v === 1 ? .7 : v); r.v2 = true; }
     r.pitch ||= zeros(); r.trip ||= [false, false, false, false];
@@ -1379,7 +1415,7 @@ function normProject(p) {
   if (p.sigs) { p.sigs = p.sigs.filter(c => c && c.bar > 0 && Array.isArray(c.sig)).sort((a, b) => a.bar - b.bar); if (!p.sigs.length) delete p.sigs; }
   for (const t of p.tracks) if (t.type === 'synth' && (!PRESETS[t.preset] || (t.preset === 'user' && !t.usmp))) t.preset = 'epiano';
   for (const t of p.tracks) if (t.type === 'sampler') normSampler(t);
-  p.markers ||= []; p.countIn ??= 1;
+  p.countIn = clamp(Math.round(num(p.countIn, 1)), 0, 2);
   return p;
 }
 
@@ -2134,11 +2170,18 @@ function pushUndo() {
   redoStack.length = 0; histPaint();
   return true;
 }
+// Nach einem Projektwechsel (Öffnen, Vorlage, Sicherung, Rückgängig) alles an die Audio-Engine geben: Spuren und Gruppen,
+// Hall und Delay (Größe, Pegel, Delay-Zeit hängt am Tempo) und die Master-Lautstärke. Sonst klingt noch der alte Stand.
+function applyEngine() {
+  if (!ctx) return;
+  applyMix(); applyBuses();
+  if (master) master.gain.setTargetAtTime(P.master ?? .8, ctx.currentTime, .02);
+}
 function restoreState(s) {
   P = normProject(JSON.parse(s)); selNotes.clear();
   if (!findTrack(selTrack)) selTrack = P.tracks[0]?.id || null;
   if (!findRegion(selRegion)[1]) selRegion = null;
-  applyMix(); save(); render();
+  applyEngine(); save(); render();
 }
 function undo() {
   const e = undoStack.pop(); if (!e) { toast('Nichts mehr rückgängig zu machen.'); return; }
@@ -2376,10 +2419,13 @@ async function restoreSnap(t) {
   const s = (await listSnaps()).find(x => x.t === t); if (!s) return;
   if (playing) stop();
   try { await loadBuffers(s.bufs || []); } catch (e) { }
+  let next;
+  try { next = normProject(JSON.parse(s.json)); } catch (e) { console.warn(e); toast('Diese Sicherung ist beschädigt und lässt sich nicht wiederherstellen.', 5000); return; }
   if (snapDirty) await snapshot('vor dem Wiederherstellen');
   pushUndo();
-  P = normProject(JSON.parse(s.json)); fileHandle = null;
-  selTrack = P.tracks[0]?.id || null; selRegion = null; applyMix(); save(); render();
+  if (playing) stop();
+  P = next; fileHandle = null;
+  selTrack = P.tracks[0]?.id || null; selRegion = null; playPos = 0; applyEngine(); save(); render();
   toast(`Sicherung von ${fmtClock(s.t)} wiederhergestellt. Strg+Z geht zurück.`, 4000);
 }
 const fmtClock = t => { const d = new Date(t), same = d.toDateString() === new Date().toDateString(); return (same ? '' : d.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) + ', ') + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }); };
@@ -2410,16 +2456,22 @@ function projectBlob() {
 async function loadProjectFile(file) {
   let data;
   try { data = JSON.parse(await file.text()); } catch (e) { toast(`„${file.name}“ ist keine Sound-Groot-Projektdatei.`); return false; }
-  if (data.format !== 'klangwerk' || !data.project) { toast(`„${file.name}“ ist keine Sound-Groot-Projektdatei.`); return false; }
+  if (data?.format !== 'klangwerk' || !data.project) { toast(`„${file.name}“ ist keine Sound-Groot-Projektdatei.`); return false; }
+  // Erst prüfen und in Ordnung bringen, dann den jetzigen Song ersetzen: eine beschädigte Datei lässt alles, wie es ist
+  let next;
+  try { next = normProject(data.project); } catch (e) { console.warn(e); toast(`„${file.name}“ ist beschädigt und lässt sich nicht öffnen.`, 5000); return false; }
   stop();
+  let lost = 0;
   for (const [id, a] of Object.entries(data.audio || {})) {
-    const ch = a.ch.map(c => { const i16 = new Int16Array(unb64(c).buffer), f = new Float32Array(i16.length); for (let i = 0; i < f.length; i++) f[i] = i16[i] / 0x8000; return f; });
-    addBuffer(makeBuffer(a.sr, ch), id);
+    try {
+      const ch = a.ch.map(c => { const u = unb64(c), i16 = new Int16Array(u.buffer, 0, u.length >> 1), f = new Float32Array(i16.length); for (let i = 0; i < f.length; i++) f[i] = i16[i] / 0x8000; return f; });
+      addBuffer(makeBuffer(a.sr, ch), id);
+    } catch (e) { console.warn('Aufnahme', id, e); lost++; }
   }
   snapshot('vor dem Öffnen'); pushUndo();
-  P = normProject(data.project); P.name = file.name.replace(/(\.soundgroot|\.klangwerk)?(\.json)?$/i, '') || P.name;
-  selTrack = P.tracks[0]?.id || null; selRegion = null; applyMix(); save(); dirty = false; render();
-  toast(`„${P.name}“ geöffnet.`);
+  P = next; P.name = file.name.replace(/(\.soundgroot|\.klangwerk)?(\.json)?$/i, '') || P.name;
+  selTrack = P.tracks[0]?.id || null; selRegion = null; playPos = 0; applyEngine(); save(); dirty = false; render();
+  toast(lost ? `„${P.name}“ geöffnet. ${lost} Aufnahme${lost > 1 ? 'n waren' : ' war'} beschädigt und fehlt.` : `„${P.name}“ geöffnet.`, lost ? 6000 : 2600);
   setTimeout(refreezeMissing, 800);
   return true;
 }
@@ -2488,13 +2540,26 @@ async function openProject() {
 // o.from/o.to: nur dieser Bereich (in Vierteln). o.only: nur diese Spur (Stem, Einfrieren), andere bleiben stumm und werden
 // gar nicht erst berechnet (außer einer Sidechain-Quelle). o.tap: hinter Plugins und Latenzausgleich abgreifen statt am Master (Einfrieren).
 let renderOnly = null, renderNeed = null;
+// Solange offline gerechnet wird (Export, Einfrieren), zeigt die App auf den Rechen-Kontext. In dieser Zeit darf nichts
+// abgespielt oder angeschlagen werden, sonst landet es im Export oder die Wiedergabe gerät durcheinander: Bedienung kurz sperren.
+let rendering = 0;
+function setRendering(on) {
+  rendering = Math.max(0, rendering + (on ? 1 : -1));
+  $('#busy').hidden = !rendering;
+  if (on) { closeMenu(); [...held.keys()].forEach(liveNoteOff); kbAllOff(); }
+}
 async function renderSong(o = {}) {
   let end = 0;
   for (const t of P.tracks) for (const r of t.regions) end = Math.max(end, r.start + r.len);
   if (!end) { toast('Der Song ist noch leer.'); return null; }
   const from = Math.max(0, o.from || 0); end = Math.min(end, o.to ?? end);
   if (end <= from) return null;
+  if (rec) stopRecording();
   if (playing) stop();
+  setRendering(true);
+  try { return await renderSongNow(o, from, end); } finally { setRendering(false); }
+}
+async function renderSongNow(o, from, end) {
   await samplesReady();
   ensureCtx();
   await stretchReady();
@@ -3113,6 +3178,7 @@ function loopStartPos(b) {
   return L.on && L.end > L.start && (b < L.start || b >= L.end) ? L.start : b;
 }
 function play() {
+  if (rendering) { toast('Einen Moment, es wird gerade gerechnet (Export oder Einfrieren).'); return; }
   ensureCtx();
   if (playing) return;
   if (!rec) playPos = loopStartPos(playPos);
@@ -3136,6 +3202,7 @@ function stop() {
   }
   playPos = currentBeat();
   playing = false; clearInterval(timer);
+  if (!session) { updateTransport(); return; }
   const now = ctx.currentTime;
   for (const g of session.gains.values()) { g.gain.setTargetAtTime(0, now, .02); setTimeout(() => g.disconnect(), 600); }
   for (const s of session.sources) { try { s.stop(now + .08); } catch (e) { } }
@@ -3476,7 +3543,7 @@ function endCapture(cap) {
 }
 async function toggleRecord() {
   if (rec) { stopRecording(); return; }
-  if (recPending) return;
+  if (recPending || rendering) return;
   ensureCtx();
   const tr = findTrack(selTrack);
   if (!tr) { toast('Wähle zuerst eine Spur aus.'); return; }
@@ -4358,7 +4425,7 @@ function renderSampler(tr) {
   if (!src) return;
   if (!buf) { $('#smpWave').insertAdjacentHTML('beforeend', '<div class="smp-tip" style="left:10px">Audio wird geladen …</div>'); }
   $('#smpSrc')?.addEventListener('change', e => { tr.src = +e.target.value; smpUI.chop = tr.chops.find(x => x.buf === tr.srcs[tr.src].buf)?.id || null; save(); renderEditor(); libKey = ''; renderLib(); });
-  $('#smpBpm')?.addEventListener('click', () => { setBpm(src.bpm); renderArrange(); renderEditor(); toast(`Tempo auf ${src.bpm} BPM gestellt.`); });
+  $('#smpBpm')?.addEventListener('click', () => { pushUndo(); setBpm(src.bpm); renderArrange(); renderEditor(); toast(`Tempo auf ${src.bpm} BPM gestellt.`); });
   $('#smpAuto').onchange = e => {
     const how = e.target.value; if (!how) return;
     pushUndo(); const n = autoChop(tr, how); e.target.blur();
@@ -6298,7 +6365,8 @@ $('#bStart').onclick = () => { const was = playing; if (was) stop(); playPos = 0
 $('#bRec').onclick = toggleRecord;
 $('#bLoop').onclick = () => { P.loop.on = !P.loop.on; save(); renderArrange(); updateTransport(); };
 $('#bMetro').onclick = () => { P.metro = !P.metro; save(); updateTransport(); };
-$('#bpm').onchange = e => setBpm(+e.target.value);
+// Tempo ändern ist ein eigener Schritt im Verlauf (Strg+Z stellt das alte Tempo wieder her)
+$('#bpm').onchange = e => { const v = clamp(Math.round(+e.target.value) || 96, 40, 240); if (v !== P.bpm) pushUndo(); setBpm(v); e.target.blur(); };
 $('#lcdLu').onclick = () => showEditor('mix');
 $('#masterVol').oninput = e => { P.master = +e.target.value; if (ctx) master.gain.setTargetAtTime(P.master, ctx.currentTime, .02); save(); mixPaint(); };
 $('#bUndo').onclick = undo;
@@ -6429,6 +6497,8 @@ const DRUMKEYS = { KeyA: 0, KeyS: 1, KeyD: 2, KeyF: 3, KeyG: 4, KeyH: 5, KeyJ: 6
 let octave = 60;
 const held = new Map();
 document.addEventListener('keydown', e => {
+  // Während Export oder Einfrieren ruht die Bedienung (der Export-Dialog bleibt bedienbar)
+  if (rendering && modal.hidden) { if (!e.ctrlKey && !e.metaKey) e.preventDefault(); return; }
   if (!tourEl.hidden) { tourKey(e); return; }
   if (!modal.hidden) { if (e.key === 'Escape') { e.preventDefault(); closeModal(); } return; }
   if (!ctxEl.hidden) { if (e.key === 'Escape') { e.preventDefault(); closeMenu(); return; } closeMenu(); }
@@ -6480,7 +6550,7 @@ window.addEventListener('blur', () => { [...held.keys()].forEach(liveNoteOff); }
 // Auf Drum-Spuren steuern die Noten ab C1 (MIDI 36) die Kit-Sounds an (General-MIDI-ähnlich).
 const GM_DRUMS = { 35: 'kick', 36: 'kick', 37: 'rim', 38: 'snare', 39: 'clap', 40: 'snare', 41: 'tom', 42: 'hat', 43: 'tom', 44: 'hat', 45: 'tom', 46: 'ohat', 47: 'tom', 48: 'tom', 49: 'crash', 50: 'tom', 51: 'ride', 52: 'crash', 53: 'ride', 55: 'crash', 56: 'cow', 57: 'crash', 59: 'ride', 54: 'shaker', 58: 'cow', 60: 'conga', 61: 'conga', 62: 'conga', 63: 'conga', 64: 'conga', 65: 'tom', 66: 'tom', 67: 'cow', 68: 'cow', 69: 'shaker', 70: 'shaker', 73: 'shaker', 74: 'shaker', 75: 'rim', 76: 'rim', 77: 'rim', 82: 'shaker' };
 function liveNoteOn(id, midi, vel) {
-  const tr = findTrack(selTrack); if (!tr || held.has(id)) return;
+  const tr = findTrack(selTrack); if (!tr || held.has(id) || rendering) return;
   if (useFrozen(tr)) { if (!liveNoteOn.warned) { liveNoteOn.warned = 1; toast('Die Spur ist eingefroren. Zum Spielen mit der Schneeflocke im Spurkopf auftauen.'); } return; }
   ensureCtx();
   if (tr.type === 'synth') {
@@ -8326,7 +8396,7 @@ function useTemplate(key) {
   snapshot('vor „Neues Projekt“'); pushUndo();
   P = templateProject(key); P.name = key === 'demo' ? 'Demo-Song' : 'Mein Song';
   fileHandle = null; selTrack = P.tracks[0]?.id || null; selRegion = null; playPos = 0;
-  applyMix(); save(); render();
+  applyEngine(); save(); render();
   if (key === 'keys') setKb(true);
   toast(key === 'demo' ? 'Demo-Song geladen. Leertaste zum Abspielen.' : 'Neues Projekt. Strg+Z holt das alte zurück.');
 }
