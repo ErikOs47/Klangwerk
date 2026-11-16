@@ -1,4 +1,4 @@
-# Baut den VST3-Host (native/vst3host) unter Windows mit MSVC und testet ihn mit den Test-Plugins.
+# Baut den Plugin-Host (native/vst3host, VST3 und VST2) unter Windows mit MSVC und testet ihn mit den Test-Plugins.
 # Die fertige sg-vst3host.exe liegt danach als Artefakt am Lauf.
 name: VST3-Host
 on:
@@ -27,7 +27,7 @@ jobs:
           cmake -S native/vst3host -B build -A x64 -DVST3_SDK_DIR="${{ github.workspace }}/native/vst3host/.sdk" -DSG_TESTPLUG=ON
           cmake --build build --config Release
       - name: Testen
-        run: node native/vst3host/test/host-test.js build/Release/sg-vst3host.exe "${{ github.workspace }}\build\Release\sg-testplug.vst3"
+        run: node native/vst3host/test/host-test.js build/Release/sg-vst3host.exe "${{ github.workspace }}\build\Release\sg-testplug.vst3" "${{ github.workspace }}\build\Release\sg-testplug2-synth.dll" "${{ github.workspace }}\build\Release\sg-testplug2-gain.dll"
       - uses: actions/upload-artifact@v4
         with:
           name: sg-vst3host

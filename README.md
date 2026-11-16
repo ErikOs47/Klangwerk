@@ -14,7 +14,9 @@ npm run dist:win   # baut release/SoundGroot-<version>-win.zip
 
 Externe Plugins im Format Web Audio Modules 2.0 (WAM) lassen sich pro Spur als Effekt oder Instrument einsetzen, fünf freie Plugins liegen in `src/plugins/` (`node scripts/fetch-plugins.js`).
 
-In der Windows-App gehen zusätzlich VST3-Plugins (Effekte und Instrumente). Jedes läuft in einem eigenen Prozess, `sg-vst3host.exe` (C++, Steinberg VST3 SDK, MIT-Lizenz), Quelle in `native/vst3host/`:
+Dazu kommen 13 eigene Effekte in `src/plugins/sg/` (Limiter, Hall, Chorus, Phaser …), die ohne Internet überall laufen.
+
+In der Windows-App gehen zusätzlich VST-Plugins (Effekte und Instrumente): VST3 (.vst3) und ältere VST-Plugins (.dll), jeweils 64 Bit. Jedes läuft in einem eigenen Prozess, `sg-vst3host.exe` (C++, Steinberg VST3 SDK, MIT-Lizenz), Quelle in `native/vst3host/`. Eine fertig gebaute Fassung liegt in `native/bin/`, die fertige Windows-App baut die GitHub-Action „Windows-App“ und legt sie unter „Releases“ ab.
 
 ```bash
 npm run build:vst3host   # Linux: baut native/bin/sg-vst3host.exe mit MinGW-w64 (holt das SDK)

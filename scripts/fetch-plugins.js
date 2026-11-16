@@ -14,9 +14,10 @@ function unpack(key) {
   return path.join(dir, 'package');
 }
 const burns = unpack('burns'), sdk = unpack('sdk');
-fs.rmSync(out, { recursive: true, force: true });
+// Nur die geladenen Plugins ersetzen: src/plugins/sg (die eigenen Sound-Groot-Effekte) bleibt unberührt
 for (const id of PLUGINS) {
   const from = path.join(burns, 'dist/plugins', id);
+  fs.rmSync(path.join(out, id), { recursive: true, force: true });
   fs.cpSync(from, path.join(out, id), { recursive: true });
   console.log(id, JSON.parse(fs.readFileSync(path.join(from, 'descriptor.json'), 'utf8')).name);
 }

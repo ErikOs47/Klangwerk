@@ -606,7 +606,10 @@ input.st-gname:focus { outline: 1px solid var(--accent); border-radius: 4px; }
 .card.plug small.bad { color: #ff7b72; border-color: #ff7b7255; }
 .pl-url summary { cursor: pointer; font-size: 12px; color: var(--muted); }
 .pl-url[open] summary { margin-bottom: 6px; }
-.pl-url > div { display: flex; gap: 6px; }
+.pl-url > div { display: flex; gap: 6px; flex-wrap: wrap; }
+.pl-fail { margin: 4px 0 0; padding-left: 18px; font-size: 11.5px; line-height: 1.5; color: var(--muted); }
+.pl-fail b { color: var(--fg); font-weight: 600; }
+.hint.warn b { color: var(--fg); }
 .pl-url input { flex: 1; min-width: 0; height: 26px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel-2); color: var(--fg); padding: 0 8px; font-size: 12px; }
 .pl-url .hint { margin-top: 6px !important; }
 .pl-own { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
@@ -791,6 +794,7 @@ body { -webkit-touch-callout: none; }
 .lcd-sig { cursor: pointer; }
 .bar > .spacer { margin: 0 -5px; }
 .mini.master input[type=range] { width: 72px; }
+@media (max-width: 1620px) { .lcd-cpu:not([hidden]) ~ .lcd-lufs { display: none !important; } }
 @media (max-width: 1700px) { .brand span { display: none; } .views .lbl { display: none; } }
 @media (max-width: 1500px) { .bar .tbtn .lbl { display: none; } .pname { max-width: 96px; } .bar { gap: 8px; } .lcd > div { padding: 0 10px; } .seg .tbtn { min-width: 32px; padding: 0 8px; } .master .meter { display: none; } }
 @media (max-width: 1280px) { .pname, .lcd-lufs { display: none !important; } }
@@ -924,6 +928,8 @@ body { -webkit-touch-callout: none; }
   .marker-row .corner { height: 22px; }
 }
 .lcd b { white-space: nowrap; }
+/* Sperre während Export und Einfrieren: liegt über allem außer Dialogen und Hinweisen */
+#busy { position: fixed; inset: 0; z-index: 89; cursor: progress; background: #0000; }
 /* Handy hochkant: im schmalen Spurkopf bleibt Platz für den Namen; Einfrieren, Automation und Löschen stehen im Menü (lange drücken) */
 @media (max-width: 700px) { .thead .sm.fz, .thead .sm.ab, .thead .sm.x, .thead .eqb { display: none; } .tname { font-size: 12.5px; } }
 </style>
@@ -1057,6 +1063,7 @@ body { -webkit-touch-callout: none; }
 <div id="grvMenu" class="menu devmenu grvmenu" hidden></div>
 <div id="ctxMenu" class="menu ctx" hidden role="menu"></div>
 <div id="qhelp" class="qhelp" hidden><b>Schnellhilfe</b><p>Fahre mit der Maus über einen Knopf, eine Spur oder eine Region.</p></div>
+<div id="busy" hidden aria-hidden="true"></div>
 <div id="toast" hidden></div>
 <div id="banner" hidden><span></span><div class="bn-acts"></div></div>
 <div class="modal" id="modal" hidden></div>
@@ -1210,6 +1217,10 @@ const KITS = {
   // Neu in v1.2 (smpldsnds/drum-machines, gemeinfrei)
   s_drumtraks: { name: 'Drumtraks (echt)', smp: 'drumtraks', fb: 'electro', lbl: { shaker: 'Cabasa', conga: 'Tom tief' } },
   s_808mini: { name: '808 Mini (echt)', smp: '808mini', fb: 'k808', has: 'kick snare clap hat ohat tom crash ride conga', lbl: { clap: 'Snare hell', conga: 'Tom hoch' } },
+  // Neu in v1.7: zwei weitere Stimmungen der TR-808 und die anderen Klänge der LinnDrum
+  s_tr808deep: { name: 'TR-808 tief & lang (echt)', smp: 'tr808deep', fb: 'k808', lbl: { rim: 'Clave', conga: 'Conga tief', tom: 'Tom tief' } },
+  s_tr808tight: { name: 'TR-808 kurz & knackig (echt)', smp: 'tr808tight', fb: 'k808', lbl: { conga: 'Conga hoch', tom: 'Tom hoch' } },
+  s_lm2alt: { name: 'LinnDrum 2 (echt)', smp: 'lm2alt', fb: 'electro', lbl: { shaker: 'Tamburin', rim: 'Stick', conga: 'Conga hoch', tom: 'Tom hoch' } },
   perc:     { name: 'Percussion', kick: { f0: 90, f1: 55, sweep: .05, dec: .5, g: 1 }, snare: { hp: 2000, dec: .1, tone: .7, tf: 330 }, clap: { bp: 1800, dec: .2 }, hat: { hp: 5500, dec: .04 }, tom: { f0: 240, f1: 180, dec: .45 }, rim: { f: 2400, dec: .05 }, cow: { f1: 720, f2: 1080, dec: .25 }, shaker: { bp: 5000, dec: .12, att: .02 }, conga: { f0: 400, f1: 360, dec: .35, slap: .4 } }
 };
 const DRUMS = [
@@ -1236,6 +1247,17 @@ const PATTERNS = {
   'Bossa Nova':{ kick: 'x..xx..xx..xx..x', rim: 'x..x..x...x..x..', shaker: 'xxXxxxXxxxXxxxXx', ride: 'x.x.x.x.x.x.x.x.' },
   'Afrobeat':  { kick: 'X..x..x...X..x..', rim: '....x..x....x...', shaker: 'x.xxx.xxx.xxx.xx', conga: 'x..x.x..x..x.x..', cow: 'x.x.xx.x.x.xx.x.' },
   'Drum & Bass': { kick: 'X.........X.....', snare: '....X.......X..x', hat: 'x.x.x.x.x.x.x.x.', ride: '..x...x...x...x.' },
+  // Neu in v1.7
+  'Disco':     { kick: 'X...X...X...X...', snare: '....X.......X...', hat: 'x.x.x.x.x.x.x.x.', ohat: '..X...X...X...X.', clap: '....x.......x...' },
+  'Motown':    { kick: 'X.....x.X..x....', snare: 'x...X...x...X...', hat: 'x.x.x.x.x.x.x.x.', shaker: 'xxxxxxxxxxxxxxxx' },
+  'Techno':    { kick: 'X...X...X...X...', clap: '....X.......X...', hat: '..x...x...x...x.', ride: 'x.x.x.x.x.x.x.x.', rim: '...x..x....x..x.' },
+  'Breakbeat': { kick: 'X.x.......X.....', snare: '....X..x.x..X...', hat: 'x.x.x.x.x.x.x.x.', ohat: '..........x.....' },
+  'Halftime':  { kick: 'X.....x...x.....', snare: '........X.......', hat: 'x.x.x.x.x.x.xxxx', rim: '....x.......x...' },
+  'Dembow':    { kick: 'X...X...X...X...', snare: '...X..X....X..X.', hat: 'x.x.x.x.x.x.x.x.', shaker: '..x...x...x...x.' },
+  'Samba':     { kick: 'X..xX..xX..xX..x', rim: 'x.x..x.x.x.x..x.', shaker: 'XxxXXxxXXxxXXxxX', conga: '..x.x...x.x.x...', cow: 'x..x..x...x..x..' },
+  'Lo-Fi':     { kick: 'X......x.x......', snare: '....X.......X...', hat: 'x.x.x.x.x.x.x.x.', rim: '..x.......x....x', shaker: '....x.......x...' },
+  'Two-Step':  { kick: 'X.........x.....', snare: '....X.......X...', hat: 'x.xxx.x.x.xxx.x.', ohat: '......x.......x.' },
+  'Soul':      { kick: 'X..x....X.x.....', snare: '....X.......X..x', hat: 'x.x.x.x.x.x.x.x.', cow: '........x.......', clap: '............x...' },
   // Neu in v1.1: andere Taktarten (ein Zeichen = eine 16tel)
   'Walzer':        { sig: [3, 4], kick: 'X...........', snare: '....x...x...', hat: 'x.x.x.x.x.x.' },
   'Ballade 3/4':   { sig: [3, 4], kick: 'X.....x.....', snare: '........X...', hat: 'x.x.x.x.x.x.', ohat: '..........x.' },
@@ -1348,7 +1370,40 @@ function fitDrum(r, pb = r.pb || 1, sig = sigAt(r.start)) {
   return true;
 }
 // Ältere Projekte: Schläge 1/2 (normal/Akzent) in Anschlag 0,7/1 umrechnen, Tonhöhen und Triolen ergänzen
+// Bringt ein geladenes Projekt in Ordnung: fehlende Felder ergänzen, Unbrauchbares aussortieren. So lassen sich auch ältere
+// und beschädigte Dateien öffnen, ohne dass danach etwas abstürzt. Was gar kein Projekt ist, wird abgelehnt.
 function normProject(p) {
+  if (!p || typeof p !== 'object' || Array.isArray(p)) throw new Error('Kein Projekt');
+  const num = (v, d) => Number.isFinite(+v) && v !== null && v !== '' ? +v : d, arr = v => Array.isArray(v) ? v : [];
+  // Gültige Einträge behalten; ist alles gültig, bleibt dieselbe Liste (andere Stellen halten sie fest)
+  const keep = (v, ok) => { const a = arr(v); return a.every(ok) ? a : a.filter(ok); };
+  p.bpm = clamp(Math.round(num(p.bpm, 96)), 40, 240); p.bars = Math.max(16, Math.round(num(p.bars, 16)));
+  p.master = clamp(num(p.master, .8), 0, 1);
+  if (!Array.isArray(p.sig) || !SIGS.some(g => String(g) === String(p.sig))) delete p.sig;
+  if (!p.loop || typeof p.loop !== 'object' || !(num(p.loop.end, 0) > num(p.loop.start, 0)) || num(p.loop.start, 0) < 0) p.loop = { on: false, start: 0, end: 16 };
+  p.loop = { on: !!p.loop.on, start: +p.loop.start, end: +p.loop.end };
+  p.markers = arr(p.markers).filter(m => m && typeof m === 'object' && Number.isFinite(+m.b) && +m.b >= 0).map(m => ({ ...m, id: m.id || uid(), b: +m.b, name: String(m.name ?? 'Marker').slice(0, 40), color: m.color || '#8fa3c8' }));
+  p.tracks = keep(p.tracks, t => t && typeof t === 'object' && ['synth', 'drums', 'audio', 'sampler'].includes(t.type));
+  p.tracks.forEach((t, i) => {
+    t.id ||= uid(); t.name = String(t.name ?? 'Spur ' + (i + 1)).slice(0, 40); t.color ||= COLORS[i % COLORS.length];
+    t.vol = clamp(num(t.vol, .8), 0, 1); t.pan = clamp(num(t.pan, 0), -1, 1); t.mute = !!t.mute; t.solo = !!t.solo;
+    t.regions = keep(t.regions, r => r && typeof r === 'object' && Number.isFinite(+r.start) && +r.len > 0);
+    for (const r of t.regions) {
+      r.id ||= uid(); r.start = Math.max(0, +r.start); r.len = +r.len; r.name = String(r.name ?? 'Region');
+      if (t.type === 'synth' || t.type === 'sampler') {
+        r.notes = keep(r.notes, n => n && typeof n === 'object' && Number.isFinite(+n.s) && Number.isFinite(+n.p) && +n.l > 0);
+        for (const n of r.notes) { n.s = +n.s; n.p = +n.p; n.l = +n.l; n.v = clamp(num(n.v, .8), .01, 1); }
+      }
+      if (t.type === 'drums') {
+        if (!r.steps || typeof r.steps !== 'object') r.steps = {};
+        if (r.pitch && typeof r.pitch !== 'object') delete r.pitch;
+        if (r.trip && !Array.isArray(r.trip)) delete r.trip;
+        if (r.sig && !(Array.isArray(r.sig) && SIGS.some(g => String(g) === String(r.sig)))) delete r.sig;
+        r.pb = clamp(Math.round(num(r.pb, 1)), 1, 16);
+        for (const k of Object.keys(r.steps)) if (!Array.isArray(r.steps[k])) delete r.steps[k];
+      }
+    }
+  });
   for (const t of p.tracks) if (t.type === 'drums') for (const r of t.regions) {
     if (!r.v2) { for (const d of DRUMS) r.steps[d.id] = (r.steps[d.id] || Array(16).fill(0)).map(v => v === 2 ? 1 : v === 1 ? .7 : v); r.v2 = true; }
     r.pitch ||= zeros(); r.trip ||= [false, false, false, false];
@@ -1360,17 +1415,19 @@ function normProject(p) {
   if (p.sigs) { p.sigs = p.sigs.filter(c => c && c.bar > 0 && Array.isArray(c.sig)).sort((a, b) => a.bar - b.bar); if (!p.sigs.length) delete p.sigs; }
   for (const t of p.tracks) if (t.type === 'synth' && (!PRESETS[t.preset] || (t.preset === 'user' && !t.usmp))) t.preset = 'epiano';
   for (const t of p.tracks) if (t.type === 'sampler') normSampler(t);
-  p.markers ||= []; p.countIn ??= 1;
+  p.countIn = clamp(Math.round(num(p.countIn, 1)), 0, 2);
   return p;
 }
 
 let ctx = null, master, analyser, noiseBuf, buses = null;
 const chans = new Map();
 // Baut die Master-Kette im aktuellen ctx auf (live oder beim Export im OfflineAudioContext).
+// Jeder Kompressor schaut 6 ms voraus und verzögert das Signal um so viel (Spur und Summe: zusammen 12 ms)
+const compLat = c => Math.floor(.006 * c.sampleRate);
 function buildMaster(dest) {
   const comp = ctx.createDynamicsCompressor();
   comp.threshold.value = -10; comp.ratio.value = 4;
-  master = ctx.createGain(); master.gain.value = P.master ?? .8;
+  master = ctx.createGain(); master.gain.value = P.master ?? .8; master.sgComp = comp;
   analyser = ctx.createAnalyser(); analyser.fftSize = 1024;
   // Sanfter Begrenzer am Ende, damit Export und Wiedergabe nie hart übersteuern
   const clip = ctx.createWaveShaper(), cc = new Float32Array(2048);
@@ -1700,6 +1757,7 @@ function applyMix(now) {
   }
   applyBuses(now);
   applyAutoStatic(now);
+  applyPdc(ctx);
   for (const [id, c] of chans) if (!P.tracks.find(t => t.id === id)) { c.pan.disconnect(); c.duckNode?.disconnect(); dropPlugins(c); chans.delete(id); }
 }
 const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
@@ -1801,23 +1859,29 @@ const SAMPLED = {
   'gm-fretnoise': ['Gitarren-Griffgeräusch', { r: .2, prev: 60 }], 'gm-breath': ['Atemgeräusch', { hold: 1, a: .03, r: .3, prev: 60 }],
   'gm-seashore': ['Meeresrauschen', { hold: 1, a: .3, r: 1.2, prev: 60 }], 'gm-birds': ['Vogelzwitschern', { hold: 1, a: .02, r: .5, prev: 60 }],
   'gm-telephone': ['Telefon', { hold: 1, a: .005, r: .2, prev: 60 }], 'gm-helicopter': ['Hubschrauber', { hold: 1, a: .2, r: .8, prev: 60 }],
-  'gm-applause': ['Applaus', { hold: 1, a: .15, r: 1, prev: 60 }], 'gm-gunshot': ['Schuss', { r: .5, prev: 60 }]
+  'gm-applause': ['Applaus', { hold: 1, a: .15, r: 1, prev: 60 }], 'gm-gunshot': ['Schuss', { r: .5, prev: 60 }],
+  // Neu in v1.7: weitere Aufnahmen aus der VCSL (CC0)
+  'grand-steinway': ['Flügel (Steinway)', { r: .5, level: .5 }], 'concert-harp': ['Konzertharfe', { r: .9, prev: 64 }],
+  'wine-glasses': ['Glasharfe (Weingläser)', { hold: 1, a: .12, r: 1.2, prev: 72 }],
+  'soprano-recorder': ['Blockflöte (Sopran)', { hold: 1, a: .03, r: .15, prev: 84 }], 'tenor-recorder': ['Blockflöte (Tenor, Vibrato)', { hold: 1, a: .03, r: .15, prev: 67 }],
+  'mbira-low': ['Mbira (tief)', { r: .6, prev: 52 }], 'harpsichord-french': ['Cembalo (französisch)', { r: .3 }], 'harpsichord-italian': ['Cembalo (italienisch)', { r: .3 }],
+  'ocarina-small': ['Okarina (klein)', { hold: 1, a: .03, r: .2, prev: 84 }]
 };
 for (const [id, [name, o]] of Object.entries(SAMPLED))
   PRESETS['s_' + id] = { cat: 'Echte Instrumente', name, smp: id, hold: !!o.hold, prev: o.prev, env: { a: o.a || .002, d: 1, s: 1, r: o.r }, cut: 20000, level: o.level || (o.hold ? .38 : .48) };
 PRESETS.user = { cat: 'Eigene Samples', name: 'Eigenes Sample', smp: 'user', env: { a: .002, d: 1, s: 1, r: .25 }, cut: 20000, level: .9 };
 // Bibliothek: Synth-Klänge und Aufnahmen stehen gemeinsam nach Instrumentenfamilie sortiert (Reihenfolge = Anzeige)
 const FAMS = [
-  ['Klavier & Tasten', 'piano epiano tines honky wurli toypiano lofikeys clav harpsi s_piano s_upright-piano s_grand-kawai s_upright-knight s_fm-piano s_tx-piano s_harpsichord s_harpsichord-lute s_clavisynth s_gm-epiano s_gm-honky s_gm-clavinet s_gm-egrand s_gm-epiano2 s_gm-brightpiano'],
+  ['Klavier & Tasten', 'piano epiano tines honky wurli toypiano lofikeys clav harpsi s_piano s_upright-piano s_grand-kawai s_upright-knight s_fm-piano s_tx-piano s_harpsichord s_harpsichord-lute s_clavisynth s_gm-epiano s_gm-honky s_gm-clavinet s_gm-egrand s_gm-epiano2 s_gm-brightpiano s_grand-steinway s_harpsichord-french s_harpsichord-italian'],
   ['Orgel & Akkordeon', 'organ church accordion s_organ s_harmonium s_renaissance-organ s_pipe-organ s_gm-drawbar s_gm-rockorgan s_gm-accordion s_gm-bandoneon s_gm-percorgan'],
-  ['Gitarre & Zupfinstrumente', 'guitar harp acgtr nylon egtr dist banjo twelve ukulele mandolin s_guitar-acoustic s_guitar-nylon s_guitar-electric s_harp s_folk-harp s_strumstick s_psaltery-pluck s_gm-guitar-clean s_gm-guitar-muted s_gm-overdrive s_gm-distortion s_gm-banjo s_gm-dulcimer s_gm-harmonics s_gm-guitar-jazz'],
+  ['Gitarre & Zupfinstrumente', 'guitar harp acgtr nylon egtr dist banjo twelve ukulele mandolin s_guitar-acoustic s_guitar-nylon s_guitar-electric s_harp s_folk-harp s_strumstick s_psaltery-pluck s_gm-guitar-clean s_gm-guitar-muted s_gm-overdrive s_gm-distortion s_gm-banjo s_gm-dulcimer s_gm-harmonics s_gm-guitar-jazz s_concert-harp'],
   ['Bass', 'bass ebass sub b808 acid reese upright slap wobble fmbass moog s_bass-electric s_contrabass s_gm-acbass s_gm-fretless s_gm-slap s_gm-pickbass s_gm-synthbass s_gm-synthbass2 s_gm-basslead s_gm-fingerbass s_gm-slap2'],
   ['Streicher', 'strings pizz cello violin tutti s_cello s_violin s_psaltery s_gm-viola s_gm-strings s_gm-tremolo s_gm-pizz s_gm-synthstrings s_gm-strings2 s_gm-synthstrings2'],
   ['Blechbläser', 'brass trumpet synbrass s_trumpet s_trombone s_french-horn s_tuba s_gm-brass s_gm-mutedtpt s_gm-synthbrass s_gm-synthbrass2'],
-  ['Holzbläser & Flöten', 'flute sax clarinet oboe harmonica whistle s_flute s_clarinet s_saxophone s_bassoon s_tenor-sax s_saxello s_harmonica s_harmonica-chrom s_ocarina s_recorder s_bass-recorder s_gm-altosax s_gm-barisax s_gm-oboe s_gm-englhorn s_gm-piccolo s_gm-bottle s_gm-sopsax s_gm-whistle'],
-  ['Mallets, Glocken & Pauken', 'celesta marimba vibes musicbox bell glock tubular s_xylophone s_vibraphone s_vibes-soft s_marimba s_balafon s_glockenspiel s_tubular-glock s_tubular-bells s_hand-chimes s_gm-celesta s_gm-musicbox s_gm-crystal s_gm-timpani s_gm-tinkle s_gm-agogo s_gm-woodblock s_gm-taiko s_gm-melodic-tom s_gm-synthdrum'],
+  ['Holzbläser & Flöten', 'flute sax clarinet oboe harmonica whistle s_flute s_clarinet s_saxophone s_bassoon s_tenor-sax s_saxello s_harmonica s_harmonica-chrom s_ocarina s_recorder s_bass-recorder s_gm-altosax s_gm-barisax s_gm-oboe s_gm-englhorn s_gm-piccolo s_gm-bottle s_gm-sopsax s_gm-whistle s_soprano-recorder s_tenor-recorder s_ocarina-small'],
+  ['Mallets, Glocken & Pauken', 'celesta marimba vibes musicbox bell glock tubular s_xylophone s_vibraphone s_vibes-soft s_marimba s_balafon s_glockenspiel s_tubular-glock s_tubular-bells s_hand-chimes s_gm-celesta s_gm-musicbox s_gm-crystal s_gm-timpani s_gm-tinkle s_gm-agogo s_gm-woodblock s_gm-taiko s_gm-melodic-tom s_gm-synthdrum s_wine-glasses'],
   ['Chor & Flächen', 'pad glass choir darkpad shimmer vox s_gm-choir s_gm-oohs s_gm-pad-warm s_gm-pad-halo s_gm-pad-newage s_gm-synthvox s_gm-polysynth s_gm-pad-bowed s_gm-pad-metal s_gm-pad-sweep s_gm-atmosphere s_gm-brightness s_gm-echoes s_gm-scifi s_gm-pad-choir s_gm-rain s_gm-soundtrack s_gm-goblins'],
-  ['Weltmusik', 'sitar koto steeldrum panflute kalimba s_kalimba s_kalimba-tz s_mbira s_nyunga s_dan-tranh s_gm-steeldrum s_gm-sitar s_gm-koto s_gm-shamisen s_gm-shakuhachi s_gm-panflute s_gm-bagpipe s_gm-fiddle s_gm-shanai'],
+  ['Weltmusik', 'sitar koto steeldrum panflute kalimba s_kalimba s_kalimba-tz s_mbira s_nyunga s_dan-tranh s_gm-steeldrum s_gm-sitar s_gm-koto s_gm-shamisen s_gm-shakuhachi s_gm-panflute s_gm-bagpipe s_gm-fiddle s_gm-shanai s_mbira-low'],
   ['Lead & Synth', 'lead square supersaw pluck arp chip hoover sweep riser s_gm-orchhit s_gm-lead-square s_gm-lead-saw s_gm-calliope s_gm-chiff s_gm-charang s_gm-lead-voice s_gm-fifths'],
   ['Geräusche & Effekte', 's_gm-revcymbal s_gm-seashore s_gm-birds s_gm-applause s_gm-helicopter s_gm-telephone s_gm-gunshot s_gm-breath s_gm-fretnoise']
 ];
@@ -2089,7 +2153,7 @@ function playDrum(id, dest, t, vel = 1, kit = 'standard', pitch = 0) {
   }
 }
 function click(t, accent) {
-  t += (ctx.sgPdc || 0) / ctx.sampleRate; // Latenzausgleich der VST-Plugins: Klick bleibt auf dem Schlag
+  t += ((ctx.sgPdc || 0) + compLat(ctx)) / ctx.sampleRate; // Latenzausgleich (Spur-Kompressor, Gruppen, VST-Plugins): Klick bleibt auf dem Schlag
   const o = ctx.createOscillator(), g = ctx.createGain();
   o.type = 'square'; o.frequency.value = accent ? 1600 : 1050;
   o.connect(g).connect(master); decay(g, t, accent ? .22 : .14, .04); o.start(t); o.stop(t + .06);
@@ -2109,11 +2173,18 @@ function pushUndo() {
   redoStack.length = 0; histPaint();
   return true;
 }
+// Nach einem Projektwechsel (Öffnen, Vorlage, Sicherung, Rückgängig) alles an die Audio-Engine geben: Spuren und Gruppen,
+// Hall und Delay (Größe, Pegel, Delay-Zeit hängt am Tempo) und die Master-Lautstärke. Sonst klingt noch der alte Stand.
+function applyEngine() {
+  if (!ctx) return;
+  applyMix(); applyBuses();
+  if (master) master.gain.setTargetAtTime(P.master ?? .8, ctx.currentTime, .02);
+}
 function restoreState(s) {
   P = normProject(JSON.parse(s)); selNotes.clear();
   if (!findTrack(selTrack)) selTrack = P.tracks[0]?.id || null;
   if (!findRegion(selRegion)[1]) selRegion = null;
-  applyMix(); save(); render();
+  applyEngine(); save(); render();
 }
 function undo() {
   const e = undoStack.pop(); if (!e) { toast('Nichts mehr rückgängig zu machen.'); return; }
@@ -2200,7 +2271,7 @@ async function renderHist() {
   const snaps = await listSnaps(); if (seq !== histSeq) return;
   histMenu.innerHTML = `<h4>Bearbeitungsschritte</h4><div class="hlist">${rows.join('')}</div>${from ? `<p class="devnote">… und ${from} ältere Schritte</p>` : ''}
     <div class="hbtns"><button class="sbtn" data-hact="undo" ${n ? '' : 'disabled'}>Rückgängig</button><button class="sbtn" data-hact="redo" ${redoStack.length ? '' : 'disabled'}>Wiederholen</button></div>
-    <h4>Automatische Sicherungen</h4><div class="hlist">${snaps.length ? snaps.map(x => row(`data-snap="${x.t}"`, '', `${x.name} · ${x.tracks} Spuren${x.why ? ' · ' + x.why : ''}`, fmtClock(x.t))).join('') : '<p class="devnote">Noch keine Sicherung.</p>'}</div>
+    <h4>Automatische Sicherungen</h4><div class="hlist">${snaps.length ? snaps.map(x => row(`data-snap="${x.t}"`, '', `${x.name} · ${x.tracks === 1 ? '1 Spur' : x.tracks + ' Spuren'}${x.why ? ' · ' + x.why : ''}`, fmtClock(x.t))).join('') : '<p class="devnote">Noch keine Sicherung.</p>'}</div>
     <button class="sbtn" data-hact="snap">Jetzt sichern</button>
     <p class="devnote">Jede Änderung wird sofort gespeichert. Alle zwei Minuten entsteht zusätzlich eine Sicherung, die auch einen Absturz übersteht. Ein Klick stellt sie wieder her, Strg+Z geht zurück.</p>`;
 }
@@ -2351,10 +2422,13 @@ async function restoreSnap(t) {
   const s = (await listSnaps()).find(x => x.t === t); if (!s) return;
   if (playing) stop();
   try { await loadBuffers(s.bufs || []); } catch (e) { }
+  let next;
+  try { next = normProject(JSON.parse(s.json)); } catch (e) { console.warn(e); toast('Diese Sicherung ist beschädigt und lässt sich nicht wiederherstellen.', 5000); return; }
   if (snapDirty) await snapshot('vor dem Wiederherstellen');
   pushUndo();
-  P = normProject(JSON.parse(s.json)); fileHandle = null;
-  selTrack = P.tracks[0]?.id || null; selRegion = null; applyMix(); save(); render();
+  if (playing) stop();
+  P = next; fileHandle = null;
+  selTrack = P.tracks[0]?.id || null; selRegion = null; playPos = 0; applyEngine(); save(); render();
   toast(`Sicherung von ${fmtClock(s.t)} wiederhergestellt. Strg+Z geht zurück.`, 4000);
 }
 const fmtClock = t => { const d = new Date(t), same = d.toDateString() === new Date().toDateString(); return (same ? '' : d.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) + ', ') + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }); };
@@ -2385,16 +2459,22 @@ function projectBlob() {
 async function loadProjectFile(file) {
   let data;
   try { data = JSON.parse(await file.text()); } catch (e) { toast(`„${file.name}“ ist keine Sound-Groot-Projektdatei.`); return false; }
-  if (data.format !== 'klangwerk' || !data.project) { toast(`„${file.name}“ ist keine Sound-Groot-Projektdatei.`); return false; }
+  if (data?.format !== 'klangwerk' || !data.project) { toast(`„${file.name}“ ist keine Sound-Groot-Projektdatei.`); return false; }
+  // Erst prüfen und in Ordnung bringen, dann den jetzigen Song ersetzen: eine beschädigte Datei lässt alles, wie es ist
+  let next;
+  try { next = normProject(data.project); } catch (e) { console.warn(e); toast(`„${file.name}“ ist beschädigt und lässt sich nicht öffnen.`, 5000); return false; }
   stop();
+  let lost = 0;
   for (const [id, a] of Object.entries(data.audio || {})) {
-    const ch = a.ch.map(c => { const i16 = new Int16Array(unb64(c).buffer), f = new Float32Array(i16.length); for (let i = 0; i < f.length; i++) f[i] = i16[i] / 0x8000; return f; });
-    addBuffer(makeBuffer(a.sr, ch), id);
+    try {
+      const ch = a.ch.map(c => { const u = unb64(c), i16 = new Int16Array(u.buffer, 0, u.length >> 1), f = new Float32Array(i16.length); for (let i = 0; i < f.length; i++) f[i] = i16[i] / 0x8000; return f; });
+      addBuffer(makeBuffer(a.sr, ch), id);
+    } catch (e) { console.warn('Aufnahme', id, e); lost++; }
   }
   snapshot('vor dem Öffnen'); pushUndo();
-  P = normProject(data.project); P.name = file.name.replace(/(\.soundgroot|\.klangwerk)?(\.json)?$/i, '') || P.name;
-  selTrack = P.tracks[0]?.id || null; selRegion = null; applyMix(); save(); dirty = false; render();
-  toast(`„${P.name}“ geöffnet.`);
+  P = next; P.name = file.name.replace(/(\.soundgroot|\.klangwerk)?(\.json)?$/i, '') || P.name;
+  selTrack = P.tracks[0]?.id || null; selRegion = null; playPos = 0; applyEngine(); save(); dirty = false; render();
+  toast(lost ? `„${P.name}“ geöffnet. ${lost} Aufnahme${lost > 1 ? 'n waren' : ' war'} beschädigt und fehlt.` : `„${P.name}“ geöffnet.`, lost ? 6000 : 2600);
   setTimeout(refreezeMissing, 800);
   return true;
 }
@@ -2463,13 +2543,26 @@ async function openProject() {
 // o.from/o.to: nur dieser Bereich (in Vierteln). o.only: nur diese Spur (Stem, Einfrieren), andere bleiben stumm und werden
 // gar nicht erst berechnet (außer einer Sidechain-Quelle). o.tap: hinter Plugins und Latenzausgleich abgreifen statt am Master (Einfrieren).
 let renderOnly = null, renderNeed = null;
+// Solange offline gerechnet wird (Export, Einfrieren), zeigt die App auf den Rechen-Kontext. In dieser Zeit darf nichts
+// abgespielt oder angeschlagen werden, sonst landet es im Export oder die Wiedergabe gerät durcheinander: Bedienung kurz sperren.
+let rendering = 0;
+function setRendering(on) {
+  rendering = Math.max(0, rendering + (on ? 1 : -1));
+  $('#busy').hidden = !rendering;
+  if (on) { closeMenu(); [...held.keys()].forEach(liveNoteOff); kbAllOff(); }
+}
 async function renderSong(o = {}) {
   let end = 0;
   for (const t of P.tracks) for (const r of t.regions) end = Math.max(end, r.start + r.len);
   if (!end) { toast('Der Song ist noch leer.'); return null; }
   const from = Math.max(0, o.from || 0); end = Math.min(end, o.to ?? end);
   if (end <= from) return null;
+  if (rec) stopRecording();
   if (playing) stop();
+  setRendering(true);
+  try { return await renderSongNow(o, from, end); } finally { setRendering(false); }
+}
+async function renderSongNow(o, from, end) {
   await samplesReady();
   ensureCtx();
   await stretchReady();
@@ -2477,7 +2570,9 @@ async function renderSong(o = {}) {
   for (const t of P.tracks) if (t.type === 'synth') tail = Math.max(tail, t.wam ? 2 : PRESETS[t.preset]?.env.r * 4 || 0);
   if (P.tracks.some(t => t.ins?.some(s => s.on))) tail = Math.max(tail, 3);
   await wamSaveStates();
-  const sr = 44100, secs = (end - from) * spb() + Math.max(1, tail, busFx().rev.size) + .5;
+  // Vorlauf: Kompressoren regeln in den ersten Millisekunden nach dem Anlegen herunter (der erste Schlag wäre zu leise).
+  // Darum läuft vor dem Song eine halbe Sekunde mit einem unhörbaren Signal, die am Ende wieder abgeschnitten wird.
+  const sr = 44100, PRE = .5, secs = PRE + (end - from) * spb() + Math.max(1, tail, busFx().rev.size) + .5;
   const live = { ctx, master, analyser, noiseBuf, buses, chans: new Map(chans), gchans: new Map(gchans), metro: P.metro };
   const off = new OfflineAudioContext(2, Math.ceil(secs * sr), sr);
   // Für Sidechains muss das Worklet auch im Offline-Kontext geladen sein
@@ -2491,9 +2586,13 @@ async function renderSong(o = {}) {
     await pluginsReady();
     session = { gains: new Map(), sources: [] };
     wamMarks = new Set();
-    vstTransport({ time: 0, beat: from });
-    if (from > 0) startAudioAt(from, 0);
-    schedule(from, end, 0);
+    const warm = off.createConstantSource(); warm.offset.value = 1e-6; warm.start(0); warm.stop(PRE - .1);
+    for (const c of chans.values()) warm.connect(c.comp);
+    for (const c of gchans.values()) warm.connect(c.glue);
+    warm.connect(master.sgComp);
+    vstTransport({ time: PRE, beat: from });
+    if (from > 0) startAudioAt(from, PRE);
+    schedule(from, end, PRE);
     // Manche Plugins spielen ihre Noten im Haupt-Thread. Damit sie das auch beim schnellen Offline-Rendern rechtzeitig tun,
     // hält das Rendern direkt nach jeder Note kurz an und gibt dem Plugin ein paar Millisekunden.
     const ks = new Set([...wamMarks].map(t => Math.ceil(t * sr / 128) + 1));
@@ -2505,8 +2604,10 @@ async function renderSong(o = {}) {
       off.resume();
     });
     const out = await off.startRendering();
-    // Mit Latenzausgleich ist alles um sgPdc Samples verzögert: vorn abschneiden
-    return off.sgPdc ? trimStart(out, off.sgPdc) : out;
+    // Vorlauf abschneiden. Mit Latenzausgleich ist außerdem alles um sgPdc Samples verzögert.
+    // Der Song-Export beginnt genau auf dem Schlag (ohne die 12 ms von Spur- und Summen-Kompressor). Eingefrorene Spuren
+    // werden hinter dem Spur-Kompressor abgegriffen und später dort wieder eingespeist: Sie behalten dessen 6 ms.
+    return trimStart(out, Math.round(PRE * sr) + (off.sgPdc || 0) + (o.tap ? 0 : 2 * compLat(off)));
   } finally {
     wamMarks = null; vstTp = null; renderOnly = renderNeed = freezing = null;
     chans.forEach(dropPlugins);
@@ -3088,6 +3189,7 @@ function loopStartPos(b) {
   return L.on && L.end > L.start && (b < L.start || b >= L.end) ? L.start : b;
 }
 function play() {
+  if (rendering) { toast('Einen Moment, es wird gerade gerechnet (Export oder Einfrieren).'); return; }
   ensureCtx();
   if (playing) return;
   if (!rec) playPos = loopStartPos(playPos);
@@ -3111,6 +3213,7 @@ function stop() {
   }
   playPos = currentBeat();
   playing = false; clearInterval(timer);
+  if (!session) { updateTransport(); return; }
   const now = ctx.currentTime;
   for (const g of session.gains.values()) { g.gain.setTargetAtTime(0, now, .02); setTimeout(() => g.disconnect(), 600); }
   for (const s of session.sources) { try { s.stop(now + .08); } catch (e) { } }
@@ -3423,7 +3526,7 @@ async function loopToAudio(id, trackId) {
 const recPrefs = (() => { try { return JSON.parse(localStorage.getItem('klangwerk.rec') || '{}'); } catch (e) { return {}; } })();
 const saveRecPrefs = () => { try { localStorage.setItem('klangwerk.rec', JSON.stringify(recPrefs)); } catch (e) { } };
 // Was man hört, kommt um die Ausgabelatenz später aus dem Lautsprecher; das Mikrofon braucht noch etwas dazu
-const outLatency = () => ctx ? (ctx.outputLatency || 0) + (ctx.baseLatency || 0) + (ctx.sgPdc || 0) / ctx.sampleRate : 0;
+const outLatency = () => ctx ? (ctx.outputLatency || 0) + (ctx.baseLatency || 0) + ((ctx.sgPdc || 0) + 2 * compLat(ctx)) / ctx.sampleRate : 0;
 const autoLatency = () => outLatency() + .012;
 const recLatency = () => recPrefs.lat != null ? recPrefs.lat / 1000 : autoLatency();
 const micConstraints = () => ({ audio: { deviceId: inputDevice ? { exact: inputDevice } : undefined, echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
@@ -3451,7 +3554,7 @@ function endCapture(cap) {
 }
 async function toggleRecord() {
   if (rec) { stopRecording(); return; }
-  if (recPending) return;
+  if (recPending || rendering) return;
   ensureCtx();
   const tr = findTrack(selTrack);
   if (!tr) { toast('Wähle zuerst eine Spur aus.'); return; }
@@ -3481,7 +3584,7 @@ function recMark(m) {
 function stopRecording() {
   const r = rec; rec = null;
   if (r.type === 'audio') finishAudio(r);
-  else if (r.type === 'drums') { if (r.pushed) { save(); render(); toast(`${r.hits} Schläge aufgenommen. Strg+Z nimmt die Aufnahme zurück.`); } else toast('Es wurde nichts eingespielt.'); }
+  else if (r.type === 'drums') { if (r.pushed) { save(); render(); toast(`${r.hits === 1 ? '1 Schlag' : r.hits + ' Schläge'} aufgenommen. Strg+Z nimmt die Aufnahme zurück.`); } else toast('Es wurde nichts eingespielt.'); }
   else {
     r.held.forEach((n, code) => endRecNote(r, code));
     const reg = r.region;
@@ -3542,8 +3645,10 @@ function newMidiTake(R) {
 // Im Cycle läuft das Pattern rund und füllt sich Runde für Runde, ohne Cycle wächst es Takt für Takt mit (bis 16 Takte).
 function recDrumHit(d, vel) {
   const tr = findTrack(rec.track); if (!tr) return;
-  const b = currentBeat() - outLatency() / spb();
+  let b = currentBeat() - outLatency() / spb();
   if (b < rec.startBeat - .12) return; // im Vorzähler gespielt
+  // Im Cycle kurz vor dem Sprung gespielt: Der Schlag gehört auf die Eins der nächsten Runde
+  const C = P.loop; if (C.on && C.end > C.start && b >= C.end - .12 && b < C.end + .12) b = C.start;
   const hit = x => b >= x.start - .12 && b < x.start + x.len - .12;
   let r = tr.regions.find(hit), fresh = false;
   if (!rec.pushed) { pushUndo(); rec.pushed = true; rec.hits = 0; }
@@ -4333,11 +4438,11 @@ function renderSampler(tr) {
   if (!src) return;
   if (!buf) { $('#smpWave').insertAdjacentHTML('beforeend', '<div class="smp-tip" style="left:10px">Audio wird geladen …</div>'); }
   $('#smpSrc')?.addEventListener('change', e => { tr.src = +e.target.value; smpUI.chop = tr.chops.find(x => x.buf === tr.srcs[tr.src].buf)?.id || null; save(); renderEditor(); libKey = ''; renderLib(); });
-  $('#smpBpm')?.addEventListener('click', () => { setBpm(src.bpm); renderArrange(); renderEditor(); toast(`Tempo auf ${src.bpm} BPM gestellt.`); });
+  $('#smpBpm')?.addEventListener('click', () => { pushUndo(); setBpm(src.bpm); renderArrange(); renderEditor(); toast(`Tempo auf ${src.bpm} BPM gestellt.`); });
   $('#smpAuto').onchange = e => {
     const how = e.target.value; if (!how) return;
     pushUndo(); const n = autoChop(tr, how); e.target.blur();
-    save(); renderEditor(); renderArrange(); toast(`${n} Chops geschnitten${how.startsWith('hits') ? ' (nach Anschlägen)' : ''}.`);
+    save(); renderEditor(); renderArrange(); toast(`${n === 1 ? '1 Chop' : n + ' Chops'} geschnitten${how.startsWith('hits') ? ' (nach Anschlägen)' : ''}.`);
   };
   eHead.querySelector('.tools').onclick = e => { const b = e.target.closest('[data-tool]'); if (!b) return; smpUI.tool = b.dataset.tool; eHead.querySelectorAll('[data-tool]').forEach(x => x.classList.toggle('on', x === b)); $('#smpWave').className = 'smp-wave tool-' + smpUI.tool; };
   $('#smpSpread').onclick = () => {
@@ -4909,7 +5014,14 @@ function renderFx(tr) {
 // ================= Plugins (Web Audio Modules 2.0) =================
 // Externe Effekte und Instrumente im offenen WAM-2.0-Format. Sie laufen in der Windows-App und im Browser gleich.
 // Pro Spur: tr.ins = [{ id, url, name, on, state }] als Inserts nach dem Kompressor, tr.wam = { url, name, state } ersetzt den eingebauten Klang.
+// Eigene Effekte von Sound Groot (src/plugins/sg): rechnen im Audio-Thread, brauchen kein Internet und laufen überall
+const SG_FX = [['limiter', 'Limiter', 'Lauter machen, Spitzen abfangen'], ['plate', 'Plattenhall', 'Dichter Hall direkt auf der Spur'], ['chorus', 'Chorus', 'Breiter, schwebender Klang'],
+  ['flanger', 'Flanger', 'Der Düsenjet-Effekt'], ['phaser', 'Phaser', 'Wandernde Kerben, weich und kreisend'], ['tremolo', 'Tremolo & Auto-Pan', 'Lautstärke schwingt, auf Wunsch von links nach rechts'],
+  ['wah', 'Auto-Wah', 'Filter folgt der Spielstärke'], ['tape', 'Bandsättigung', 'Wärme wie von einer Bandmaschine'], ['crusher', 'Bitcrusher', 'Lo-Fi wie alte Sampler'],
+  ['lofi', 'Lo-Fi (Vinyl)', 'Leiern, Rauschen, Knistern'], ['width', 'Stereo-Breite', 'Breiter oder schmaler, Bass bleibt mittig'], ['gate', 'Noise Gate', 'Stumm, wenn nichts gespielt wird'],
+  ['transient', 'Transienten', 'Anschlag und Ausklang formen']];
 const WAM_BUILTIN = [
+  ...SG_FX.map(([id, name, desc]) => ({ url: `plugins/sg/${id}.js`, name, desc, sg: true })),
   { url: 'plugins/synth101/index.js', name: 'Synth-101', vendor: 'Sequencer Party', inst: true, desc: 'Monophoner Analog-Synth nach Vorbild des SH-101' },
   { url: 'plugins/modal/index.js', name: 'Spectrum: Modal', vendor: 'Sequencer Party', inst: true, desc: 'Physical Modelling: Glocken, Holz, Metall und Saiten' },
   { url: 'plugins/delay/index.js', name: 'Simple Delay', vendor: 'Sequencer Party', desc: 'Stereo-Delay mit Filter' },
@@ -4952,7 +5064,7 @@ function wamFail(name, url, e) {
   console.warn('Plugin', url, e);
   if (wamFailed.has(url)) return;
   wamFailed.add(url);
-  if (isVst(url)) toast(sgvst ? `VST3-Plugin „${name}“ konnte nicht geladen werden: ${e?.message || e}` : `„${name}“ ist ein VST3-Plugin und läuft nur in der Windows-App.`, 5000);
+  if (isVst(url)) toast(sgvst ? `VST-Plugin „${name}“ konnte nicht geladen werden: ${String(e?.message || e).replace(/^Error invoking remote method '[^']*': (Error: )?/, '')}` : `„${name}“ ist ein VST-Plugin und läuft nur in der Windows-App.`, 6000);
   else toast(`Plugin „${name}“ konnte nicht geladen werden${/^https?:/.test(url) ? '. Ist das Gerät online und der Link richtig?' : '.'}`, 4500);
 }
 // Inserts und Instrument einer Spur an die Liste anpassen. Läuft nacheinander pro Kanalzug, damit sich Änderungen nicht überholen.
@@ -5048,7 +5160,10 @@ const vstById = new Map(), vstLoad = new WeakMap();
 let vstMul = (() => { try { return clamp(+localStorage.getItem('klangwerk.vstbuf') || 1, 1, 4); } catch (e) { return 1; } })();
 const isVst = url => typeof url === 'string' && url.startsWith('vst3:');
 const vstParse = url => { const i = url.indexOf('|'); return { cid: url.slice(5, i), path: url.slice(i + 1) }; };
-const vstList = () => vstPlugs.map(p => ({ url: `vst3:${p.cid}|${p.path}`, name: p.name, vendor: p.vendor, inst: p.inst, vst: true }));
+const vstList = () => vstPlugs.map(p => ({ url: `vst3:${p.cid}|${p.path}`, name: p.name, vendor: p.vendor, inst: p.inst, vst: true, v2: !!p.v2 }));
+// VST3 oder das ältere Format (Version 2, .dll)? Steht am Pfad.
+const vstKind = url => /\.dll$/i.test(url || '') ? 'VST2' : 'VST3';
+let vstState = null; // { ok } oder { ok: false, why: 'os' | 'host', exe }
 const vstNodes = c => [...vstById.values()].filter(i => i.ctx === c);
 // Puffer live: mindestens das Doppelte des Audio-Puffers des Systems plus Reserve, auf 128 gerundet (meist 10–25 ms)
 function vstLat(c) {
@@ -5132,7 +5247,7 @@ function vstModule(c) {
   return p;
 }
 async function vstCreate(c, url, state) {
-  if (!sgvst) throw new Error('VST3 gibt es nur in der Windows-App');
+  if (!sgvst) throw new Error('VST-Plugins gibt es nur in der Windows-App');
   const { cid, path } = vstParse(url), known = vstPlugs.find(p => p.cid === cid && p.path === path) || vstPlugs.find(p => p.cid === cid);
   await vstModule(c);
   // Auf einem anderen PC kann dasselbe Plugin woanders liegen: dann über die Klassen-ID finden
@@ -5191,16 +5306,17 @@ function trimStart(buf, n) {
   for (let c = 0; c < buf.numberOfChannels; c++) out.copyToChannel(buf.getChannelData(c).subarray(n), c);
   return out;
 }
-// Latenzausgleich: jede Spur wird so verzögert, dass alle so spät klingen wie die Spur mit den meisten VST-Effekten
+// Latenzausgleich: jede Spur wird so verzögert, dass alle so spät klingen wie die Spur mit dem längsten Weg (Gruppe, VST-Effekte)
 function applyPdc(c0) {
   if (!c0) return;
-  let M = 0; const L = new Map();
+  let M = 0; const L = new Map(), CL = compLat(c0);
   for (const t of P.tracks) {
     const c = chans.get(t.id); if (!c || c.ctx !== c0) continue;
-    let l = 0; for (const s of t.ins || []) { const i = s.on && c.plugs.get(s.id); if (i?.vst) l += i.lat; }
+    // Spuren in einer Gruppe laufen zusätzlich durch deren Kompressor (6 ms)
+    let l = t.out && findGroup(t.out) ? CL : 0; for (const s of t.ins || []) { const i = s.on && c.plugs.get(s.id); if (i?.vst) l += i.lat; }
     L.set(c, l); M = Math.max(M, l);
   }
-  for (const [c, l] of L) c.pdc.delayTime.value = Math.min(1, (M - l) / c0.sampleRate);
+  for (const [c, l] of L) { const v = Math.min(1, (M - l) / c0.sampleRate); if (Math.abs(c.pdc.delayTime.value - v) > 1e-7) c.pdc.delayTime.value = v; }
   c0.sgPdc = M;
 }
 // Puffergröße geändert: allen laufenden Plugins mitteilen und den Ausgleich neu rechnen
@@ -5229,7 +5345,7 @@ function vstCrash(inst, code) {
     for (const [id, i] of c.plugs) if (i === inst) { c.plugs.set(id, null); c.sig = ''; syncPlugins(t); }
     if (c.inst === inst) c.inst = null;
   }
-  toast(`VST3-Plugin „${inst.vst.name}“ ist abgestürzt${code ? ` (Code ${code})` : ''}. Sound Groot läuft weiter, das Plugin ist überbrückt. Klick auf den Namen startet es neu.`, 6500);
+  toast(`VST-Plugin „${inst.vst.name}“ ist abgestürzt${code ? ` (Code ${code})` : ''}. Sound Groot läuft weiter, das Plugin ist überbrückt. Klick auf den Namen startet es neu.`, 6500);
   if (edTab === 'fx') renderEditor();
 }
 function vstRetry(tr, key) {
@@ -5243,35 +5359,57 @@ async function vstRefresh(force) {
   if (!sgvst || vstBusy) return;
   vstBusy = true; if (edTab === 'fx') renderEditor();
   try { vstInfo = await sgvst.list(force); vstPlugs = vstInfo.plugs; }
-  catch (e) { console.warn(e); toast('VST3-Plugins konnten nicht gesucht werden.'); }
+  catch (e) { console.warn(e); toast('VST-Plugins konnten nicht gesucht werden.'); }
   vstBusy = false; if (edTab === 'fx') renderEditor();
 }
 if (sgvst) {
-  sgvst.available().then(ok => { if (ok) vstRefresh(false); });
+  (sgvst.status ? sgvst.status() : sgvst.available().then(ok => ({ ok }))).then(st => { vstState = st; if (st.ok) vstRefresh(false); else if (edTab === 'fx') renderEditor(); });
   sgvst.onEvent((id, msg) => {
     const inst = vstById.get(id); if (!inst) return;
     if (msg === 'edited' || msg === 'closed') { inst.dirty = true; clearTimeout(vstSaveT); vstSaveT = setTimeout(wamSaveStates, msg === 'closed' ? 0 : 800); }
     if (msg.startsWith('latency ')) { inst.vst.latency = +msg.slice(8) || 0; inst.lat = inst.base + inst.vst.latency; applyPdc(inst.ctx); }
   });
   sgvst.onExit((id, code) => { const inst = vstById.get(id); if (inst) vstCrash(inst, code); });
-  sgvst.onProgress(p => { if (p.total > 1 || p.done === 0) toast(`VST3-Plugins werden gesucht … ${p.done + 1}/${p.total}: ${p.name}`, 4000); });
+  sgvst.onProgress(p => { if (p.total > 1 || p.done === 0) toast(`VST-Plugins werden geprüft … ${p.done + 1}/${p.total}: ${p.name}`, 4000); });
 }
-// Ordner mit .dll, aber ohne .vst3: dort liegen fast immer VST2-Plugins (z. B. MPC Beats, wenn nur VST2 installiert wurde)
-function vstDllHint() {
-  const v2 = (vstInfo?.dirInfo || []).filter(i => !i.vst3 && i.dll);
-  if (!v2.length) return '';
-  return `<p class="hint warn">In ${v2.map(i => `„${esc(i.dir.split(/[\\/]/).pop())}“`).join(', ')} liegen nur .dll-Dateien, also VST2-Plugins. Sound Groot lädt nur VST3 (.vst3). Bei MPC Beats: Installer erneut starten und die VST3-Version mitinstallieren, sie landet dann in „Programme\\Gemeinsame Dateien\\VST3“.</p>`;
+// Plugin-Dateien oder Ordner hinzufügen: über den Dateidialog (paths = null) oder ins Fenster gezogen
+async function vstAddFiles(paths) {
+  if (!sgvst?.addFile) return;
+  vstBusy = true; if (edTab === 'fx') renderEditor();
+  let r = null;
+  try { r = await sgvst.addFile(paths); } catch (e) { console.warn(e); toast('Das Plugin konnte nicht hinzugefügt werden.'); }
+  vstBusy = false;
+  if (r) {
+    const before = new Set(vstPlugs.map(p => p.cid + p.path)), fresh = r.plugs.filter(p => !before.has(p.cid + p.path));
+    vstInfo = r; vstPlugs = r.plugs;
+    const bad = r.failed.filter(f => (paths || []).includes(f.path));
+    toast(fresh.length ? `${fresh.length === 1 ? `„${fresh[0].name}“` : fresh.length + ' Plugins'} hinzugefügt. Du findest ${fresh.length === 1 ? 'es' : 'sie'} jetzt unter „Einfügen“${fresh.some(p => p.inst) ? ' bzw. „Instrument-Plugin“' : ''}.` : bad.length ? `„${bad[0].path.split(/[\\/]/).pop()}“ lässt sich nicht laden: ${bad[0].error}` : 'Kein neues Plugin gefunden. Wähle eine .vst3- oder .dll-Datei (64 Bit) oder den Ordner, in dem sie liegt.', 6000);
+  }
+  if (edTab === 'fx') renderEditor();
+}
+// Plugin-Dateien aus dem Explorer ins Fenster ziehen (nur in der Windows-App)
+if (sgvst?.pathOf) {
+  const isPlug = e => [...(e.dataTransfer?.items || [])].some(i => i.kind === 'file') && edTab === 'fx';
+  window.addEventListener('dragover', e => { if (isPlug(e) && e.target.closest?.('#editor')) e.preventDefault(); });
+  window.addEventListener('drop', e => {
+    if (!isPlug(e) || !e.target.closest?.('#editor')) return;
+    const paths = [...e.dataTransfer.files].map(f => sgvst.pathOf(f)).filter(p => p && (/\.(vst3|dll)$/i.test(p) || !/\.[a-z0-9]{1,5}$/i.test(p)));
+    if (!paths.length) return;
+    e.preventDefault(); e.stopPropagation(); vstAddFiles(paths);
+  }, true);
 }
 function vstCard() {
-  if (!sgvst) return '';
-  const n = vstPlugs.length, failed = vstInfo?.failed || [];
-  return `<details class="pl-url pl-vst"${vstBusy || !n ? ' open' : ''}><summary>VST3-Plugins auf diesem PC${n ? ` <small>${n}</small>` : ''}</summary>
-    <p class="hint">${vstBusy ? 'Suche läuft …' : n ? `${n} gefunden, in den Listen unter „VST3“. Jedes läuft abgeschirmt: stürzt eins ab, läuft Sound Groot weiter.` : 'Noch keine gefunden. Gesucht wird in „Programme\\Gemeinsame Dateien\\VST3“ und in eigenen Ordnern.'}</p>
-    <div><button class="sbtn" data-pl="vscan" ${vstBusy ? 'disabled' : ''}>Neu suchen</button><button class="sbtn" data-pl="vdir" ${vstBusy ? 'disabled' : ''}>Ordner hinzufügen …</button>${vstMul > 1 ? '<button class="sbtn" data-pl="vbuf" title="Nach Aussetzern wurde der Puffer vergrößert. Kleiner heißt weniger Verzögerung, aber eher Knackser.">Puffer verkleinern</button>' : ''}</div>
-    ${ctx && n ? `<p class="hint">Puffer für VST3: ${Math.round(vstLat(ctx) / ctx.sampleRate * 1000)} ms (wird ausgeglichen, alle Spuren bleiben synchron).</p>` : ''}
-    ${vstInfo?.own?.length ? `<p class="hint">Eigene Ordner (hier wird gesucht, das sind keine Plugins):</p><div class="pl-own">${vstInfo.own.map(d => { const i = vstInfo.dirInfo?.find(x => x.dir === d); return `<span title="${esc(d)}">📁 ${esc(d.split(/[\\/]/).pop())}${i ? ` <small>${i.vst3} VST3</small>` : ''}<button data-pl="vrm" data-dir="${esc(d)}" title="Ordner entfernen">×</button></span>`; }).join('')}</div>` : ''}
-    ${vstDllHint()}
-    ${failed.length ? `<p class="hint">Nicht ladbar (${failed.length}): ${failed.map(f => `<span title="${esc(f.error)}">${esc(f.path.split(/[\\/]/).pop())}</span>`).join(', ')}</p>` : ''}</details>`;
+  // Im Browser und auf dem iPhone gibt es kein VST: kurz sagen, warum, statt nichts zu zeigen
+  if (!sgvst) return `<details class="pl-url pl-vst"><summary>VST-Plugins vom PC</summary><p class="hint">VST-Plugins (.vst3 und .dll) laufen nur in der Windows-App von Sound Groot. Ein Browser darf keine Programme vom PC laden. Hier funktionieren die eingebauten Effekte und Web-Plugins (WAM).</p></details>`;
+  if (vstState && !vstState.ok) return `<details class="pl-url pl-vst" open><summary>VST-Plugins auf diesem PC</summary><p class="hint warn">${vstState.why === 'host' ? `In dieser Installation fehlt der Plugin-Host <b>sg-vst3host.exe</b>${vstState.exe ? ` (erwartet unter ${esc(vstState.exe)})` : ''}. Ohne ihn lädt Sound Groot keine VST-Plugins. Lade die fertige Windows-App von der Seite „Releases“ des Projekts auf GitHub (dort ist er enthalten)${vstState.packaged ? '' : ' oder baue ihn mit „npm run build:vst3host“'}.` : 'VST-Plugins gibt es nur unter Windows.'}</p></details>`;
+  const n = vstPlugs.length, n2 = vstPlugs.filter(p => p.v2).length, failed = vstInfo?.failed || [], base = p => esc(p.split(/[\\/]/).pop());
+  const own = [...(vstInfo?.own || []).map(d => [d, 1]), ...(vstInfo?.files || []).map(d => [d, 0])];
+  return `<details class="pl-url pl-vst"${vstBusy || !n || failed.length ? ' open' : ''}><summary>VST-Plugins auf diesem PC${n ? ` <small>${n}</small>` : ''}</summary>
+    <p class="hint">${vstBusy ? 'Suche läuft …' : n ? `${n} gefunden (${n - n2} VST3, ${n2} VST2). Sie stehen oben unter „Einfügen“${vstPlugs.some(p => p.inst) ? ' und, wenn es Instrumente sind, bei einer Instrument-Spur unter „Instrument-Plugin“' : ''}. Jedes läuft abgeschirmt: stürzt eins ab, läuft Sound Groot weiter.` : 'Noch keine gefunden. Sound Groot lädt VST3 (.vst3) und ältere VST-Plugins (.dll), jeweils 64 Bit. Gesucht wird in den üblichen Ordnern („Gemeinsame Dateien\\VST3“, „Programme\\VSTPlugins“ …). Liegen deine Plugins woanders: Ordner oder Datei hinzufügen, oder die Datei aus dem Explorer hierher ziehen.'}</p>
+    <div><button class="sbtn" data-pl="vscan" ${vstBusy ? 'disabled' : ''} title="Alle Ordner neu durchsuchen und jedes Plugin neu prüfen">Neu suchen</button><button class="sbtn" data-pl="vdir" ${vstBusy ? 'disabled' : ''}>Ordner hinzufügen …</button><button class="sbtn" data-pl="vfile" ${vstBusy ? 'disabled' : ''} title="Eine einzelne .vst3- oder .dll-Datei wählen">Plugin-Datei hinzufügen …</button>${vstMul > 1 ? '<button class="sbtn" data-pl="vbuf" title="Nach Aussetzern wurde der Puffer vergrößert. Kleiner heißt weniger Verzögerung, aber eher Knackser.">Puffer verkleinern</button>' : ''}</div>
+    ${ctx && n ? `<p class="hint">Puffer für VST-Plugins: ${Math.round(vstLat(ctx) / ctx.sampleRate * 1000)} ms (wird ausgeglichen, alle Spuren bleiben synchron).</p>` : ''}
+    ${own.length ? `<p class="hint">Eigene Ordner und Dateien (hier wird zusätzlich gesucht):</p><div class="pl-own">${own.map(([d, dir]) => { const i = dir && vstInfo.dirInfo?.find(x => x.dir === d); return `<span title="${esc(d)}">${dir ? '📁' : '🧩'} ${base(d)}${i ? ` <small>${i.missing ? 'nicht gefunden' : i.vst3 + i.vst2 + ' Plugins'}</small>` : ''}<button data-pl="vrm" data-dir="${esc(d)}" title="Aus der Liste entfernen (die Datei bleibt auf dem PC)">×</button></span>`; }).join('')}</div>` : ''}
+    ${failed.length ? `<p class="hint warn">Nicht ladbar (${failed.length}):</p><ul class="pl-fail">${failed.map(f => `<li><b>${base(f.path)}</b> ${esc(f.error)}</li>`).join('')}</ul>` : ''}</details>`;
 }
 
 function addInsert(tr, p) {
@@ -5352,13 +5490,16 @@ pwEl.addEventListener('keydown', e => { if (e.code !== 'Space') e.stopPropagatio
 // Karten im Tab „Klang & Effekte“
 function pluginCards(tr) {
   const fx = wamList().filter(p => !p.inst), insts = wamList().filter(p => p.inst), c = chans.get(tr.id);
-  const opt = (p, sel) => `<option value="${esc(p.url)}" ${sel ? 'selected' : ''}>${esc(p.name)}${p.vendor ? ' · ' + esc(p.vendor) : ''}</option>`;
+  const opt = (p, sel) => `<option value="${esc(p.url)}" ${sel ? 'selected' : ''}>${esc(p.name)}${p.sg && p.desc ? ' – ' + esc(p.desc) : p.vendor ? ' · ' + esc(p.vendor) : ''}</option>`;
   // Web-Plugins und VST3 getrennt gruppieren
-  const opts = (list, sel) => { const w = list.filter(p => !p.vst), v = list.filter(p => p.vst), o = l => l.map(p => opt(p, p.url === sel)).join(''); return v.length ? `<optgroup label="Web-Plugins (WAM)">${o(w)}</optgroup><optgroup label="VST3 auf diesem PC">${o(v)}</optgroup>` : o(w); };
+  const opts = (list, sel) => {
+    const o = l => l.map(p => opt(p, p.url === sel)).join(''), grp = (label, l) => l.length ? `<optgroup label="${label}">${o(l)}</optgroup>` : '';
+    return grp('Sound Groot', list.filter(p => p.sg)) + grp('Web-Plugins (WAM)', list.filter(p => !p.vst && !p.sg)) + grp('VST3 auf diesem PC', list.filter(p => p.vst && !p.v2)) + grp('VST2 auf diesem PC (.dll)', list.filter(p => p.v2));
+  };
   const status = inst => inst === undefined ? '<small>lädt</small>' : inst === null ? '<small class="bad">fehlt</small>' : '';
   const rows = (tr.ins || []).map((s, i, a) => `<div class="pl-row ${s.on ? '' : 'off'}" data-slot="${s.id}">
       <input type="checkbox" data-pl="on" ${s.on ? 'checked' : ''} title="Ein/Aus" aria-label="${esc(s.name)} ein/aus">
-      <button class="pl-name" data-pl="open" title="${isVst(s.url) && c?.plugs.get(s.id) === null ? 'Neu starten' : 'Oberfläche öffnen'}">${esc(s.name)}${isVst(s.url) ? '<small>VST3</small>' : ''}${status(c?.plugs.get(s.id))}</button>
+      <button class="pl-name" data-pl="open" title="${isVst(s.url) && c?.plugs.get(s.id) === null ? 'Neu starten' : 'Oberfläche öffnen'}">${esc(s.name)}${isVst(s.url) ? `<small>${vstKind(s.url)}</small>` : ''}${status(c?.plugs.get(s.id))}</button>
       <button data-pl="up" ${i ? '' : 'disabled'} title="Weiter nach vorn in der Kette">↑</button><button data-pl="down" ${i < a.length - 1 ? '' : 'disabled'} title="Weiter nach hinten">↓</button><button data-pl="del" title="Entfernen">×</button></div>`).join('');
   const own = wamOwn.length ? `<div class="pl-own">${wamOwn.map((p, i) => `<span>${esc(p.name)}${p.inst ? ' <small>Instrument</small>' : ''}<button data-pl="forget" data-i="${i}" title="Aus der Liste entfernen">×</button></span>`).join('')}</div>` : '';
   return `${tr.type === 'synth' ? `<section class="card plug"><h3>Instrument-Plugin</h3>
@@ -5392,6 +5533,7 @@ function pluginEvents(tr, box) {
     if (act === 'vscan') vstRefresh(true);
     if (act === 'vbuf') { vstMul = 1; try { localStorage.removeItem('klangwerk.vstbuf'); } catch (e) { } if (ctx) vstRelat(); renderEditor(); }
     if (act === 'vdir') sgvst.addDir().then(r => { if (r) { vstInfo = r; vstPlugs = r.plugs; renderEditor(); } });
+    if (act === 'vfile') vstAddFiles(null);
     if (act === 'vrm') sgvst.removeDir(b.dataset.dir).then(r => { vstInfo = r; vstPlugs = r.plugs; renderEditor(); });
     if (act === 'del' || act === 'up' || act === 'down') {
       pushUndo();
@@ -6237,7 +6379,8 @@ $('#bStart').onclick = () => { const was = playing; if (was) stop(); playPos = 0
 $('#bRec').onclick = toggleRecord;
 $('#bLoop').onclick = () => { P.loop.on = !P.loop.on; save(); renderArrange(); updateTransport(); };
 $('#bMetro').onclick = () => { P.metro = !P.metro; save(); updateTransport(); };
-$('#bpm').onchange = e => setBpm(+e.target.value);
+// Tempo ändern ist ein eigener Schritt im Verlauf (Strg+Z stellt das alte Tempo wieder her)
+$('#bpm').onchange = e => { const v = clamp(Math.round(+e.target.value) || 96, 40, 240); if (v !== P.bpm) pushUndo(); setBpm(v); e.target.blur(); };
 $('#lcdLu').onclick = () => showEditor('mix');
 $('#masterVol').oninput = e => { P.master = +e.target.value; if (ctx) master.gain.setTargetAtTime(P.master, ctx.currentTime, .02); save(); mixPaint(); };
 $('#bUndo').onclick = undo;
@@ -6368,6 +6511,8 @@ const DRUMKEYS = { KeyA: 0, KeyS: 1, KeyD: 2, KeyF: 3, KeyG: 4, KeyH: 5, KeyJ: 6
 let octave = 60;
 const held = new Map();
 document.addEventListener('keydown', e => {
+  // Während Export oder Einfrieren ruht die Bedienung (der Export-Dialog bleibt bedienbar)
+  if (rendering && modal.hidden) { if (!e.ctrlKey && !e.metaKey) e.preventDefault(); return; }
   if (!tourEl.hidden) { tourKey(e); return; }
   if (!modal.hidden) { if (e.key === 'Escape') { e.preventDefault(); closeModal(); } return; }
   if (!ctxEl.hidden) { if (e.key === 'Escape') { e.preventDefault(); closeMenu(); return; } closeMenu(); }
@@ -6397,8 +6542,10 @@ document.addEventListener('keydown', e => {
   if (e.code === 'KeyM' && !e.repeat) { $('#bMix').click(); return; }
   if (e.code === 'KeyN' && !e.repeat) { toggleEditor('region'); return; }
   if (e.code === 'KeyV' && !e.repeat && !(e.code in PADKEYS && findTrack(selTrack)?.type === 'sampler')) { toggleEditor('fx'); return; }
+  // Pfeiltasten gehören einem Schieberegler, wenn er den Fokus hat
+  if (e.code.startsWith('Arrow') && e.target.matches?.('input[type=range]')) return;
   if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') { e.preventDefault(); stepBar(e.code === 'ArrowRight' ? 1 : -1); return; }
-  if ((e.code === 'ArrowUp' || e.code === 'ArrowDown') && !e.target.closest('input')) { e.preventDefault(); selectTrackBy(e.code === 'ArrowDown' ? 1 : -1); return; }
+  if (e.code === 'ArrowUp' || e.code === 'ArrowDown') { e.preventDefault(); selectTrackBy(e.code === 'ArrowDown' ? 1 : -1); return; }
   if (e.code === 'Home') { $('#bStart').click(); return; }
   if (e.code === 'KeyI' && !e.repeat) { $('#bLib').click(); return; }
   if (e.code === 'Delete' || e.code === 'Backspace') { e.preventDefault(); if (focusArea === 'mk' && selMarker) deleteMarker(selMarker); else deleteSelection(); return; }
@@ -6419,7 +6566,7 @@ window.addEventListener('blur', () => { [...held.keys()].forEach(liveNoteOff); }
 // Auf Drum-Spuren steuern die Noten ab C1 (MIDI 36) die Kit-Sounds an (General-MIDI-ähnlich).
 const GM_DRUMS = { 35: 'kick', 36: 'kick', 37: 'rim', 38: 'snare', 39: 'clap', 40: 'snare', 41: 'tom', 42: 'hat', 43: 'tom', 44: 'hat', 45: 'tom', 46: 'ohat', 47: 'tom', 48: 'tom', 49: 'crash', 50: 'tom', 51: 'ride', 52: 'crash', 53: 'ride', 55: 'crash', 56: 'cow', 57: 'crash', 59: 'ride', 54: 'shaker', 58: 'cow', 60: 'conga', 61: 'conga', 62: 'conga', 63: 'conga', 64: 'conga', 65: 'tom', 66: 'tom', 67: 'cow', 68: 'cow', 69: 'shaker', 70: 'shaker', 73: 'shaker', 74: 'shaker', 75: 'rim', 76: 'rim', 77: 'rim', 82: 'shaker' };
 function liveNoteOn(id, midi, vel) {
-  const tr = findTrack(selTrack); if (!tr || held.has(id)) return;
+  const tr = findTrack(selTrack); if (!tr || held.has(id) || rendering) return;
   if (useFrozen(tr)) { if (!liveNoteOn.warned) { liveNoteOn.warned = 1; toast('Die Spur ist eingefroren. Zum Spielen mit der Schneeflocke im Spurkopf auftauen.'); } return; }
   ensureCtx();
   if (tr.type === 'synth') {
@@ -6646,7 +6793,7 @@ function renderMixer() {
       <div class="st-label">Effekt-Bus</div><div class="st-label tall">${name}</div><div class="st-label"></div>
       <div class="st-knobs" style="justify-content:center">${knob(k, label, true)}</div>
       ${fader}<div class="st-ms"></div><div class="st-foot">${name}</div></div>`;
-  eHead.innerHTML = `<span class="note">${P.tracks.length} Spuren · Hall und Delay sind gemeinsame Effekt-Busse</span><button class="sbtn" data-mix="group" title="Neue Gruppe anlegen, die ausgewählte Spur geht hinein">+ Gruppe</button><span class="note hint">Ziehen = einstellen, Shift = fein, Doppelklick = zurücksetzen</span>`;
+  eHead.innerHTML = `<span class="note">${P.tracks.length === 1 ? '1 Spur' : P.tracks.length + ' Spuren'} · Hall und Delay sind gemeinsame Effekt-Busse</span><button class="sbtn" data-mix="group" title="Neue Gruppe anlegen, die ausgewählte Spur geht hinein">+ Gruppe</button><span class="note hint">Ziehen = einstellen, Shift = fein, Doppelklick = zurücksetzen</span>`;
   eBody.innerHTML = `<div class="mixer">${strips || '<div class="st-label" style="padding:0 12px">Noch keine Spuren.</div>'}${gstrips ? '<div class="mix-sep"></div>' + gstrips : ''}<div class="mix-sep"></div>
     ${aux('rev', 'Hall', 'size', 'Raum')}${aux('del', 'Delay', 'fb', 'Wdh.')}
     <div class="strip master" data-aux="master" style="--c:#fff"><div class="st-label">Ausgang</div>
@@ -6663,7 +6810,7 @@ function renderMixer() {
   eHead.querySelector('[data-mix="group"]').onclick = () => {
     pushUndo(); const g = newGroup(), tr = findTrack(selTrack);
     if (tr) { tr.out = g.id; g.name = tr.name.slice(0, 18) + ' & Co.'; }
-    applyMix(); save(); renderMixer();
+    applyMix(); save(); renderEditor();
     toast(tr ? `Gruppe angelegt, „${tr.name}“ geht hinein. Weitere Spuren schickst du unten im Kanalzug über „→ Master“ in die Gruppe.` : 'Gruppe angelegt. Spuren schickst du unten im Kanalzug in die Gruppe.', 4500);
   };
   box.onchange = e => {
@@ -6671,9 +6818,9 @@ function renderMixer() {
       const tr = findTrack(e.target.closest('.strip').dataset.track), v = e.target.value; if (!tr) return;
       pushUndo();
       if (v === '+') tr.out = newGroup().id; else if (v) tr.out = v; else delete tr.out;
-      applyMix(); save(); renderMixer(); return;
+      applyMix(); save(); renderEditor(); return;
     }
-    if (e.target.matches('[data-gname]')) { const g = findGroup(e.target.closest('.strip').dataset.group); if (g && e.target.value.trim()) { pushUndo(); g.name = e.target.value.trim().slice(0, 24); save(); renderMixer(); } }
+    if (e.target.matches('[data-gname]')) { const g = findGroup(e.target.closest('.strip').dataset.group); if (g && e.target.value.trim()) { pushUndo(); g.name = e.target.value.trim().slice(0, 24); save(); renderEditor(); } }
   };
   box.onpointerdown = e => {
     const el = e.target.closest('.kn, .fader'); if (!el || e.button > 0) return;
@@ -6717,7 +6864,7 @@ function renderMixer() {
       pushUndo();
       if (a === 'del') { P.groups = P.groups.filter(x => x !== g); P.tracks.forEach(t => { if (t.out === g.id) delete t.out; }); toast(`Gruppe „${g.name}“ aufgelöst. Ihre Spuren gehen wieder auf den Master.`); }
       else g[a] = !g[a];
-      ensureCtx(); applyMix(); save(); renderMixer(); return;
+      ensureCtx(); applyMix(); save(); renderEditor(); return;
     }
     const b = e.target.closest('[data-mx]'), st = e.target.closest('.strip[data-track]');
     if (st && st.dataset.track !== selTrack) { selTrack = st.dataset.track; markSelection(); }
@@ -6914,7 +7061,7 @@ function libBody(tr) {
   const lItem = (L, sub) => item(`${attr}="${L.id}"`, smp && tr.srcs.some(x => x.name.startsWith(L.name + ' (')), L.name, `<small>${sub ? esc(sub) + ' · ' : ''}${L.bpm} BPM</small>`, 'l:' + L.id);
   let html = q ? '' : smp ? `<div class="lib-btns"><button data-lib-act="smpload">Audiodatei laden …</button><button data-lib-act="smpopen">Pads & Chops öffnen</button></div>`
     : `<p class="lib-note">Audio-Spuren spielen Aufnahmen vom Mikrofon und importierte Dateien ab. Den Eingang wählst du oben unter Geräte.</p><div class="lib-btns"><button data-lib-act="import">Audiodatei importieren</button><button data-lib-act="rec">Aufnahme starten (R)</button></div>`;
-  if (smp && tr.srcs.length && f === 'all') html += group('Samples dieser Spur', tr.srcs.map((x, i) => item(`data-src="${i}"`, i === tr.src, x.name, `<small>${tr.chops.filter(c => c.buf === x.buf).length} Chops</small>`, '', false)).join(''), tr.srcs.length);
+  if (smp && tr.srcs.length && f === 'all') html += group('Samples dieser Spur', tr.srcs.map((x, i) => item(`data-src="${i}"`, i === tr.src, x.name, `<small>${(n => n === 1 ? '1 Chop' : n + ' Chops')(tr.chops.filter(c => c.buf === x.buf).length)}</small>`, '', false)).join(''), tr.srcs.length);
   if (f === 'fav' || f === 'recent') {
     const keys = f === 'fav' ? [...libFavs] : libRecent;
     const its = keys.filter(x => x.startsWith('l:')).map(x => LOOPS.find(L => L.id === x.slice(2))).filter(L => L && lOk(L)).map(L => lItem(L, L.cat));
@@ -7411,7 +7558,7 @@ if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !/Ele
     if (m.type === 'cache-progress') banner(`Speichere Sounds für die Offline-Nutzung … ${m.done} von ${m.total}`);
     if (m.type === 'cache-done') {
       banner('');
-      navigator.storage?.estimate?.().then(est => toast(m.failed ? `${m.failed} Sounds konnten nicht geladen werden. Bitte mit Internet nochmal versuchen.` : `Fertig: Alle Sounds sind offline da${est?.usage ? ' (' + Math.round(est.usage / 1048576) + ' MB)' : ''}.`, 4000));
+      navigator.storage?.estimate?.().then(est => toast(m.failed ? `${m.failed === 1 ? '1 Sound konnte' : m.failed + ' Sounds konnten'} nicht geladen werden. Bitte mit Internet nochmal versuchen.` : `Fertig: Alle Sounds sind offline da${est?.usage ? ' (' + Math.round(est.usage / 1048576) + ' MB)' : ''}.`, 4000));
       navigator.serviceWorker.controller?.postMessage({ type: 'cache-status' });
     }
   });
@@ -7792,7 +7939,7 @@ function closeModal() {
 modal.addEventListener('pointerdown', e => { if (e.target === modal) closeModal(); });
 
 // ================= Einstellungen und Tastenkürzel =================
-const SG_VERSION = '1.6.0'; // wird beim Bauen aus package.json gesetzt (scripts/build.js)
+const SG_VERSION = '1.7.0'; // wird beim Bauen aus package.json gesetzt (scripts/build.js)
 // Alle Tastenkürzel an einer Stelle: [Tasten, was passiert, Hinweis]. Daraus entsteht die Übersicht in den Einstellungen.
 const SHORTCUTS = [
   ['Abspielen und Aufnehmen', [
@@ -7838,7 +7985,8 @@ const HELP_HTML = `<p>Doppelklicke (am Touchscreen: doppelt tippen) in eine leer
       <p>Sampler wie eine MPC: Zieh eine Audiodatei ins Arrangement (rechte Hälfte) oder lege mit „+ Spur“ einen Sampler an. Sound Groot schneidet sie in Chops und legt sie auf 16 Pads. Jeden Chop kannst du stimmen, ein- und ausblenden, umdrehen und filtern. Gespielt wird mit Maus, Tasten oder Pad-Controller; R (auf der Sampler-Spur Umschalt+R) nimmt auf.</p>
       <p>MPC Beats und andere DAWs: MIDI-Dateien (.mid) ziehst du ins Arrangement oder öffnest sie unter Datei. Noten werden zu Regionen, Drums zu Drum-Patterns, der MPC-Swing bleibt erhalten. „Als MIDI“ oben im Editor und „Song als MIDI exportieren“ gehen den Weg zurück. In der Bibliothek zeigt „Ordner“ deine Sample-Ordner; in der Windows-App findet Sound Groot die installierten MPC-Expansions selbst. MPC-Drumkits (.xpm) werden zur Sampler-Spur mit allen Pads, Keygroup-Programme zum spielbaren Instrument.</p>
       <p>Groove: Im Piano Roll zieht „Quantisieren“ die Noten aufs Raster, unter „Groove“ stellst du Stärke, Swing und Humanize ein. Im Drum-Pattern gibt es Swing und Humanize pro Region. Audio-Regionen folgen auf Wunsch dem Songtempo, ohne dass sich die Tonhöhe ändert. Loops dafür liegen in der Bibliothek einer Audio-Spur.</p>
-      <p>Im Mixer (M) fasst du Spuren zu Gruppen zusammen, rechts zeigt der Master die Lautheit in LUFS. Unter Klang & Effekte kann der Kompressor per Sidechain von einer anderen Spur gesteuert werden, etwa damit die Kick den Bass kurz wegdrückt.</p>
+      <p>Im Mixer (M) fasst du Spuren zu Gruppen zusammen, rechts zeigt der Master die Lautheit in LUFS. Sidechain (das „Pumpen“): Rechtsklick auf den Spurkopf → „Sidechain einrichten“ und die Spur wählen, die diese Spur wegdrücken soll, etwa die Drums für den Bass. Wie stark, stellst du unter Klang & Effekte im Kompressor ein.</p>
+      <p>Plugins: Unter Klang & Effekte → „Einfügen“ stehen 13 eigene Effekte (Limiter, Plattenhall, Chorus, Flanger, Phaser, Tremolo, Auto-Wah, Bandsättigung, Bitcrusher, Lo-Fi, Stereo-Breite, Noise Gate, Transienten). In der Windows-App kommen deine VST-Plugins dazu: VST3 (.vst3) und ältere VST-Plugins (.dll), jeweils 64 Bit. Sound Groot sucht in den üblichen Ordnern; liegt ein Plugin woanders, füge den Ordner oder die Datei hinzu oder zieh die Datei aus dem Explorer ins Fenster. Was sich nicht laden lässt, steht mit Grund in der Liste.</p>
       <p>Taktartwechsel: Abspielposition auf den Takt setzen und oben in der Anzeige auf die Taktart klicken (oder Rechtsklick ins Lineal). Ab diesem Takt gilt die neue Taktart, im Lineal steht ein kleines Schild.</p>
       <p>Drums live einspielen: Drum-Spur wählen, R drücken und die Pads spielen (Tasten A bis #, Bildschirm-Pads oder MIDI). Die Schläge landen im Pattern, mit Cycle kommt in jeder Runde etwas dazu.</p>
       <p>Aufnahme (R) startet mit einem Takt Vorzähler. Ist der Cycle an, entsteht pro Durchgang ein eigener Take, den besten wählst du im Editor. Vorzähler und Latenzausgleich stellst du unter Geräte ein.</p>`;
@@ -7892,10 +8040,10 @@ function paintSettings() {
     const v = $('#stVst'); if (v) v.onclick = () => { vstMul = 1; try { localStorage.setItem('klangwerk.vstbuf', 1); } catch (e) { } if (ctx) vstRelat(); paintSettings(); toast('VST-Puffer zurückgesetzt.'); };
   } else {
     pane.innerHTML = `<h3>Sound Groot ${SG_VERSION}</h3>
-      <p>${sgsys || sgvst ? 'Windows-App' : 'Web-App im Browser'}. Eine DAW nach Logic-Vorbild: Spuren, Instrumente, Drum-Patterns, Sampler, Mixer, Plugins (WAM 2.0${sgvst ? ', VST3' : ''}).</p>
+      <p>${sgsys || sgvst ? 'Windows-App' : 'Web-App im Browser'}. Eine DAW nach Logic-Vorbild: Spuren, Instrumente, Drum-Patterns, Sampler, Mixer, Plugins (eigene Effekte, WAM 2.0${sgvst ? ', VST3 und VST2' : ''}).</p>
       <h3>Klänge</h3>
       <p>Instrument-Samples: <a href="https://github.com/nbrosowsky/tonejs-instruments" target="_blank" rel="noopener">tonejs-instruments</a> von Nicholas Brosowsky (CC-BY 3.0). Weitere Instrumente, Percussion und Loops: <a href="https://github.com/sgossner/VCSL" target="_blank" rel="noopener">Versilian Community Sample Library</a> (CC0). General-MIDI-Klänge: FluidR3 GM von Frank Wen über <a href="https://github.com/gleitz/midi-js-soundfonts" target="_blank" rel="noopener">midi-js-soundfonts</a> (CC-BY 3.0).</p>
-      <h3>Technik</h3><p>MP3-Export mit lamejs (LGPL). Plugins der Sequencer Party (MIT). VST3 SDK von Steinberg (MIT).</p>`;
+      <h3>Technik</h3><p>MP3-Export mit lamejs (LGPL). Plugins der Sequencer Party (MIT). VST3 SDK von Steinberg (MIT). VST ist eine Marke der Steinberg Media Technologies GmbH.</p>`;
   }
 }
 $('#bSet').onclick = () => openSettings();
@@ -8076,14 +8224,36 @@ function laneMenu(tr, lane, x) {
     { label: 'Abspielposition hierher', fn: () => jumpTo(Math.round(b * 4) / 4) },
     tr.type !== 'drums' && { label: 'Auf dieser Spur aufnehmen', kbd: 'R', off: !!rec, fn: () => toggleRecord() }];
 }
-function trackMenu(tr) {
-  const i = P.tracks.indexOf(tr);
+// Sidechain mit einem Klick: Der Kompressor dieser Spur hört auf eine andere Spur und drückt den Klang bei jedem Schlag kurz weg
+// (typisch: die Kick macht dem Bass Platz, das „Pumpen“). srcId = null schaltet es wieder aus.
+function setSidechain(tr, srcId) {
+  ensureCtx();
+  const fx = fxOf(tr), src = srcId && findTrack(srcId);
+  if (src && scLoops(tr, src)) { toast(`Das ergäbe eine Schleife: „${tr.name}“ steuert schon „${src.name}“.`); return; }
+  pushUndo();
+  if (src) Object.assign(fx.comp, fx.comp.sc ? {} : COMP_PRESETS['Pumpen (Sidechain)'], { on: true, sc: src.id });
+  else { delete fx.comp.sc; fx.comp.on = false; }
+  applyFx(tr); save(); renderArrange(); if (edOpen) renderEditor();
+  if (src && !ctx.sgReady) loadWorklet().then(() => applyMix(), () => toast('Sidechain braucht AudioWorklet, das dieser Browser nicht hat.'));
+  toast(src ? `Sidechain an: „${src.name}“ drückt „${tr.name}“ bei jedem Schlag kurz weg. Wie stark, stellst du unter Klang & Effekte im Kompressor ein.` : `Sidechain auf „${tr.name}“ ist aus.`, 5000);
+}
+function sidechainMenu(tr, x, y) {
+  const cur = fxOf(tr).comp.on && fxOf(tr).comp.sc, others = P.tracks.filter(t => t !== tr);
+  openMenu(x, y, [
+    { note: 'Wähle die Spur, die diese Spur wegdrücken soll. Meist ist das die Drum-Spur: Bei jedem Kick macht der Bass oder die Fläche kurz Platz.' },
+    ...others.map(t => ({ label: (t.id === cur ? '● ' : '') + t.name, on: t.id === cur, fn: () => setSidechain(tr, t.id) })),
+    !others.length && { note: 'Dafür braucht es eine zweite Spur.' },
+    cur && '-', cur && { label: 'Sidechain ausschalten', danger: true, fn: () => setSidechain(tr, null) }], { title: 'Sidechain für ' + tr.name });
+}
+function trackMenu(tr, x = 0, y = 0) {
+  const i = P.tracks.indexOf(tr), sc = fxOf(tr).comp.on && findTrack(fxOf(tr).comp.sc);
   return [
     { label: 'Umbenennen …', fn: () => askText('Spur umbenennen', tr.name, v => { pushUndo(); tr.name = v.slice(0, 32); save(); render(); }) },
     { label: 'Duplizieren', fn: () => duplicateTrack(tr) },
     { head: 'Farbe' }, { chips: COLORS.map(c => ({ color: c, on: c === tr.color, fn: () => { pushUndo(); tr.color = c; save(); render(); } })) }, '-',
     tr.type !== 'audio' && { label: tr.type === 'sampler' ? 'Pads & Chops' : 'Klang in der Bibliothek wählen', fn: () => { if (tr.type === 'sampler') showEditor('smp'); else { setLib(true); $('#lib .lib-item.on')?.scrollIntoView({ block: 'center' }); } } },
     { label: 'Klang & Effekte', kbd: 'V', fn: () => showEditor('fx') }, { label: 'Kanal-EQ', fn: () => showEditor('eq') },
+    { label: sc ? `Sidechain: von „${sc.name}“ …` : 'Sidechain (Pumpen) einrichten …', fn: () => sidechainMenu(tr, x, y) },
     { label: tr.showAuto ? 'Automation ausblenden' : 'Automation zeigen', fn: () => { tr.showAuto = !tr.showAuto; save(); renderArrange(); } },
     { label: useFrozen(tr) ? 'Auftauen' : 'Einfrieren (spart Rechenleistung)', fn: () => useFrozen(tr) ? unfreezeTrack(tr) : freezeTrack(tr) }, '-',
     { label: 'Nach oben', off: i <= 0, fn: () => moveTrack(tr, i - 1) }, { label: 'Nach unten', off: i >= P.tracks.length - 1, fn: () => moveTrack(tr, i + 1) },
@@ -8101,7 +8271,7 @@ onContext(rowsEl, ({ x, y, target }) => {
     openMenu(x, y, regionMenu(tr, r), { title: r.name });
   } else {
     if (selTrack !== tr.id) { selTrack = tr.id; selRegion = null; markSelection(); renderEditor(); }
-    if (lane) openMenu(x, y, laneMenu(tr, lane, x), { title: tr.name }); else openMenu(x, y, trackMenu(tr), { title: tr.name });
+    if (lane) openMenu(x, y, laneMenu(tr, lane, x), { title: tr.name }); else openMenu(x, y, trackMenu(tr, x, y), { title: tr.name });
   }
 });
 // Taktart-Menü: ab Takt bar (0 = Songanfang)
@@ -8242,7 +8412,7 @@ function useTemplate(key) {
   snapshot('vor „Neues Projekt“'); pushUndo();
   P = templateProject(key); P.name = key === 'demo' ? 'Demo-Song' : 'Mein Song';
   fileHandle = null; selTrack = P.tracks[0]?.id || null; selRegion = null; playPos = 0;
-  applyMix(); save(); render();
+  applyEngine(); save(); render();
   if (key === 'keys') setKb(true);
   toast(key === 'demo' ? 'Demo-Song geladen. Leertaste zum Abspielen.' : 'Neues Projekt. Strg+Z holt das alte zurück.');
 }

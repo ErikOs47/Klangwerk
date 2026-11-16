@@ -1,0 +1,50 @@
+# Baut die fertige Windows-App: zuerst den Plugin-Host (VST3 und VST2) mit MSVC samt Tests, dann das Programm als Zip.
+# Das Zip hängt als Artefakt am Lauf und wird als Release „v<Version>“ veröffentlicht (bei gleicher Version ersetzt).
+name: Windows-App
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: windows-app
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: VST3 SDK holen (MIT-Lizenz)
+        shell: bash
+        run: |
+          git clone -q --depth 1 --branch v3.8.1_build_84 https://github.com/steinbergmedia/vst3sdk.git native/vst3host/.sdk
+          git -C native/vst3host/.sdk submodule -q update --init --depth 1 base pluginterfaces public.sdk
+      - name: Plugin-Host bauen
+        run: |
+          cmake -S native/vst3host -B build -A x64 -DVST3_SDK_DIR="${{ github.workspace }}/native/vst3host/.sdk" -DSG_TESTPLUG=ON
+          cmake --build build --config Release
+      - name: Plugin-Host testen (VST3 und VST2)
+        run: node native/vst3host/test/host-test.js build/Release/sg-vst3host.exe "${{ github.workspace }}\build\Release\sg-testplug.vst3" "${{ github.workspace }}\build\Release\sg-testplug2-synth.dll" "${{ github.workspace }}\build\Release\sg-testplug2-gain.dll"
+      - name: Host in die App legen
+        shell: bash
+        run: mkdir -p native/bin && cp build/Release/sg-vst3host.exe native/bin/sg-vst3host.exe
+      - name: App bauen
+        run: |
+          npm ci
+          npm run dist:win
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SoundGroot-Windows
+          path: release/*.zip
+      - name: Als Release veröffentlichen
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V=$(node -p "require('./package.json').version")
+          gh release view "v$V" >/dev/null 2>&1 || gh release create "v$V" --target "$GITHUB_SHA" --title "Sound Groot $V" --notes "Windows-App mit Plugin-Host (VST3 und VST2). Zip entpacken und „Sound Groot.exe“ starten. Was neu ist, steht in PLAN.md."
+          gh release upload "v$V" "release/SoundGroot-$V-win.zip" --clobber

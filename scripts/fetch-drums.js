@@ -14,7 +14,11 @@ const KITS = {
   sk1: ['Casio-SK1', { kick: 'kick', snare: 'snare', hat: 'hithat', ohat: 'hihat-open', tom: 'tom-hi' }],
   // Neu in v1.2
   drumtraks: ['Sequential-Circuits-Drumtraks', { kick: 'DT_Kick', snare: 'DT_Snare', clap: 'DT_Clap', hat: 'DT_Closedhat', ohat: 'DT_Openhat', tom: 'DT_Tom01', rim: 'DT_Rimshot', cow: 'DT_Cowbell', crash: 'DT_Crash', ride: 'DT_Ride', shaker: 'DT_Cabasa', conga: 'DT_Tom02' }],
-  '808mini': ['808-mini', { kick: 'kick', snare: 'snare-2', clap: 'snare-3', hat: 'hhclosed-1', ohat: 'hhopen-1', tom: 'tom-mid', crash: 'crash', ride: 'ride', conga: 'tom-high' }]
+  '808mini': ['808-mini', { kick: 'kick', snare: 'snare-2', clap: 'snare-3', hat: 'hhclosed-1', ohat: 'hhopen-1', tom: 'tom-mid', crash: 'crash', ride: 'ride', conga: 'tom-high' }],
+  // Neu in v1.7: zwei weitere Stimmungen der TR-808 (Tonhöhe und Ausklang der Regler am Gerät) und die anderen Klänge der LM-2
+  tr808deep: ['TR-808', { kick: 'kick/bd7575', snare: 'snare/sd0075', clap: 'clap/cp', hat: 'hihat-close/ch', ohat: 'hihat-open/oh75', tom: 'tom-low/lt50', rim: 'clave/cl', cow: 'cowbell/cb', crash: 'cymbal/cy0075', ride: 'cymbal/cy7575', shaker: 'maraca/ma', conga: 'conga-low/lc50' }],
+  tr808tight: ['TR-808', { kick: 'kick/bd0010', snare: 'snare/sd7510', clap: 'clap/cp', hat: 'hihat-close/ch', ohat: 'hihat-open/oh10', tom: 'tom-hi/ht25', rim: 'rimshot/rs', cow: 'cowbell/cb', crash: 'cymbal/cy5010', ride: 'cymbal/cy2525', shaker: 'maraca/ma', conga: 'conga-hi/hc25' }],
+  lm2alt: ['LM-2', { kick: 'kick-alt', snare: 'snare-h', clap: 'clap', hat: 'hhclosed-short', ohat: 'hhopen', tom: 'tom-hh', rim: 'stick-h', cow: 'cowbell', crash: 'crash', ride: 'ride', shaker: 'tambourine', conga: 'conga-hh' }]
 };
 // Optional nur bestimmte Kits: node scripts/fetch-drums.js drumtraks,808mini
 const pick = new Set((process.argv[2] || '').split(',').filter(Boolean));

@@ -100,7 +100,17 @@ const INSTR = {
   'harmonica-chrom': { dir: 'Aerophones/Free Aerophones/Harmonica-Hohner-Super64/Sustains', re: /_Accented_([A-G]#?\d)\.wav$/, dur: 3.5 },
   'vibes-soft': { dir: 'Idiophones/Struck Idiophones/Vibraphone/Soft Mallets', re: /_soft_([A-G]#?\d)_v2_/, dur: 4 },
   'tubular-glock': { dir: 'Idiophones/Struck Idiophones/Tubular Glockenspiel', re: /(?:^|\/)([A-G]#?\d)_loud1/, dur: 4 },
-  'harpsichord-lute': { dir: 'Chordophones/Zithers/Harpsichord, English/Sustains', re: /_Lute_Sus_([A-G]#?\d)_rr1/, dur: 3 }
+  'harpsichord-lute': { dir: 'Chordophones/Zithers/Harpsichord, English/Sustains', re: /_Lute_Sus_([A-G]#?\d)_rr1/, dur: 3 },
+  // Neu in v1.7
+  'grand-steinway': { dir: 'Chordophones/Zithers/Grand Piano, Steinway B/NoSus', re: /_NoSus_Close_([A-G]#?\d)_vl4_rr1/, dur: 4.5 },
+  'concert-harp': { dir: 'Chordophones/Composite Chordophones/Concert Harp', re: /KSHarp_([A-G]#?\d)_(?:f|mf)1/, dur: 4 },
+  'wine-glasses': { dir: 'Idiophones/Friction Idiophones/Wine Glasses/Sustains/Slow', re: /_([A-G]#?\d)_Slow_1_Main/, dur: 4 },
+  'soprano-recorder': { dir: 'Aerophones/Edge-blown Aerophones/Baroque Soprano Recorder/Sustain', re: /_Sus_([A-G]#?\d)_rr1/, dur: 3 },
+  'tenor-recorder': { dir: 'Aerophones/Edge-blown Aerophones/Baroque Tenor Recorder/SusVib', re: /_SusVib_([A-G]#?\d)_rr1/, dur: 3 },
+  'mbira-low': { dir: 'Idiophones/Plucked Idiophones/Mbira Mavembe (Gandanga), Zimbabwe, Low G', re: /_MainSpirit_([A-G]#?\d)_k\d+_vl2/, dur: 3 },
+  'harpsichord-french': { dir: 'Chordophones/Zithers/Harpsichord, French/Sustains', re: /_Normal_([A-G]#?\d)_rr1/, dur: 3.5 },
+  'harpsichord-italian': { dir: 'Chordophones/Zithers/Harpsichord, Italian/Sustains/stop1', re: /_stop1_([A-G]#?\d)_1/, dur: 3.5 },
+  'ocarina-small': { dir: 'Aerophones/Edge-blown Aerophones/Ocarina, Small/Sustain', re: /ocarina_([A-G]#?\d)_sustain0/, dur: 3 }
 };
 // Gruppiert passende Dateien nach Tonhöhe und korrigiert die Oktave anhand der gemessenen Tonhöhe (Median)
 async function noteSet(dir, re, maxSec) {

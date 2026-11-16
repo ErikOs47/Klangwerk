@@ -2,5 +2,4 @@ node_modules/
 dist/
 release/
 build/
-native/bin/
 native/vst3host/.sdk/
