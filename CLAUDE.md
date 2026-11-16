@@ -32,11 +32,11 @@ Tests (siehe Abschnitt 6): `bash tests/run-all.sh`, `node tests/lint.js`, `xvfb-
 | `src/app.html` | **Die gesamte App** (~8 400 Zeilen): HTML, CSS und ein großes `<script>` (IIFE). Kein Framework, kein Bundler. Abschnitte sind mit `// ================= Name =================` markiert (`grep -n "^// =====" src/app.html`). |
 | `src/sw.js` | Service Worker. `__VERSION__`, `__SHELL__`, `__SAMPLES__` werden von `scripts/build.js` ersetzt. Shell-Cache pro Version, Sound-Cache mit Hash-Schlüssel. |
 | `src/splash.html` | Startbildschirm (Electron). |
-| `src/samples/*.js` | Instrument-/Drum-Samples als JS (setzen `KW_SMP`), Herkunft und Lizenzen in `src/samples/QUELLE.txt`. Werden lazy geladen. |
+| `src/samples/*.js` | Instrument-/Drum-Samples als JS (setzen `KW_SMP`), Herkunft und Lizenzen in `src/samples/QUELLE.txt`. Werden lazy geladen. Format 1: `{midi: mp3}` (mono, eine Stärke, wird auf Spitze normalisiert). Format 2 (`hq-*.js`, `drums-hq*.js`): `{v:2, z:[[midi, obereVelocity, mp3]…]}` bzw. `{v:2, p:{kick:[[obereVelocity,[mp3…]]…]}}` – Stereo, Anschlagstufen, Round Robin, Pegel wie aufgenommen. |
 | `src/plugins/` | WAM-2.0-Plugins: fremde (delay, distortion, simpleEQ, synth101, modal; Lizenz `LICENSE.txt`) und **eigene** in `src/plugins/sg/` (13 Effekte, gemeinsamer AudioWorklet `core.js` → Prozessor `sg-fx`). |
 | `src/vendor/` | `wam-sdk.js`, `lame.min.js` (MP3) mit Lizenzen. |
 | `scripts/build.js` | Baut `dist/`: kopiert, setzt `SG_VERSION` aus `package.json`, erzeugt SHELL- (vorab gecacht, inkl. `plugins/sg`) und SAMPLES-Liste. |
-| `scripts/fetch-*.js` | Holen/erzeugen Sounds (VCSL, GM-Soundfont, Drumkits) und Fremd-Plugins. Nur bei Sound-Updates nötig. `fetch-plugins.js` darf `plugins/sg` **nicht** löschen. |
+| `scripts/fetch-*.js` | Holen/erzeugen Sounds (VCSL, GM-Soundfont, Drumkits) und Fremd-Plugins. Nur bei Sound-Updates nötig. `fetch-plugins.js` darf `plugins/sg` **nicht** löschen. `fetch-hq.js` baut die Studio-Klänge (Format 2) aus sfzinstruments/VSCO-2 (Git-Partial-Clone, nur gebrauchte Dateien; Cache `$SG_HQ_CACHE`), mischt Drum-Mikrofone und gleicht Kit-Pegel an (`MIXDB`). |
 | `main.js` | Electron-Hauptprozess: Fenster, Dateisystem-Brücke (`sgfs:*`), VST-Verwaltung (`vst:*`), CPU (`sys:cpu`). |
 | `preload.js` | `contextBridge`: `window.sgfs`, `window.sgvst`, `window.sgsys`. Die Seite hat **keinen** Node-Zugriff. |
 | `native/vst3host/` | `sg-vst3host.cpp`: eigener Plugin-Host-Prozess (ein Plugin pro Prozess) für VST3 und VST2. `vst2abi.h` = eigene Beschreibung der VST2-Binärschnittstelle (**kein Steinberg-SDK-Code für VST2**). Tests + Test-Plugins in `test/`. |
@@ -49,7 +49,8 @@ Tests (siehe Abschnitt 6): `bash tests/run-all.sh`, `node tests/lint.js`, `xvfb-
 - **Globaler Zustand:** `P` = aktuelles Projekt, `ctx` = AudioContext, `master`, `buses` (Hall/Delay), `chans` (Map Spur-ID → Kanalzug), `gchans` (Gruppen), `session` (laufende Wiedergabe).
 - **Kanalzug** (`chan(tr)`): `input → EQ-Bänder → Filter → comp (DynamicsCompressor) → makeup → duck → insIn → [Plugins] → insOut → pdc (Delay, Latenzausgleich) → vol → mute → pan → (master | Gruppe)`, plus Sends `revS`/`delS`.
 - **Summe** (`buildMaster`): `master → Kompressor → Soft-Clip → analyser → Ziel`.
-- **Scheduler** (`schedule(b0, b1, t0)`, Abschnitt „Transport / Scheduler“): plant Noten/Drums/Audio im Voraus in Beats; Positionen über die Taktart-Karte.
+- **Scheduler** (`schedule(b0, b1, t0)`, Abschnitt „Transport / Scheduler“): plant Noten/Drums/Audio im Voraus in Beats; Positionen über die Taktart-Karte, Zeiten über die Tempo-Karte (`at(b)`).
+- **Tempo-Karte**: `P.bpm` gilt ab Beat 0, `P.tempos = [{b, bpm}]` sind Tempowechsel. Beat ↔ Sekunde **nur** über `beatToSec, secToBeat, secsBetween, beatAfter, bpmAt, spbAt, tsegAt, tempoChangesIn` (es gibt kein `spb()` mehr). Tempo-Änderungen beim Abspielen über `tempoEdit(fn)` (alte Abschnitte behalten ihr Tempo), setzen über `setTempoAt(b, bpm|null)` / `setBpmAt(b, bpm)`. Audio-Regionen: `regSecs, srcBetween, beatOfSrc, audioPieces, stOf(r, b)`; Regionen mit `r.tempo` lesen ihre Aufnahme gleichmäßig pro Viertel und werden je Tempo-Abschnitt gedehnt.
 - **Export/Einfrieren** (`renderSong` → `renderSongNow`): baut den kompletten Graphen in einem `OfflineAudioContext` neu, indem **die globalen Variablen `ctx`, `master`, `chans` … vorübergehend umgehängt** werden (im `finally` zurück). Währenddessen ist die Bedienung über `setRendering()` gesperrt (`#busy`). Vorlauf `PRE = 0.5 s` (wärmt die Kompressoren an) und die Kompressor-Vorausschau (`compLat` = 6 ms pro Kompressor) werden vorn abgeschnitten.
 - **AudioWorklets** (als Text eingebettet bzw. Datei): `sg-duck` (Sidechain), `sg-vst` (Audio-Brücke zum VST-Host), `sg-fx` (eigene Effekte).
 - **Plugins:** WAM 2.0 (`wamCreate`), VST über `window.sgvst` (Abschnitt „VST3-Plugins“). VST-Audio läuft per WebSocket zwischen Worklet und Host-Prozess; Steuerung zeilenweise über stdin (`<nr> <befehl> [arg]` → `<nr> ok|err …`; Befehle: getstate, setstate, params, edit, close, title, quit). Export mit VST: `vstBarrier` hält das Offline-Rendern alle `VST_OFF` = 4096 Samples an.
@@ -103,10 +104,10 @@ region = { id, start, len (in Beats), name, … }
 5. **localStorage-Limit** (~5 MB) für das Projekt-JSON; sehr große MIDI-/Drum-Projekte können an die Grenze kommen.
 6. **VST:** nur 64-Bit; Shell-Plugins (mehrere Effekte in einer .dll, z. B. Waves) und Dongle-Kopierschutz können scheitern; kein Sidechain-Eingang für Plugins; Live-Audio hat zusätzliche Pufferlatenz (`vstLat`, wächst bei Aussetzern bis 4×). **Nur unter Wine und mit eigenen Test-Plugins getestet, nie auf echtem Windows mit Fremd-Plugins.**
 7. **iPhone nie auf echtem Gerät getestet** (nur emuliert in Chromium). Safari-Eigenheiten (AudioContext-Freigabe, Speicherdruck, Service-Worker-Updates) sind ungeprüft.
-8. **Keine Tempowechsel im Song** (nur Taktartwechsel). Viele Funktionen setzen `spb()` als konstant voraus.
+8. **Tempowechsel springen** (keine Rampen). Audio ohne „Folgt dem Songtempo“ behält seine Länge in Sekunden; die Wellenform solcher Regionen wird über Tempowechsel hinweg nur angenähert gezeichnet. Studio-Klänge sind groß (Flügel ~11 MB, Format 2) – erster Abruf am Handy dauert.
 9. Ein Drum-Pattern hat genau eine Taktart; MIDI-importierte Drums werden an Taktartwechseln nicht geteilt.
 10. Aufnahme-Latenz wird automatisch geschätzt (`outLatency() + 12 ms`); auf manchen Geräten muss der Nutzer manuell korrigieren.
-11. Lint: 5 Warnungen (unbenutzte Variablen), 0 Fehler.
+11. Lint: 0 Fehler, 0 Warnungen.
 12. Browser-Tests laufen **nicht** in CI (nur der VST-Host wird in CI getestet).
 
 ---
@@ -114,12 +115,11 @@ region = { id, start, len (in Beats), name, … }
 ## 5. Offene To-dos
 
 - [ ] PR #22 (1.7 + 1.7.1) reviewen/mergen → prüfen, ob `windows.yml` das Release baut (Workflow lief noch nie auf `main`).
-- [ ] Tempowechsel im Song (Tempo-Spur) – größter offener Punkt, betrifft Scheduler, Export, MIDI, Aufnahme.
+- [ ] Allmähliche Tempoübergänge (Rampen) in der Tempo-Karte.
 - [ ] Regionen loopen durch Ziehen an der oberen rechten Ecke.
 - [ ] Mehrfachauswahl von Regionen.
 - [ ] Test auf echtem iPhone und echtem Windows-PC mit Fremd-Plugins (z. B. Vital, Surge XT, TAL-Plugins).
 - [ ] Browser-Tests (`tests/run-all.sh`) als GitHub-Action.
-- [ ] Lint-Warnungen aufräumen.
 - [ ] Undo speichersparender (Diffs statt Voll-Schnappschuss), falls Projekte groß werden.
 - [ ] Neue Sounds im nächsten Update (Grundsatz).
 
@@ -135,7 +135,8 @@ Ergebnisse/Downloads landen in `tests/out/` (ignoriert).
 | `bash tests/run-all.sh` | Alle Browser-Regressionstests + Fuzzer. Jeder Block endet mit „keine Fehler“. |
 | `node tests/t.js <b> <h> <png\|-> <test.js> [touch]` | Einzelner Test; `test.js` exportiert `async page => {}`. |
 | `node tests/fuzz.js <seed> <schritte> [b h] [touch]` | Zufallsbedienung, meldet JS-Fehler mit den letzten Schritten. |
-| `tests/timing.js`, `swing.js`, `lat.js`, `mute.js` | Export samplegenau (Anschläge, Swing, Gruppen-Latenz, Stumm/Solo). |
+| `tests/timing.js`, `swing.js`, `lat.js`, `mute.js`, `tempo.js` | Export samplegenau (Anschläge, Swing, Gruppen-Latenz, Stumm/Solo, Tempowechsel inkl. Lineal-Bedienung, Abspielen, MIDI, gedehntes Audio). |
+| `tests/sounds.js` | Rendert Instrumente/Kits einzeln: LUFS, Spitze, Stereo, Pegel je Anschlagstufe (`SG_SOUNDS="s_hq-piano kit:s_hqjazz"`). |
 | `tests/export.js` | Alle Formate + Normalisierung (braucht `ffmpeg`/`ffprobe`). |
 | `tests/undo.js`, `file.js`, `freeze.js`, `rec.js`, `sig.js`, `audio.js`, `sidechain.js`, `pwa.js`, `phone.js` | Undo/Redo, Projektdateien (auch kaputte), Einfrieren, Aufnahme/Takes, Taktartwechsel, Audio-Editor, Sidechain, Offline, Handy. |
 | `node tests/lint.js` | ESLint über App, Service Worker, Electron, Effekt-Worklet. Einmalig `npm i --no-save eslint@9 globals`. |

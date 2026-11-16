@@ -264,17 +264,35 @@ Kompletter Test der App (Bedienung am PC und am Handy, Zufallsbedienung mit übe
 - Wortlaut: „1 Schläge“, „1 Spuren“ usw.
 - Nicht prüfbar in dieser Umgebung: echter Windows-PC (getestet unter Wine), Plugins von Drittherstellern (getestet mit eigenen Test-Plugins), echtes iPhone (getestet im emulierten Browser)
 
+## Version 1.8 (fertig): Tempowechsel im Song und Studio-Klänge
+
+- **Tempowechsel mitten im Song (Tempo-Spur)**: Rechtsklick ins Lineal → „Tempowechsel hier setzen …“, oder „Tempo ▾“ in der Anzeige (dort auch ±1/±5/±10 BPM, alle Wechsel auf einen Blick, „Alle entfernen“). Die Wechsel stehen als Schilder im Lineal, lassen sich mit der Maus oder dem Finger verschieben (rastet auf Zählzeiten, mit Umschalt auf 16tel) und per Klick ändern oder entfernen
+- Das Tempo-Feld zeigt das Tempo an der Abspielposition und läuft beim Abspielen mit; eingetippt ändert es den Abschnitt, in dem die Abspielposition steht
+- Alles hält sich an die Tempo-Karte: Wiedergabe, Metronom, Vorzähler, Export und Stems (samplegenau gemessen), Einfrieren, Aufnahme (Audio, MIDI, Drums), Automation, Delay im Takt, VST-Plugins bekommen Tempo und Position an jedem Wechsel, Positionsanzeige in Minuten
+- Audio, das dem Songtempo folgt, wird an jedem Tempowechsel neu gedehnt (Tonhöhe bleibt); anderes Audio spielt unverändert
+- Taktartwechsel nehmen Tempowechsel mit (sie bleiben im selben Takt). Rückgängig/Wiederholen, Projektdatei, Sicherungen
+- MIDI: Tempowechsel werden beim Import übernommen (wenn die Datei am Songanfang landet) und beim Export geschrieben
+- **Neue Klang-Engine für Studio-Klänge**: Stereo, mehrere Anschlagstärken (leise gespielt klingt wirklich anders, nicht nur leiser) und bei Drums wechselnde Aufnahmen pro Schlag (kein „Maschinengewehr“ bei schnellen Hi-Hats). Die Pegel zwischen den Stärken bleiben wie aufgenommen
+- **17 neue Studio-Klänge**:
+  - Konzertflügel (Yamaha C5, Salamander, 4 Anschlagstärken, alle kleinen Terzen gesampelt)
+  - Jazz-Kit Boston (Virtuosity Drums: Nah-, Overhead- und Raummikrofone gemischt, 4 Stärken × 3 Varianten) und Rock-Kit (Karoryfer Big Rusty Drums)
+  - Kontrabass gezupft, E-Bass (Fender Jazz Bass), Jazzgitarre (Gretsch), Altsaxofon, Baritonsaxofon von 1926
+  - Orchester (VSCO 2): Streicher-Ensemble aus Celli, Bratschen und Geigen, Streicher Pizzicato, Waldhorn, Trompete, Posaune, Querflöte, Klarinette, Oboe, Fagott, Konzertharfe
+- Neue Vorlagen „Jazz-Combo“ und „Orchester“; „Songwriter“ und „Klavier“ nutzen jetzt die Studio-Klänge. In der Bibliothek stehen die Studio-Kits ganz oben
+- Lint-Warnungen aufgeräumt (0 Fehler, 0 Warnungen)
+- Grenzen: Tempowechsel springen (keine allmählichen Übergänge/Rampen). Audio, das nicht dem Songtempo folgt, behält seine Länge in Sekunden; nach einem Tempowechsel kann es deshalb früher enden oder abgeschnitten werden (wie bisher bei einer Tempoänderung)
+
 ## Grundsatz
 
 Jedes Update bringt auch neue Sounds mit.
 
 ## Fahrplan
 
-1. **Als Nächstes**: Tempowechsel im Song (Tempo-Spur), Regionen loopen durch Ziehen an der oberen rechten Ecke, mehrere Regionen gleichzeitig auswählen, Test auf einem echten iPhone (bisher nur im emulierten Browser geprüft)
+1. **Als Nächstes**: allmähliche Tempoübergänge (Rampen), Regionen loopen durch Ziehen an der oberen rechten Ecke, mehrere Regionen gleichzeitig auswählen, Test auf einem echten iPhone (bisher nur im emulierten Browser geprüft)
 
 ## Starten
 
-- Windows: `SoundGroot-1.7.1-win.zip` entpacken (von der Seite „Releases“ auf GitHub), `Sound Groot.exe` starten
+- Windows: `SoundGroot-1.8.0-win.zip` entpacken (von der Seite „Releases“ auf GitHub), `Sound Groot.exe` starten
 - iPhone/Browser: https://erikos47.github.io/Klangwerk/ öffnen, dann „Zum Home-Bildschirm“
 - Entwicklung: `npm install`, dann `npm start`
 - Windows-Build: `npm run dist:win`
