@@ -3,3 +3,4 @@ dist/
 release/
 build/
 native/vst3host/.sdk/
+tests/out/
