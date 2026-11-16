@@ -45,9 +45,11 @@ fs.writeFileSync(path.join(dist, 'manifest.webmanifest'), JSON.stringify({
 const hash = f => crypto.createHash('sha1').update(fs.readFileSync(f)).digest('hex').slice(0, 10);
 const list = dir => fs.readdirSync(path.join(dist, dir)).filter(f => !f.startsWith('.')).map(f => dir + '/' + f);
 const tree = dir => list(dir).flatMap(f => fs.statSync(path.join(dist, f)).isDirectory() ? tree(f) : [f]);
-const shell = ['index.html', 'manifest.webmanifest', ...list('brand'), ...list('vendor')];
+// Die eigenen Effekte (plugins/sg) sind klein und gehören fest zur App: Sie werden gleich mitgespeichert und laufen immer offline
+const sgFx = tree('plugins/sg');
+const shell = ['index.html', 'manifest.webmanifest', ...list('brand'), ...list('vendor'), ...sgFx];
 // Plugins (WAM) werden wie die Sounds beim ersten Laden gespeichert
-const samples = Object.fromEntries([...list('samples').filter(f => f.endsWith('.js')), ...tree('plugins')].map(f => [f, hash(path.join(dist, f))]));
+const samples = Object.fromEntries([...list('samples').filter(f => f.endsWith('.js')), ...tree('plugins').filter(f => !sgFx.includes(f))].map(f => [f, hash(path.join(dist, f))]));
 const sw = fs.readFileSync(path.join(root, 'src/sw.js'), 'utf8')
   .replace('__VERSION__', JSON.stringify(version + '-' + hash(path.join(dist, 'index.html'))))
   .replace('__SHELL__', JSON.stringify(shell))

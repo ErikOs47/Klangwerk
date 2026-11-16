@@ -1422,10 +1422,12 @@ function normProject(p) {
 let ctx = null, master, analyser, noiseBuf, buses = null;
 const chans = new Map();
 // Baut die Master-Kette im aktuellen ctx auf (live oder beim Export im OfflineAudioContext).
+// Jeder Kompressor schaut 6 ms voraus und verzögert das Signal um so viel (Spur und Summe: zusammen 12 ms)
+const compLat = c => Math.floor(.006 * c.sampleRate);
 function buildMaster(dest) {
   const comp = ctx.createDynamicsCompressor();
   comp.threshold.value = -10; comp.ratio.value = 4;
-  master = ctx.createGain(); master.gain.value = P.master ?? .8;
+  master = ctx.createGain(); master.gain.value = P.master ?? .8; master.sgComp = comp;
   analyser = ctx.createAnalyser(); analyser.fftSize = 1024;
   // Sanfter Begrenzer am Ende, damit Export und Wiedergabe nie hart übersteuern
   const clip = ctx.createWaveShaper(), cc = new Float32Array(2048);
@@ -1755,6 +1757,7 @@ function applyMix(now) {
   }
   applyBuses(now);
   applyAutoStatic(now);
+  applyPdc(ctx);
   for (const [id, c] of chans) if (!P.tracks.find(t => t.id === id)) { c.pan.disconnect(); c.duckNode?.disconnect(); dropPlugins(c); chans.delete(id); }
 }
 const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
@@ -2150,7 +2153,7 @@ function playDrum(id, dest, t, vel = 1, kit = 'standard', pitch = 0) {
   }
 }
 function click(t, accent) {
-  t += (ctx.sgPdc || 0) / ctx.sampleRate; // Latenzausgleich der VST-Plugins: Klick bleibt auf dem Schlag
+  t += ((ctx.sgPdc || 0) + compLat(ctx)) / ctx.sampleRate; // Latenzausgleich (Spur-Kompressor, Gruppen, VST-Plugins): Klick bleibt auf dem Schlag
   const o = ctx.createOscillator(), g = ctx.createGain();
   o.type = 'square'; o.frequency.value = accent ? 1600 : 1050;
   o.connect(g).connect(master); decay(g, t, accent ? .22 : .14, .04); o.start(t); o.stop(t + .06);
@@ -2268,7 +2271,7 @@ async function renderHist() {
   const snaps = await listSnaps(); if (seq !== histSeq) return;
   histMenu.innerHTML = `<h4>Bearbeitungsschritte</h4><div class="hlist">${rows.join('')}</div>${from ? `<p class="devnote">… und ${from} ältere Schritte</p>` : ''}
     <div class="hbtns"><button class="sbtn" data-hact="undo" ${n ? '' : 'disabled'}>Rückgängig</button><button class="sbtn" data-hact="redo" ${redoStack.length ? '' : 'disabled'}>Wiederholen</button></div>
-    <h4>Automatische Sicherungen</h4><div class="hlist">${snaps.length ? snaps.map(x => row(`data-snap="${x.t}"`, '', `${x.name} · ${x.tracks} Spuren${x.why ? ' · ' + x.why : ''}`, fmtClock(x.t))).join('') : '<p class="devnote">Noch keine Sicherung.</p>'}</div>
+    <h4>Automatische Sicherungen</h4><div class="hlist">${snaps.length ? snaps.map(x => row(`data-snap="${x.t}"`, '', `${x.name} · ${x.tracks === 1 ? '1 Spur' : x.tracks + ' Spuren'}${x.why ? ' · ' + x.why : ''}`, fmtClock(x.t))).join('') : '<p class="devnote">Noch keine Sicherung.</p>'}</div>
     <button class="sbtn" data-hact="snap">Jetzt sichern</button>
     <p class="devnote">Jede Änderung wird sofort gespeichert. Alle zwei Minuten entsteht zusätzlich eine Sicherung, die auch einen Absturz übersteht. Ein Klick stellt sie wieder her, Strg+Z geht zurück.</p>`;
 }
@@ -2567,7 +2570,9 @@ async function renderSongNow(o, from, end) {
   for (const t of P.tracks) if (t.type === 'synth') tail = Math.max(tail, t.wam ? 2 : PRESETS[t.preset]?.env.r * 4 || 0);
   if (P.tracks.some(t => t.ins?.some(s => s.on))) tail = Math.max(tail, 3);
   await wamSaveStates();
-  const sr = 44100, secs = (end - from) * spb() + Math.max(1, tail, busFx().rev.size) + .5;
+  // Vorlauf: Kompressoren regeln in den ersten Millisekunden nach dem Anlegen herunter (der erste Schlag wäre zu leise).
+  // Darum läuft vor dem Song eine halbe Sekunde mit einem unhörbaren Signal, die am Ende wieder abgeschnitten wird.
+  const sr = 44100, PRE = .5, secs = PRE + (end - from) * spb() + Math.max(1, tail, busFx().rev.size) + .5;
   const live = { ctx, master, analyser, noiseBuf, buses, chans: new Map(chans), gchans: new Map(gchans), metro: P.metro };
   const off = new OfflineAudioContext(2, Math.ceil(secs * sr), sr);
   // Für Sidechains muss das Worklet auch im Offline-Kontext geladen sein
@@ -2581,9 +2586,13 @@ async function renderSongNow(o, from, end) {
     await pluginsReady();
     session = { gains: new Map(), sources: [] };
     wamMarks = new Set();
-    vstTransport({ time: 0, beat: from });
-    if (from > 0) startAudioAt(from, 0);
-    schedule(from, end, 0);
+    const warm = off.createConstantSource(); warm.offset.value = 1e-6; warm.start(0); warm.stop(PRE - .1);
+    for (const c of chans.values()) warm.connect(c.comp);
+    for (const c of gchans.values()) warm.connect(c.glue);
+    warm.connect(master.sgComp);
+    vstTransport({ time: PRE, beat: from });
+    if (from > 0) startAudioAt(from, PRE);
+    schedule(from, end, PRE);
     // Manche Plugins spielen ihre Noten im Haupt-Thread. Damit sie das auch beim schnellen Offline-Rendern rechtzeitig tun,
     // hält das Rendern direkt nach jeder Note kurz an und gibt dem Plugin ein paar Millisekunden.
     const ks = new Set([...wamMarks].map(t => Math.ceil(t * sr / 128) + 1));
@@ -2595,8 +2604,10 @@ async function renderSongNow(o, from, end) {
       off.resume();
     });
     const out = await off.startRendering();
-    // Mit Latenzausgleich ist alles um sgPdc Samples verzögert: vorn abschneiden
-    return off.sgPdc ? trimStart(out, off.sgPdc) : out;
+    // Vorlauf abschneiden. Mit Latenzausgleich ist außerdem alles um sgPdc Samples verzögert.
+    // Der Song-Export beginnt genau auf dem Schlag (ohne die 12 ms von Spur- und Summen-Kompressor). Eingefrorene Spuren
+    // werden hinter dem Spur-Kompressor abgegriffen und später dort wieder eingespeist: Sie behalten dessen 6 ms.
+    return trimStart(out, Math.round(PRE * sr) + (off.sgPdc || 0) + (o.tap ? 0 : 2 * compLat(off)));
   } finally {
     wamMarks = null; vstTp = null; renderOnly = renderNeed = freezing = null;
     chans.forEach(dropPlugins);
@@ -3515,7 +3526,7 @@ async function loopToAudio(id, trackId) {
 const recPrefs = (() => { try { return JSON.parse(localStorage.getItem('klangwerk.rec') || '{}'); } catch (e) { return {}; } })();
 const saveRecPrefs = () => { try { localStorage.setItem('klangwerk.rec', JSON.stringify(recPrefs)); } catch (e) { } };
 // Was man hört, kommt um die Ausgabelatenz später aus dem Lautsprecher; das Mikrofon braucht noch etwas dazu
-const outLatency = () => ctx ? (ctx.outputLatency || 0) + (ctx.baseLatency || 0) + (ctx.sgPdc || 0) / ctx.sampleRate : 0;
+const outLatency = () => ctx ? (ctx.outputLatency || 0) + (ctx.baseLatency || 0) + ((ctx.sgPdc || 0) + 2 * compLat(ctx)) / ctx.sampleRate : 0;
 const autoLatency = () => outLatency() + .012;
 const recLatency = () => recPrefs.lat != null ? recPrefs.lat / 1000 : autoLatency();
 const micConstraints = () => ({ audio: { deviceId: inputDevice ? { exact: inputDevice } : undefined, echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
@@ -3573,7 +3584,7 @@ function recMark(m) {
 function stopRecording() {
   const r = rec; rec = null;
   if (r.type === 'audio') finishAudio(r);
-  else if (r.type === 'drums') { if (r.pushed) { save(); render(); toast(`${r.hits} Schläge aufgenommen. Strg+Z nimmt die Aufnahme zurück.`); } else toast('Es wurde nichts eingespielt.'); }
+  else if (r.type === 'drums') { if (r.pushed) { save(); render(); toast(`${r.hits === 1 ? '1 Schlag' : r.hits + ' Schläge'} aufgenommen. Strg+Z nimmt die Aufnahme zurück.`); } else toast('Es wurde nichts eingespielt.'); }
   else {
     r.held.forEach((n, code) => endRecNote(r, code));
     const reg = r.region;
@@ -3634,8 +3645,10 @@ function newMidiTake(R) {
 // Im Cycle läuft das Pattern rund und füllt sich Runde für Runde, ohne Cycle wächst es Takt für Takt mit (bis 16 Takte).
 function recDrumHit(d, vel) {
   const tr = findTrack(rec.track); if (!tr) return;
-  const b = currentBeat() - outLatency() / spb();
+  let b = currentBeat() - outLatency() / spb();
   if (b < rec.startBeat - .12) return; // im Vorzähler gespielt
+  // Im Cycle kurz vor dem Sprung gespielt: Der Schlag gehört auf die Eins der nächsten Runde
+  const C = P.loop; if (C.on && C.end > C.start && b >= C.end - .12 && b < C.end + .12) b = C.start;
   const hit = x => b >= x.start - .12 && b < x.start + x.len - .12;
   let r = tr.regions.find(hit), fresh = false;
   if (!rec.pushed) { pushUndo(); rec.pushed = true; rec.hits = 0; }
@@ -4429,7 +4442,7 @@ function renderSampler(tr) {
   $('#smpAuto').onchange = e => {
     const how = e.target.value; if (!how) return;
     pushUndo(); const n = autoChop(tr, how); e.target.blur();
-    save(); renderEditor(); renderArrange(); toast(`${n} Chops geschnitten${how.startsWith('hits') ? ' (nach Anschlägen)' : ''}.`);
+    save(); renderEditor(); renderArrange(); toast(`${n === 1 ? '1 Chop' : n + ' Chops'} geschnitten${how.startsWith('hits') ? ' (nach Anschlägen)' : ''}.`);
   };
   eHead.querySelector('.tools').onclick = e => { const b = e.target.closest('[data-tool]'); if (!b) return; smpUI.tool = b.dataset.tool; eHead.querySelectorAll('[data-tool]').forEach(x => x.classList.toggle('on', x === b)); $('#smpWave').className = 'smp-wave tool-' + smpUI.tool; };
   $('#smpSpread').onclick = () => {
@@ -5293,16 +5306,17 @@ function trimStart(buf, n) {
   for (let c = 0; c < buf.numberOfChannels; c++) out.copyToChannel(buf.getChannelData(c).subarray(n), c);
   return out;
 }
-// Latenzausgleich: jede Spur wird so verzögert, dass alle so spät klingen wie die Spur mit den meisten VST-Effekten
+// Latenzausgleich: jede Spur wird so verzögert, dass alle so spät klingen wie die Spur mit dem längsten Weg (Gruppe, VST-Effekte)
 function applyPdc(c0) {
   if (!c0) return;
-  let M = 0; const L = new Map();
+  let M = 0; const L = new Map(), CL = compLat(c0);
   for (const t of P.tracks) {
     const c = chans.get(t.id); if (!c || c.ctx !== c0) continue;
-    let l = 0; for (const s of t.ins || []) { const i = s.on && c.plugs.get(s.id); if (i?.vst) l += i.lat; }
+    // Spuren in einer Gruppe laufen zusätzlich durch deren Kompressor (6 ms)
+    let l = t.out && findGroup(t.out) ? CL : 0; for (const s of t.ins || []) { const i = s.on && c.plugs.get(s.id); if (i?.vst) l += i.lat; }
     L.set(c, l); M = Math.max(M, l);
   }
-  for (const [c, l] of L) c.pdc.delayTime.value = Math.min(1, (M - l) / c0.sampleRate);
+  for (const [c, l] of L) { const v = Math.min(1, (M - l) / c0.sampleRate); if (Math.abs(c.pdc.delayTime.value - v) > 1e-7) c.pdc.delayTime.value = v; }
   c0.sgPdc = M;
 }
 // Puffergröße geändert: allen laufenden Plugins mitteilen und den Ausgleich neu rechnen
@@ -6528,8 +6542,10 @@ document.addEventListener('keydown', e => {
   if (e.code === 'KeyM' && !e.repeat) { $('#bMix').click(); return; }
   if (e.code === 'KeyN' && !e.repeat) { toggleEditor('region'); return; }
   if (e.code === 'KeyV' && !e.repeat && !(e.code in PADKEYS && findTrack(selTrack)?.type === 'sampler')) { toggleEditor('fx'); return; }
+  // Pfeiltasten gehören einem Schieberegler, wenn er den Fokus hat
+  if (e.code.startsWith('Arrow') && e.target.matches?.('input[type=range]')) return;
   if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') { e.preventDefault(); stepBar(e.code === 'ArrowRight' ? 1 : -1); return; }
-  if ((e.code === 'ArrowUp' || e.code === 'ArrowDown') && !e.target.closest('input')) { e.preventDefault(); selectTrackBy(e.code === 'ArrowDown' ? 1 : -1); return; }
+  if (e.code === 'ArrowUp' || e.code === 'ArrowDown') { e.preventDefault(); selectTrackBy(e.code === 'ArrowDown' ? 1 : -1); return; }
   if (e.code === 'Home') { $('#bStart').click(); return; }
   if (e.code === 'KeyI' && !e.repeat) { $('#bLib').click(); return; }
   if (e.code === 'Delete' || e.code === 'Backspace') { e.preventDefault(); if (focusArea === 'mk' && selMarker) deleteMarker(selMarker); else deleteSelection(); return; }
@@ -6777,7 +6793,7 @@ function renderMixer() {
       <div class="st-label">Effekt-Bus</div><div class="st-label tall">${name}</div><div class="st-label"></div>
       <div class="st-knobs" style="justify-content:center">${knob(k, label, true)}</div>
       ${fader}<div class="st-ms"></div><div class="st-foot">${name}</div></div>`;
-  eHead.innerHTML = `<span class="note">${P.tracks.length} Spuren · Hall und Delay sind gemeinsame Effekt-Busse</span><button class="sbtn" data-mix="group" title="Neue Gruppe anlegen, die ausgewählte Spur geht hinein">+ Gruppe</button><span class="note hint">Ziehen = einstellen, Shift = fein, Doppelklick = zurücksetzen</span>`;
+  eHead.innerHTML = `<span class="note">${P.tracks.length === 1 ? '1 Spur' : P.tracks.length + ' Spuren'} · Hall und Delay sind gemeinsame Effekt-Busse</span><button class="sbtn" data-mix="group" title="Neue Gruppe anlegen, die ausgewählte Spur geht hinein">+ Gruppe</button><span class="note hint">Ziehen = einstellen, Shift = fein, Doppelklick = zurücksetzen</span>`;
   eBody.innerHTML = `<div class="mixer">${strips || '<div class="st-label" style="padding:0 12px">Noch keine Spuren.</div>'}${gstrips ? '<div class="mix-sep"></div>' + gstrips : ''}<div class="mix-sep"></div>
     ${aux('rev', 'Hall', 'size', 'Raum')}${aux('del', 'Delay', 'fb', 'Wdh.')}
     <div class="strip master" data-aux="master" style="--c:#fff"><div class="st-label">Ausgang</div>
@@ -6794,7 +6810,7 @@ function renderMixer() {
   eHead.querySelector('[data-mix="group"]').onclick = () => {
     pushUndo(); const g = newGroup(), tr = findTrack(selTrack);
     if (tr) { tr.out = g.id; g.name = tr.name.slice(0, 18) + ' & Co.'; }
-    applyMix(); save(); renderMixer();
+    applyMix(); save(); renderEditor();
     toast(tr ? `Gruppe angelegt, „${tr.name}“ geht hinein. Weitere Spuren schickst du unten im Kanalzug über „→ Master“ in die Gruppe.` : 'Gruppe angelegt. Spuren schickst du unten im Kanalzug in die Gruppe.', 4500);
   };
   box.onchange = e => {
@@ -6802,9 +6818,9 @@ function renderMixer() {
       const tr = findTrack(e.target.closest('.strip').dataset.track), v = e.target.value; if (!tr) return;
       pushUndo();
       if (v === '+') tr.out = newGroup().id; else if (v) tr.out = v; else delete tr.out;
-      applyMix(); save(); renderMixer(); return;
+      applyMix(); save(); renderEditor(); return;
     }
-    if (e.target.matches('[data-gname]')) { const g = findGroup(e.target.closest('.strip').dataset.group); if (g && e.target.value.trim()) { pushUndo(); g.name = e.target.value.trim().slice(0, 24); save(); renderMixer(); } }
+    if (e.target.matches('[data-gname]')) { const g = findGroup(e.target.closest('.strip').dataset.group); if (g && e.target.value.trim()) { pushUndo(); g.name = e.target.value.trim().slice(0, 24); save(); renderEditor(); } }
   };
   box.onpointerdown = e => {
     const el = e.target.closest('.kn, .fader'); if (!el || e.button > 0) return;
@@ -6848,7 +6864,7 @@ function renderMixer() {
       pushUndo();
       if (a === 'del') { P.groups = P.groups.filter(x => x !== g); P.tracks.forEach(t => { if (t.out === g.id) delete t.out; }); toast(`Gruppe „${g.name}“ aufgelöst. Ihre Spuren gehen wieder auf den Master.`); }
       else g[a] = !g[a];
-      ensureCtx(); applyMix(); save(); renderMixer(); return;
+      ensureCtx(); applyMix(); save(); renderEditor(); return;
     }
     const b = e.target.closest('[data-mx]'), st = e.target.closest('.strip[data-track]');
     if (st && st.dataset.track !== selTrack) { selTrack = st.dataset.track; markSelection(); }
@@ -7045,7 +7061,7 @@ function libBody(tr) {
   const lItem = (L, sub) => item(`${attr}="${L.id}"`, smp && tr.srcs.some(x => x.name.startsWith(L.name + ' (')), L.name, `<small>${sub ? esc(sub) + ' · ' : ''}${L.bpm} BPM</small>`, 'l:' + L.id);
   let html = q ? '' : smp ? `<div class="lib-btns"><button data-lib-act="smpload">Audiodatei laden …</button><button data-lib-act="smpopen">Pads & Chops öffnen</button></div>`
     : `<p class="lib-note">Audio-Spuren spielen Aufnahmen vom Mikrofon und importierte Dateien ab. Den Eingang wählst du oben unter Geräte.</p><div class="lib-btns"><button data-lib-act="import">Audiodatei importieren</button><button data-lib-act="rec">Aufnahme starten (R)</button></div>`;
-  if (smp && tr.srcs.length && f === 'all') html += group('Samples dieser Spur', tr.srcs.map((x, i) => item(`data-src="${i}"`, i === tr.src, x.name, `<small>${tr.chops.filter(c => c.buf === x.buf).length} Chops</small>`, '', false)).join(''), tr.srcs.length);
+  if (smp && tr.srcs.length && f === 'all') html += group('Samples dieser Spur', tr.srcs.map((x, i) => item(`data-src="${i}"`, i === tr.src, x.name, `<small>${(n => n === 1 ? '1 Chop' : n + ' Chops')(tr.chops.filter(c => c.buf === x.buf).length)}</small>`, '', false)).join(''), tr.srcs.length);
   if (f === 'fav' || f === 'recent') {
     const keys = f === 'fav' ? [...libFavs] : libRecent;
     const its = keys.filter(x => x.startsWith('l:')).map(x => LOOPS.find(L => L.id === x.slice(2))).filter(L => L && lOk(L)).map(L => lItem(L, L.cat));
@@ -7542,7 +7558,7 @@ if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !/Ele
     if (m.type === 'cache-progress') banner(`Speichere Sounds für die Offline-Nutzung … ${m.done} von ${m.total}`);
     if (m.type === 'cache-done') {
       banner('');
-      navigator.storage?.estimate?.().then(est => toast(m.failed ? `${m.failed} Sounds konnten nicht geladen werden. Bitte mit Internet nochmal versuchen.` : `Fertig: Alle Sounds sind offline da${est?.usage ? ' (' + Math.round(est.usage / 1048576) + ' MB)' : ''}.`, 4000));
+      navigator.storage?.estimate?.().then(est => toast(m.failed ? `${m.failed === 1 ? '1 Sound konnte' : m.failed + ' Sounds konnten'} nicht geladen werden. Bitte mit Internet nochmal versuchen.` : `Fertig: Alle Sounds sind offline da${est?.usage ? ' (' + Math.round(est.usage / 1048576) + ' MB)' : ''}.`, 4000));
       navigator.serviceWorker.controller?.postMessage({ type: 'cache-status' });
     }
   });

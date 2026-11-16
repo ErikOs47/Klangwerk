@@ -246,6 +246,24 @@ Bekannte Grenzen:
 - Grenzen: nur 64-Bit-Plugins; Sammel-Plugins mit mehreren Effekten in einer .dll (z. B. Waves-Shell) und Plugins mit Kopierschutz-Dongle können scheitern. VST-Plugins bekommen weiterhin nur den Haupt-Stereo-Eingang (kein eigener Sidechain-Eingang im Plugin)
 - Technik: VST2 wird über eine eigene Beschreibung der Binärschnittstelle angesprochen (`native/vst3host/vst2abi.h`), ohne Code aus dem alten Steinberg-SDK
 
+## Version 1.7.1 (fertig): Fehlerbehebungen aus dem Komplett-Test
+
+Kompletter Test der App (Bedienung am PC und am Handy, Zufallsbedienung mit über 15.000 Schritten, Export in allen Formaten, samplegenaue Zeitmessung, Electron-App mit VST-Plugins). Gefunden und behoben:
+
+- **Erster Schlag im Export zu leise**: Die Kompressoren von Spur und Summe regeln direkt nach dem Anlegen etwa 60 ms lang herunter. Im Export (und beim Einfrieren) war der allererste Ton dadurch rund 20 dB leiser. Jetzt läuft vor dem Song ein unhörbarer Vorlauf, der wieder abgeschnitten wird
+- **Export begann 12 ms zu spät**: Die Vorausschau der beiden Kompressoren (je 6 ms) stand als Stille am Anfang der Datei. Der Export beginnt jetzt genau auf dem Schlag (auf das Sample genau gemessen, auch mit Swing, Taktartwechsel und VST-Plugins)
+- **Spuren in einer Gruppe klangen 6 ms später** als die übrigen (zusätzlicher Gruppen-Kompressor). Der Latenzausgleich rechnet das jetzt mit ein; Metronom-Klick und Aufnahme-Ausgleich berücksichtigen den Weg ebenfalls
+- Absturz, wenn während Export oder Einfrieren „Abspielen“ gedrückt wurde: Die Bedienung ist währenddessen gesperrt
+- Tempo ändern ließ sich nicht rückgängig machen
+- Nach „Projekt öffnen“, Rückgängig, Vorlage oder Sicherung blieben Master-Lautstärke und Hall/Delay auf dem alten Stand
+- Beschädigte oder fremde Projektdateien konnten die App in einen kaputten Zustand bringen: Sie werden jetzt geprüft und repariert oder mit klarer Meldung abgelehnt
+- Im Mixer verschwand nach „+ Gruppe“ oder „Gruppe auflösen“ die Reiterleiste des Editors
+- Drums live aufnehmen mit Cycle: Ein Schlag knapp vor dem Sprung landete am Ende statt auf der Eins
+- Pfeiltasten sprangen im Song, obwohl gerade ein Schieberegler bedient wurde
+- Offline (iPhone/PWA): Eigene Effekte, die vorher nie benutzt wurden, ließen sich ohne Internet nicht laden
+- Wortlaut: „1 Schläge“, „1 Spuren“ usw.
+- Nicht prüfbar in dieser Umgebung: echter Windows-PC (getestet unter Wine), Plugins von Drittherstellern (getestet mit eigenen Test-Plugins), echtes iPhone (getestet im emulierten Browser)
+
 ## Grundsatz
 
 Jedes Update bringt auch neue Sounds mit.
@@ -256,7 +274,7 @@ Jedes Update bringt auch neue Sounds mit.
 
 ## Starten
 
-- Windows: `SoundGroot-1.7.0-win.zip` entpacken (von der Seite „Releases“ auf GitHub), `Sound Groot.exe` starten
+- Windows: `SoundGroot-1.7.1-win.zip` entpacken (von der Seite „Releases“ auf GitHub), `Sound Groot.exe` starten
 - iPhone/Browser: https://erikos47.github.io/Klangwerk/ öffnen, dann „Zum Home-Bildschirm“
 - Entwicklung: `npm install`, dann `npm start`
 - Windows-Build: `npm run dist:win`
