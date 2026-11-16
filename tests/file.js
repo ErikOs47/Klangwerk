@@ -21,7 +21,7 @@ module.exports = async p => {
   await p.reload(); await p.waitForTimeout(2500);
   console.log('nach Neuladen: fehlendes Audio', await p.locator('.region.missing').count(), '| Regionen', await p.locator('.region').count());
   // Kaputte und fremde Dateien
-  const bad = { 'leer.json': '', 'keinjson.soundgroot': 'das ist kein json', 'falsch.json': '{"format":"anders","project":{}}', 'ohnespuren.json': '{"format":"klangwerk","project":{"bpm":100}}', 'spurkaputt.json': '{"format":"klangwerk","project":{"bpm":100,"tracks":[{"type":"synth"},{"type":"drums","regions":[{}]}],"markers":null}}', 'riesigesTempo.json': '{"format":"klangwerk","project":{"bpm":"abc","tracks":[],"loop":null}}' };
+  const bad = { 'leer.json': '', 'keinjson.soundgroot': 'das ist kein json', 'falsch.json': '{"format":"anders","project":{}}', 'ohnespuren.json': '{"format":"klangwerk","project":{"bpm":100}}', 'fxkaputt.json': '{"format":"klangwerk","project":{"bpm":100,"tempos":[{"b":8,"bpm":"x"},{"b":4,"bpm":300},null],"tracks":[{"type":"synth","fx":{"rev":2},"eq":{"bands":[1]},"regions":[{"start":0,"len":4,"notes":[{"p":60,"s":0,"l":1}]}]}]}}', 'spurkaputt.json': '{"format":"klangwerk","project":{"bpm":100,"tracks":[{"type":"synth"},{"type":"drums","regions":[{}]}],"markers":null}}', 'riesigesTempo.json': '{"format":"klangwerk","project":{"bpm":"abc","tracks":[],"loop":null}}' };
   for (const [n, txt] of Object.entries(bad)) {
     fs.writeFileSync(D + 'out/' + n, txt);
     const before = await p.locator('.track-row[data-track]').count();

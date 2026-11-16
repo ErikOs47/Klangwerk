@@ -1411,6 +1411,9 @@ function normProject(p) {
   p.tracks.forEach((t, i) => {
     t.id ||= uid(); t.name = String(t.name ?? 'Spur ' + (i + 1)).slice(0, 40); t.color ||= COLORS[i % COLORS.length];
     t.vol = clamp(num(t.vol, .8), 0, 1); t.pan = clamp(num(t.pan, 0), -1, 1); t.mute = !!t.mute; t.solo = !!t.solo;
+    // Effekte und EQ: fehlende Teile mit den Grundwerten auffüllen (sonst stürzt die Klangkette ab)
+    if (t.fx != null) { const d = trackFxDefaults(), x = t.fx && typeof t.fx === 'object' ? t.fx : {}; t.fx = { ...d, ...x, comp: { ...d.comp, ...(x.comp && typeof x.comp === 'object' ? x.comp : {}) }, rev: clamp(num(x.rev, 0), 0, 1), del: clamp(num(x.del, 0), 0, 1) }; }
+    if (t.eq != null && !(t.eq && Array.isArray(t.eq.bands) && t.eq.bands.length === defaultEq().bands.length && t.eq.bands.every(b => b && Number.isFinite(+b.f)))) t.eq = defaultEq();
     t.regions = keep(t.regions, r => r && typeof r === 'object' && Number.isFinite(+r.start) && +r.len > 0);
     for (const r of t.regions) {
       r.id ||= uid(); r.start = Math.max(0, +r.start); r.len = +r.len; r.name = String(r.name ?? 'Region');
@@ -1899,15 +1902,15 @@ const SAMPLED = {
   'ocarina-small': ['Okarina (klein)', { hold: 1, a: .03, r: .2, prev: 84 }],
   // Neu in 1.8: Studioqualität in Stereo mit mehreren Anschlagstärken
   'hq-piano': ['Konzertflügel (Studio)', { r: .45, level: .6 }],
-  'hq-jazzbass': ['Kontrabass gezupft (Studio)', { r: .25, prev: 40, level: .6 }], 'hq-fingerbass': ['E-Bass Jazz Bass (Studio)', { r: .2, prev: 40, level: .6 }],
-  'hq-jazzguitar': ['Jazzgitarre Gretsch (Studio)', { r: .4, prev: 55, level: .6 }],
-  'hq-altsax': ['Altsaxofon (Studio)', { hold: 1, a: .02, r: .2, prev: 67, level: .5 }], 'hq-barisax': ['Baritonsaxofon 1926 (Studio)', { hold: 1, a: .02, r: .2, prev: 48, level: .5 }],
-  'hq-strings': ['Streicher-Ensemble (Orchester)', { hold: 1, a: .12, r: .7, level: .5 }], 'hq-pizz': ['Streicher Pizzicato (Orchester)', { r: .3, level: .6 }],
-  'hq-harp': ['Konzertharfe (Orchester)', { r: .9, prev: 64, level: .6 }],
-  'hq-horn': ['Waldhorn (Orchester)', { hold: 1, a: .06, r: .4, prev: 53, level: .5 }], 'hq-trumpet': ['Trompete (Orchester)', { hold: 1, a: .02, r: .25, prev: 67, level: .5 }],
-  'hq-trombone': ['Posaune (Orchester)', { hold: 1, a: .03, r: .3, prev: 50, level: .5 }],
-  'hq-flute': ['Querflöte (Orchester)', { hold: 1, a: .04, r: .25, prev: 79, level: .5 }], 'hq-clarinet': ['Klarinette (Orchester)', { hold: 1, a: .03, r: .25, prev: 64, level: .5 }],
-  'hq-oboe': ['Oboe (Orchester)', { hold: 1, a: .03, r: .25, prev: 72, level: .5 }], 'hq-bassoon': ['Fagott (Orchester)', { hold: 1, a: .03, r: .25, prev: 48, level: .5 }]
+  'hq-jazzbass': ['Kontrabass gezupft (Studio)', { r: .25, prev: 40, level: 1.0 }], 'hq-fingerbass': ['E-Bass Jazz Bass (Studio)', { r: .2, prev: 40, level: 0.8 }],
+  'hq-jazzguitar': ['Jazzgitarre Gretsch (Studio)', { r: .4, prev: 55, level: 0.85 }],
+  'hq-altsax': ['Altsaxofon (Studio)', { hold: 1, a: .02, r: .2, prev: 67, level: 0.35 }], 'hq-barisax': ['Baritonsaxofon 1926 (Studio)', { hold: 1, a: .02, r: .2, prev: 48, level: 0.7 }],
+  'hq-strings': ['Streicher-Ensemble (Orchester)', { hold: 1, a: .12, r: .7, level: 0.63 }], 'hq-pizz': ['Streicher Pizzicato (Orchester)', { r: .3, level: 1.2 }],
+  'hq-harp': ['Konzertharfe (Orchester)', { r: .9, prev: 64, level: 1.2 }],
+  'hq-horn': ['Waldhorn (Orchester)', { hold: 1, a: .06, r: .4, prev: 53, level: 0.27 }], 'hq-trumpet': ['Trompete (Orchester)', { hold: 1, a: .02, r: .25, prev: 67, level: 0.5 }],
+  'hq-trombone': ['Posaune (Orchester)', { hold: 1, a: .03, r: .3, prev: 50, level: 0.37 }],
+  'hq-flute': ['Querflöte (Orchester)', { hold: 1, a: .04, r: .25, prev: 79, level: 0.84 }], 'hq-clarinet': ['Klarinette (Orchester)', { hold: 1, a: .03, r: .25, prev: 64, level: 0.8 }],
+  'hq-oboe': ['Oboe (Orchester)', { hold: 1, a: .03, r: .25, prev: 72, level: 0.63 }], 'hq-bassoon': ['Fagott (Orchester)', { hold: 1, a: .03, r: .25, prev: 48, level: 0.56 }]
 };
 for (const [id, [name, o]] of Object.entries(SAMPLED))
   PRESETS['s_' + id] = { cat: 'Echte Instrumente', name, smp: id, hold: !!o.hold, prev: o.prev, env: { a: o.a || .002, d: 1, s: 1, r: o.r }, cut: 20000, level: o.level || (o.hold ? .38 : .48) };
@@ -2108,7 +2111,7 @@ const KIT_BASE = {
 function kitParam(kit, drum) { return { ...KIT_BASE[drum], ...(KITS[kit]?.[drum] || {}) }; }
 const METAL = [205.3, 304.4, 369.6, 522.7, 540, 800]; // Rechteck-Cluster wie in der 808 für metallische Becken
 // Drumcomputer-Samples: pro Kit eine Datei samples/drums-<id>.js mit einem Klang je Instrument
-const KIT_LVL = {}; // Gesamtpegel der Kits mit Anschlagstufen (Format 2), falls eines lauter oder leiser aufgenommen ist
+const KIT_LVL = { hqjazz: 1.6, hqrock: 1.7 }; // Gesamtpegel der Kits mit Anschlagstufen (Format 2), falls eines lauter oder leiser aufgenommen ist
 const drumSets = new Map(), DRUM_LVL = { kick: 1, snare: .85, clap: .55, hat: .5, ohat: .5, tom: .8, rim: .55, cow: .45, crash: .42, ride: .38, shaker: .45, conga: .7 };
 function loadDrumSet(id) {
   let s = drumSets.get(id); if (s) return s.wait;

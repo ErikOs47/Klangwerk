@@ -273,13 +273,15 @@ Kompletter Test der App (Bedienung am PC und am Handy, Zufallsbedienung mit übe
 - Taktartwechsel nehmen Tempowechsel mit (sie bleiben im selben Takt). Rückgängig/Wiederholen, Projektdatei, Sicherungen
 - MIDI: Tempowechsel werden beim Import übernommen (wenn die Datei am Songanfang landet) und beim Export geschrieben
 - **Neue Klang-Engine für Studio-Klänge**: Stereo, mehrere Anschlagstärken (leise gespielt klingt wirklich anders, nicht nur leiser) und bei Drums wechselnde Aufnahmen pro Schlag (kein „Maschinengewehr“ bei schnellen Hi-Hats). Die Pegel zwischen den Stärken bleiben wie aufgenommen
-- **17 neue Studio-Klänge**:
+- **18 neue Studio-Klänge** (zusammen rund 55 MB; geladen wird nur, was ein Song benutzt):
   - Konzertflügel (Yamaha C5, Salamander, 4 Anschlagstärken, alle kleinen Terzen gesampelt)
   - Jazz-Kit Boston (Virtuosity Drums: Nah-, Overhead- und Raummikrofone gemischt, 4 Stärken × 3 Varianten) und Rock-Kit (Karoryfer Big Rusty Drums)
   - Kontrabass gezupft, E-Bass (Fender Jazz Bass), Jazzgitarre (Gretsch), Altsaxofon, Baritonsaxofon von 1926
   - Orchester (VSCO 2): Streicher-Ensemble aus Celli, Bratschen und Geigen, Streicher Pizzicato, Waldhorn, Trompete, Posaune, Querflöte, Klarinette, Oboe, Fagott, Konzertharfe
 - Neue Vorlagen „Jazz-Combo“ und „Orchester“; „Songwriter“ und „Klavier“ nutzen jetzt die Studio-Klänge. In der Bibliothek stehen die Studio-Kits ganz oben
 - Lint-Warnungen aufgeräumt (0 Fehler, 0 Warnungen)
+- Korrektur: Eine Projektdatei mit unvollständigen Effekt- oder EQ-Einstellungen ließ den Export und die Wiedergabe abstürzen; fehlende Werte werden jetzt beim Öffnen ergänzt
+- Neue Tests: `tests/tempo.js` (Tempowechsel samplegenau, Lineal, Abspielen, MIDI, gedehntes Audio), `tests/sounds.js` (Lautheit und Anschlagstufen jedes Klangs), `tests/templates.js` (alle Vorlagen)
 - Grenzen: Tempowechsel springen (keine allmählichen Übergänge/Rampen). Audio, das nicht dem Songtempo folgt, behält seine Länge in Sekunden; nach einem Tempowechsel kann es deshalb früher enden oder abgeschnitten werden (wie bisher bei einer Tempoänderung)
 
 ## Grundsatz

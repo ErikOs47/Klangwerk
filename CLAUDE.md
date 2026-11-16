@@ -136,6 +136,7 @@ Ergebnisse/Downloads landen in `tests/out/` (ignoriert).
 | `node tests/t.js <b> <h> <png\|-> <test.js> [touch]` | Einzelner Test; `test.js` exportiert `async page => {}`. |
 | `node tests/fuzz.js <seed> <schritte> [b h] [touch]` | Zufallsbedienung, meldet JS-Fehler mit den letzten Schritten. |
 | `tests/timing.js`, `swing.js`, `lat.js`, `mute.js`, `tempo.js` | Export samplegenau (Anschläge, Swing, Gruppen-Latenz, Stumm/Solo, Tempowechsel inkl. Lineal-Bedienung, Abspielen, MIDI, gedehntes Audio). |
+| `tests/templates.js` | Öffnet jede Vorlage, spielt und exportiert sie (Lautheit, Fehler). |
 | `tests/sounds.js` | Rendert Instrumente/Kits einzeln: LUFS, Spitze, Stereo, Pegel je Anschlagstufe (`SG_SOUNDS="s_hq-piano kit:s_hqjazz"`). |
 | `tests/export.js` | Alle Formate + Normalisierung (braucht `ffmpeg`/`ffprobe`). |
 | `tests/undo.js`, `file.js`, `freeze.js`, `rec.js`, `sig.js`, `audio.js`, `sidechain.js`, `pwa.js`, `phone.js` | Undo/Redo, Projektdateien (auch kaputte), Einfrieren, Aufnahme/Takes, Taktartwechsel, Audio-Editor, Sidechain, Offline, Handy. |
