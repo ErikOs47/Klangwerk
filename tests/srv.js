@@ -1,0 +1,4 @@
+// Startet einen kleinen Dateiserver für dist/ im selben Prozess und gibt die Adresse zurück
+const http = require('http'), fs = require('fs'), path = require('path');
+const root = require('path').resolve(__dirname, '..') + '/' + 'dist', types = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.svg': 'image/svg+xml', '.css': 'text/css' };
+module.exports = () => new Promise(res => { const s = http.createServer((q, r) => { let p = decodeURIComponent(q.url.split('?')[0]); if (p.endsWith('/')) p += 'index.html'; fs.readFile(path.join(root, p), (e, d) => { if (e) { r.writeHead(404); r.end(); return; } r.writeHead(200, { 'content-type': types[path.extname(p)] || 'application/octet-stream' }); r.end(d); }); }).listen(0, '127.0.0.1', () => res(`http://127.0.0.1:${s.address().port}/`)); s.unref(); });

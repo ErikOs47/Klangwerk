@@ -14,6 +14,8 @@ npm run dist:win   # baut release/SoundGroot-<version>-win.zip
 
 Externe Plugins im Format Web Audio Modules 2.0 (WAM) lassen sich pro Spur als Effekt oder Instrument einsetzen, fünf freie Plugins liegen in `src/plugins/` (`node scripts/fetch-plugins.js`).
 
+Studio-Klänge (Konzertflügel, Orchester, Jazz- und Rock-Kit, Bässe, Saxofone, Gitarre) in Stereo mit mehreren Anschlagstärken baut `node scripts/fetch-hq.js` aus frei lizenzierten Sample-Bibliotheken (Quellen in `src/samples/QUELLE.txt`).
+
 Dazu kommen 13 eigene Effekte in `src/plugins/sg/` (Limiter, Hall, Chorus, Phaser …), die ohne Internet überall laufen.
 
 In der Windows-App gehen zusätzlich VST-Plugins (Effekte und Instrumente): VST3 (.vst3) und ältere VST-Plugins (.dll), jeweils 64 Bit. Jedes läuft in einem eigenen Prozess, `sg-vst3host.exe` (C++, Steinberg VST3 SDK, MIT-Lizenz), Quelle in `native/vst3host/`. Eine fertig gebaute Fassung liegt in `native/bin/`, die fertige Windows-App baut die GitHub-Action „Windows-App“ und legt sie unter „Releases“ ab.
@@ -27,6 +29,6 @@ node native/vst3host/test/host-test.js native/bin/sg-vst3host.exe <Test-Plugin> 
 
 Export: WAV 16/24/32 Bit, FLAC, MP3, Stems als ZIP, Normalisieren auf Spitze oder −14 LUFS (Datei → Exportieren, Strg+E). Alle Tastenkürzel stehen in den Einstellungen (Zahnrad, F1).
 
-Bedienung: Rechtsklick (am Touchscreen lange drücken) zeigt überall die passenden Befehle, die Schnellhilfe (Fragezeichen oben links) erklärt, worüber die Maus fährt. Taktartwechsel mitten im Song: Klick auf die Taktart in der Anzeige oder Rechtsklick ins Lineal. Drums spielst du mit R live ins Pattern ein.
+Bedienung: Rechtsklick (am Touchscreen lange drücken) zeigt überall die passenden Befehle, die Schnellhilfe (Fragezeichen oben links) erklärt, worüber die Maus fährt. Taktartwechsel mitten im Song: Klick auf die Taktart in der Anzeige oder Rechtsklick ins Lineal. Tempowechsel genauso: Rechtsklick ins Lineal oder „Tempo ▾“ in der Anzeige; die Schilder im Lineal lassen sich verschieben. Drums spielst du mit R live ins Pattern ein.
 
 Die ganze App steckt in `src/app.html`. Plan und nächste Schritte: siehe [PLAN.md](PLAN.md).

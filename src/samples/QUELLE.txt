@@ -29,3 +29,30 @@ Für Sound Groot etwa alle vier Halbtöne ein Ton, gekürzt, in Mono und mit 56 
 
 Drumkits drums-drumtraks.js (Sequential Circuits Drumtraks) und drums-808mini.js ebenfalls aus
 "drum-machines" von smpldsnds (siehe oben, gemeinfrei).
+
+Studio-Klänge hq-*.js und drums-hq*.js (Sound Groot 1.8): Stereo, mehrere Anschlagstärken, bei Drums
+mehrere Varianten pro Schlag. Gekürzt, mit 128 kbit/s (Drums 160 kbit/s) neu kodiert, Drum-Mikrofone
+zusammengemischt (scripts/fetch-hq.js). Die Pegel zwischen den Anschlagstärken bleiben wie aufgenommen.
+
+hq-piano.js: "Salamander Grand Piano V3" von Alexander Holm (Yamaha C5), SFZ-Fassung von sfzinstruments
+https://github.com/sfzinstruments/SalamanderGrandPiano
+Lizenz: CC-BY 3.0 (https://creativecommons.org/licenses/by/3.0/)
+
+drums-hqjazz.js: "Virtuosity Drums" (Versilian Studios, aufgenommen bei Virtuosity Musical Instruments, Boston,
+gespielt von Austin McMahon) https://github.com/sfzinstruments/virtuosity_drums
+Lizenz: CC0 1.0 (gemeinfrei)
+
+drums-hqrock.js: "Big Rusty Drums" von Karoryfer Samples https://github.com/sfzinstruments/karoryfer.big-rusty-drums
+hq-fingerbass.js: "Growlybass" (Squier Jazz Bass), hq-altsax.js: "Weresax" (Altsaxofon), hq-barisax.js: "Bear Sax"
+(Conn-Baritonsaxofon von 1926), hq-jazzguitar.js: "Black And Green Guitars" (Gretsch Anniversary), alle von Karoryfer Samples
+https://github.com/sfzinstruments (karoryfer.growlybass, karoryfer.weresax, karoryfer.bear-sax, karoryfer.black-and-green-guitars)
+Lizenz: CC0 1.0 (gemeinfrei)
+
+hq-jazzbass.js: Kontrabass (Otto Rubner, 1958), gespielt und aufgenommen von D. Smolken
+https://github.com/sfzinstruments/dsmolken.double-bass
+Lizenz: CC0 1.0 (gemeinfrei)
+
+hq-strings.js, hq-pizz.js, hq-horn.js, hq-trumpet.js, hq-trombone.js, hq-flute.js, hq-clarinet.js, hq-oboe.js,
+hq-bassoon.js, hq-harp.js: "VS Chamber Orchestra: Community Edition" (VSCO 2 CE) von Versilian Studios
+(Sam Gossner, Simon Dalzell, Elan Hickler) https://github.com/sgossner/VSCO-2-CE
+Lizenz: CC0 1.0 (gemeinfrei)
