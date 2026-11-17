@@ -284,6 +284,17 @@ Kompletter Test der App (Bedienung am PC und am Handy, Zufallsbedienung mit übe
 - Neue Tests: `tests/tempo.js` (Tempowechsel samplegenau, Lineal, Abspielen, MIDI, gedehntes Audio), `tests/sounds.js` (Lautheit und Anschlagstufen jedes Klangs), `tests/templates.js` (alle Vorlagen)
 - Grenzen: Tempowechsel springen (keine allmählichen Übergänge/Rampen). Audio, das nicht dem Songtempo folgt, behält seine Länge in Sekunden; nach einem Tempowechsel kann es deshalb früher enden oder abgeschnitten werden (wie bisher bei einer Tempoänderung)
 
+## Version 1.9 (fertig): Alle bestehenden Klänge in besserer Qualität
+
+- **101 General-MIDI-Klänge** (E-Pianos, Orgeln, Gitarren, Bässe, Streicher, Bläser, Flächen, Leads, Effekte …) werden jetzt direkt aus der Original-Soundfont FluidR3_GM gerendert (verlustfrei, `fluidsynth`, ohne Hall/Chorus) statt aus MP3s mit 36 kbit/s, die bisher noch einmal auf 56 kbit/s mono umkodiert wurden. 44 davon sind jetzt echt Stereo; Tasten, Gitarren, Bässe, Mallets und Bläser haben zwei Anschlagstufen (mezzo/forte); gesampelt alle 3 Halbtöne (Flächen und Leads alle 4) statt alle 4
+- **tonejs-Instrumente** (Flügel, Cello, Geige, Horn …) aus den WAV-Originalen statt aus MP3, doppelt so viele Töne (alle 2 Halbtöne, soweit vorhanden), 96 statt 64 kbit/s
+- **VCSL-Instrumente** (Kawai- und Steinway-Flügel, Cembalo, Marimba, Vibraphon, Harfe, Orgeln …) in Stereo mit 128 kbit/s und doppelt so vielen Tönen; **VCSL-Kits** in Stereo mit 160 kbit/s
+- **Drumcomputer** (TR-808, LinnDrum, RZ-1 …) mit 128 statt 96 kbit/s
+- **Synth-Flächen**: Klänge mit gegeneinander verstimmten Oszillatoren (Pad, Streicher, Chor, Supersaw, Honky-Tonk …) klingen jetzt in Stereo; Bässe bleiben mono
+- **Gleiche Lautstärke wie vorher**: Jeder Klang wurde alt gegen neu gemessen (LUFS) und angeglichen, bestehende Songs klingen also besser, aber nicht lauter oder leiser
+- Alle Klänge zusammen jetzt rund 207 MB (vorher 114 MB). Geladen wird weiterhin nur, was ein Song benutzt; „Alle Sounds offline speichern“ und die Windows-Zip werden entsprechend größer
+- Erzeugt mit `node scripts/fetch-hq.js gm | tonejs | vcsl | vcslkits` und `node scripts/fetch-drums.js`
+
 ## Grundsatz
 
 Jedes Update bringt auch neue Sounds mit.
@@ -294,7 +305,7 @@ Jedes Update bringt auch neue Sounds mit.
 
 ## Starten
 
-- Windows: `SoundGroot-1.8.0-win.zip` entpacken (von der Seite „Releases“ auf GitHub), `Sound Groot.exe` starten
+- Windows: `SoundGroot-1.9.0-win.zip` entpacken (von der Seite „Releases“ auf GitHub), `Sound Groot.exe` starten
 - iPhone/Browser: https://erikos47.github.io/Klangwerk/ öffnen, dann „Zum Home-Bildschirm“
 - Entwicklung: `npm install`, dann `npm start`
 - Windows-Build: `npm run dist:win`

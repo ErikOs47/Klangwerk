@@ -14,7 +14,7 @@ npm run dist:win   # baut release/SoundGroot-<version>-win.zip
 
 Externe Plugins im Format Web Audio Modules 2.0 (WAM) lassen sich pro Spur als Effekt oder Instrument einsetzen, fünf freie Plugins liegen in `src/plugins/` (`node scripts/fetch-plugins.js`).
 
-Studio-Klänge (Konzertflügel, Orchester, Jazz- und Rock-Kit, Bässe, Saxofone, Gitarre) in Stereo mit mehreren Anschlagstärken baut `node scripts/fetch-hq.js` aus frei lizenzierten Sample-Bibliotheken (Quellen in `src/samples/QUELLE.txt`).
+Studio-Klänge (Konzertflügel, Orchester, Jazz- und Rock-Kit, Bässe, Saxofone, Gitarre) in Stereo mit mehreren Anschlagstärken baut `node scripts/fetch-hq.js` aus frei lizenzierten Sample-Bibliotheken; `node scripts/fetch-hq.js gm` rendert die General-MIDI-Klänge mit `fluidsynth` aus FluidR3_GM.sf2 (Paket `fluid-soundfont-gm`) (Quellen in `src/samples/QUELLE.txt`).
 
 Dazu kommen 13 eigene Effekte in `src/plugins/sg/` (Limiter, Hall, Chorus, Phaser …), die ohne Internet überall laufen.
 

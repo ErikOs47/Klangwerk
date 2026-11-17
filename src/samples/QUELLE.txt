@@ -4,6 +4,7 @@ Lizenz der Samples: CC-BY 3.0 (https://creativecommons.org/licenses/by/3.0/)
 Die Aufnahmen stammen laut Projekt aus gemeinfreien Quellen.
 
 Für Klangwerk gekürzt, in Mono und mit 64 kbit/s neu kodiert (scripts/fetch-samples.js).
+Seit Sound Groot 1.9 aus den WAV-Originalen mit 96 kbit/s (scripts/fetch-hq.js tonejs).
 
 Drum-Samples (drums-*.js) aus "drum-machines" von smpldsnds
 https://github.com/smpldsnds/drum-machines
@@ -26,6 +27,8 @@ vorgerendert als MP3 im Projekt "midi-js-soundfonts" von Benjamin Gleitzman
 https://github.com/gleitz/midi-js-soundfonts
 Lizenz laut Projekt: CC-BY 3.0 (https://creativecommons.org/licenses/by/3.0/us/)
 Für Sound Groot etwa alle vier Halbtöne ein Ton, gekürzt, in Mono und mit 56 kbit/s neu kodiert (scripts/fetch-gm.js).
+Seit Sound Groot 1.9 direkt aus der Datei FluidR3_GM.sf2 (Debian/Ubuntu-Paket fluid-soundfont-gm, Lizenz laut Paket: MIT)
+mit fluidsynth gerendert: Stereo, ohne Hall/Chorus, teils zwei Anschlagstärken, 128 kbit/s (scripts/fetch-hq.js gm).
 
 Drumkits drums-drumtraks.js (Sequential Circuits Drumtraks) und drums-808mini.js ebenfalls aus
 "drum-machines" von smpldsnds (siehe oben, gemeinfrei).
