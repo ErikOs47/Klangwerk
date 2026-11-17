@@ -67,11 +67,11 @@ function tidy(chs, ref, maxSec, fade) {
   const nf = Math.min(e - s, Math.round(fade * SR));
   return chs.map(d => { const x = d.slice(s, e); for (let i = 0; i < nf; i++) x[x.length - nf + i] *= Math.cos(i / nf * Math.PI / 2); return x; });
 }
-// Stereo-Bild prüfen: fast gleiche Kanäle -> mono speichern (halbe Größe)
+// Stereo-Bild prüfen: Kanäle mit gleichem Inhalt (auch nur leiser auf einer Seite, also bloß verschoben) -> mono speichern (halbe Größe)
 function monoIfSame(chs) {
   if (chs.length < 2) return chs;
-  let d = 0, e = 0; for (let i = 0; i < chs[0].length; i++) { const a = chs[0][i], b = chs[1][i]; d += (a - b) * (a - b); e += a * a + b * b; }
-  if (d < e * 1e-4) { const m = chs[0].map((v, i) => (v + chs[1][i]) / 2); return [m]; }
+  let ab = 0, aa = 0, bb = 0; for (let i = 0; i < chs[0].length; i++) { const a = chs[0][i], b = chs[1][i]; ab += a * b; aa += a * a; bb += b * b; }
+  if (ab / Math.sqrt(aa * bb || 1) > .9995) { const m = chs[0].map((v, i) => (v + chs[1][i]) / 2); return [m]; }
   return chs;
 }
 function mp3(chs, kbps) {
@@ -79,7 +79,7 @@ function mp3(chs, kbps) {
   for (let i = 0; i < n; i++) for (let c = 0; c < C; c++) inter[i * C + c] = chs[c][i];
   const raw = path.join(tmp, 'o.f32'), enc = path.join(tmp, 'o.mp3');
   fs.writeFileSync(raw, Buffer.from(inter.buffer));
-  execFileSync('ffmpeg', ['-v', 'error', '-y', '-f', 'f32le', '-ar', String(SR), '-ac', String(C), '-i', raw, '-c:a', 'libmp3lame', '-b:a', (C > 1 ? kbps : Math.round(kbps * .6)) + 'k', enc]);
+  execFileSync('ffmpeg', ['-v', 'error', '-y', '-f', 'f32le', '-ar', String(SR), '-ac', String(C), '-i', raw, '-c:a', 'libmp3lame', '-b:a', (C > 1 ? kbps : Math.round(kbps * .75)) + 'k', enc]);
   return fs.readFileSync(enc).toString('base64');
 }
 // Grundton per Autokorrelation (für Quellen, deren Oktavzählung nicht einheitlich ist)
@@ -95,11 +95,13 @@ const NOTE = { c: 0, 'c#': 1, db: 1, d: 2, 'd#': 3, eb: 3, e: 4, f: 5, 'f#': 6, 
 const midiOf = (name, off = 0) => { const x = String(name).toLowerCase().match(/^([a-g](?:#|b)?)(-?\d)$/); return x ? 12 * (+x[2] + 1) + NOTE[x[1]] + off : null; };
 
 // ---------------------------------------------------------------- Schreiben
-function writeInst(id, zones, kbps, info) {
+// each: jeden Ton einzeln auf Spitzenpegel bringen (für Quellen mit nur einer Anschlagstärke, deren Töne ungleich laut aufgenommen sind)
+function writeInst(id, zones, kbps, info, each = false) {
   const ref = Math.max(...zones.map(z => peakOf(z.chs)));
   const g = .97 / ref, z = [];
   for (const x of zones.sort((a, b) => a.m - b.m || a.v - b.v)) {
-    const chs = monoIfSame(tidy(x.chs, ref, x.maxSec, x.fade ?? .25)).map(d => d.map(v => v * g));
+    const t = tidy(x.chs, each ? peakOf(x.chs) : ref, x.maxSec, x.fade ?? .25), gi = each ? .97 / (peakOf(t) || 1) : g;
+    const chs = monoIfSame(t).map(d => d.map(v => v * gi));
     z.push([x.m, +x.v.toFixed(3), mp3(chs, kbps)]);
   }
   const file = path.join(out, id + '.js');
@@ -304,8 +306,114 @@ const KITS = {
   }
 };
 
+// ---------------------------------------------------------------- Bestehende Klänge in besserer Qualität (Sound Groot 1.9)
+// General MIDI: direkt aus der Soundfont FluidR3_GM.sf2 gerendert (fluidsynth, verlustfrei, Stereo, ohne Hall/Chorus),
+// statt aus den 36-kbit/s-MP3s von midi-js-soundfonts. Tabelle (id -> GM-Name, Tonumfang, Länge) aus scripts/fetch-gm.js.
+const SF2 = process.env.SG_SF2 || '/usr/share/sounds/sf2/FluidR3_GM.sf2';
+const GMN = ('acoustic_grand_piano bright_acoustic_piano electric_grand_piano honkytonk_piano electric_piano_1 electric_piano_2 harpsichord clavinet celesta glockenspiel music_box vibraphone marimba xylophone tubular_bells dulcimer ' +
+  'drawbar_organ percussive_organ rock_organ church_organ reed_organ accordion harmonica tango_accordion acoustic_guitar_nylon acoustic_guitar_steel electric_guitar_jazz electric_guitar_clean electric_guitar_muted overdriven_guitar distortion_guitar guitar_harmonics ' +
+  'acoustic_bass electric_bass_finger electric_bass_pick fretless_bass slap_bass_1 slap_bass_2 synth_bass_1 synth_bass_2 violin viola cello contrabass tremolo_strings pizzicato_strings orchestral_harp timpani ' +
+  'string_ensemble_1 string_ensemble_2 synth_strings_1 synth_strings_2 choir_aahs voice_oohs synth_choir orchestra_hit trumpet trombone tuba muted_trumpet french_horn brass_section synth_brass_1 synth_brass_2 ' +
+  'soprano_sax alto_sax tenor_sax baritone_sax oboe english_horn bassoon clarinet piccolo flute recorder pan_flute blown_bottle shakuhachi whistle ocarina ' +
+  'lead_1_square lead_2_sawtooth lead_3_calliope lead_4_chiff lead_5_charang lead_6_voice lead_7_fifths lead_8_bass__lead pad_1_new_age pad_2_warm pad_3_polysynth pad_4_choir pad_5_bowed pad_6_metallic pad_7_halo pad_8_sweep ' +
+  'fx_1_rain fx_2_soundtrack fx_3_crystal fx_4_atmosphere fx_5_brightness fx_6_goblins fx_7_echoes fx_8_scifi sitar banjo shamisen koto kalimba bagpipe fiddle shanai tinkle_bell agogo steel_drums woodblock taiko_drum melodic_tom synth_drum reverse_cymbal ' +
+  'guitar_fret_noise breath_noise seashore bird_tweet telephone_ring helicopter applause gunshot').split(' ');
+// Instrumente, bei denen die Anschlagstärke den Klang hörbar ändert: zwei Stufen (mezzo und forte)
+const GM_VEL2 = new Set('epiano epiano2 egrand brightpiano honky clavinet celesta musicbox dulcimer steeldrum tinkle agogo woodblock taiko melodic-tom synthdrum timpani guitar-clean guitar-muted guitar-jazz overdrive distortion harmonics banjo sitar koto shamisen acbass fretless slap slap2 pickbass fingerbass synthbass synthbass2 pizz orchhit brass mutedtpt synthbrass synthbrass2 altosax barisax sopsax'.split(' '));
+function gmTable() { const t = fs.readFileSync(path.join(__dirname, 'fetch-gm.js'), 'utf8'); return Function('return ' + t.slice(t.indexOf('const GM = {') + 11, t.indexOf('};', t.indexOf('const GM = {')) + 1))(); }
+// Einfache MIDI-Datei (Typ 0, 120 BPM, 480 Ticks pro Viertel): Programm, dann Töne mit Pausen
+function midiFile(prog, notes) {
+  const vlq = v => { const b = [v & 0x7f]; while ((v >>= 7)) b.unshift((v & 0x7f) | 0x80); return b; }, ev = [];
+  for (const n of notes) { ev.push([Math.round(n.t * 960), [0x90, n.m, n.v]], [Math.round((n.t + n.d) * 960), [0x80, n.m, 0]]); }
+  ev.sort((a, b) => a[0] - b[0]);
+  const body = [0, 0xff, 0x51, 3, 0x07, 0xa1, 0x20, 0, 0xc0, prog]; let last = 0;
+  for (const [t, b] of ev) { body.push(...vlq(t - last), ...b); last = t; }
+  body.push(...vlq(960), 0xff, 0x2f, 0);
+  const L = body.length;
+  return Buffer.from([0x4d, 0x54, 0x68, 0x64, 0, 0, 0, 6, 0, 0, 0, 1, 1, 0xe0, 0x4d, 0x54, 0x72, 0x6b, L >>> 24, (L >> 16) & 255, (L >> 8) & 255, L & 255, ...body]);
+}
+async function renderGM(id, [gm, lo, hi, dur]) {
+  const prog = GMN.indexOf(gm); if (prog < 0) throw new Error('unbekanntes GM-Programm ' + gm);
+  const vels = GM_VEL2.has(id) ? [[72, .6], [116, 1]] : [[104, 1]], notes = []; let t = .5;
+  // Zwei Anschlagstufen: alle 3 Halbtöne ein Ton; gehaltene Klänge (Flächen, Leads) vertragen das Umstimmen besser: alle 4
+  for (let m = lo; m <= hi; m += vels.length > 1 ? 3 : 4) for (const [v, vh] of vels) { notes.push({ m, v, vh, t, d: dur }); t += dur + 2; }
+  const mid = path.join(tmp, id + '.mid'), wav = path.join(tmp, id + '.wav');
+  fs.writeFileSync(mid, midiFile(prog, notes));
+  await run('fluidsynth', ['-ni', '-q', '-R', '0', '-C', '0', '-g', '0.5', '-r', String(SR), '-O', 'float', '-F', wav, SF2, mid]);
+  const b = fs.readFileSync(wav); let o = 12, data = null;
+  while (o < b.length - 8) { const k = b.toString('ascii', o, o + 4), n = b.readUInt32LE(o + 4); if (k === 'data') { data = b.subarray(o + 8, o + 8 + n); break; } o += 8 + n + (n & 1); }
+  const all = new Float32Array(data.buffer.slice(data.byteOffset, data.byteOffset + data.length)), N = all.length / 2;
+  fs.rmSync(mid); fs.rmSync(wav);
+  return notes.map(n => {
+    const a = Math.round(n.t * SR), e = Math.min(N, a + Math.round((dur + .3) * SR));
+    const chs = [0, 1].map(c => { const x = new Float32Array(e - a); for (let i = a; i < e; i++) x[i - a] = all[i * 2 + c]; return x; });
+    return { m: n.m, v: n.vh, chs, maxSec: dur, fade: .25 };
+  });
+}
+// tonejs-instruments: aus den WAV-Originalen statt aus MP3, jeder vorhandene Ton (mind. 2 Halbtöne Abstand)
+async function tonejs(only) {
+  const BASE = 'https://raw.githubusercontent.com/nbrosowsky/tonejs-instruments/master/';
+  const lib = String(await run('curl', ['-sfL', '--max-time', '60', BASE + 'Tonejs-Instruments.js'])), re = /'([a-z-]+)': \{([^}]*)\}/g;
+  const DUR = { piano: 5, harp: 4, 'guitar-acoustic': 4, 'guitar-electric': 4, 'guitar-nylon': 4, xylophone: 2, 'bass-electric': 3 };
+  for (let m; (m = re.exec(lib));) {
+    const inst = m[1]; if (only.length && !only.includes(inst)) continue;
+    const notes = [...new Set([...m[2].matchAll(/'([A-G]#?\d)'/g)].map(x => x[1]))].map(n => ({ n, m: midiOf(n) })).sort((a, b) => a.m - b.m);
+    const pick = []; let last = -99; for (const x of notes) if (x.m - last >= 2) { pick.push(x); last = x.m; }
+    const d = DUR[inst] || 3.5, dir = path.join(tmp, 'tj'); fs.mkdirSync(dir, { recursive: true });
+    const zones = await pool(pick, 6, async x => {
+      const f = path.join(dir, inst + x.n.replace('#', 's') + '.wav');
+      for (let i = 0; ; i++) { try { await run('curl', ['-sfL', '--max-time', '60', '-o', f, `${BASE}samples/${inst}/${x.n.replace('#', 's')}.wav`]); break; } catch (e) { if (i > 3) throw e; } }
+      const chs = await decode({ dir }, path.basename(f), d); fs.rmSync(f);
+      return { m: x.m, v: 1, chs, maxSec: d, fade: .25 };
+    });
+    writeInst(inst, zones, 128, '(tonejs)', true);
+  }
+}
+// VCSL-Instrumente: dieselben Aufnahmen wie in scripts/fetch-vcsl.js, aber in Stereo, 128 kbit/s und mit doppelt so vielen Tönen
+async function vcsl(only) {
+  const t = fs.readFileSync(path.join(__dirname, 'fetch-vcsl.js'), 'utf8'), i0 = t.indexOf('const INSTR = {');
+  const INSTR = Function('return ' + t.slice(i0 + 14, t.indexOf('\n};', i0) + 2))(), r = repo('sgossner/VCSL');
+  for (const [id, o] of Object.entries(INSTR)) {
+    if (only.length && !only.includes(id)) continue;
+    const by = new Map();
+    for (const f of r.files) { if (!f.startsWith(o.dir + '/') || !/\.wav$/i.test(f)) continue; const x = f.slice(o.dir.length + 1).match(o.re); if (!x) continue; const m = midiOf(x[1]); if (m != null && !by.has(m)) by.set(m, f); }
+    const ms = [...by.keys()].sort((a, b) => a - b); need(r, [...by.values()]);
+    const dec = await pool(ms, 6, async m => ({ m, chs: await decode(r, by.get(m), o.dur) }));
+    // Oktave wie in fetch-vcsl.js über den Median aller gemessenen Abweichungen
+    const sh = dec.map(z => { const p = pitchOf(z.chs[0]); return p ? Math.round((p - z.m) / 12) * 12 : null; }).filter(x => x !== null).sort((a, b) => a - b), shift = sh.length ? sh[sh.length >> 1] : 0;
+    const zones = []; let last = -99;
+    for (const z of dec) if (z.m - last >= 2) { zones.push({ m: z.m + shift, v: 1, chs: z.chs, maxSec: o.dur, fade: .25 }); last = z.m; }
+    writeInst(id, zones, 128, '(VCSL)', true);
+  }
+}
+// VCSL-Kits (drums-vcsl*.js): dieselben Schläge, aber in Stereo und mit 160 kbit/s (Format 1, ein Schlag pro Instrument)
+async function vcslKits(only) {
+  const t = fs.readFileSync(path.join(__dirname, 'fetch-vcsl.js'), 'utf8'), cut = (k, end) => { const i = t.indexOf(k); return t.slice(i + k.length - 1, t.indexOf(end, i) + 2); };
+  const PP = Function('return ' + cut('const P = {', '\n};'))(), K = Function('P', 'return ' + cut('const KITS = {', '\n};'))(PP), r = repo('sgossner/VCSL');
+  for (const [id, map] of Object.entries(K)) {
+    if (only.length && !only.includes(id)) continue;
+    const data = {}, files = Object.values(map).map(([dir, name]) => r.files.find(f => f.startsWith(dir + '/') && f.endsWith('/' + name)));
+    need(r, files.filter(Boolean));
+    for (const [piece, [dir, name, mx]] of Object.entries(map)) {
+      const f = r.files.find(x => x.startsWith(dir + '/') && x.endsWith('/' + name)); if (!f) { console.warn('fehlt', id, piece); continue; }
+      const max = mx || piece === 'crash' || piece === 'ride' ? 3 : piece === 'ohat' ? 1.5 : 1, chs = await decode(r, f, max);
+      data[piece] = mp3(monoIfSame(tidy(chs, peakOf(chs), max, .08)).map(d => { const p = peakOf([d]) || 1; return d.map(v => v * .97 / p); }), 160);
+    }
+    const file = path.join(out, 'drums-' + id + '.js');
+    fs.writeFileSync(file, `KW_SMP(${JSON.stringify('drums-' + id)},${JSON.stringify(data)});\n`);
+    console.log(`drums-${id}: ${Object.keys(data).length} Schläge, ${(fs.statSync(file).size / 1048576).toFixed(1)} MB (VCSL)`);
+  }
+}
+
 (async () => {
   const want = process.argv.slice(2);
+  // Upgrades bestehender Klänge: gm[:id,id], tonejs[:id], vcsl[:id]
+  const up = (k, fn) => { const a = want.find(w => w === k || w.startsWith(k + ':')); return a ? fn(a.includes(':') ? a.split(':')[1].split(',') : []) : null; };
+  await up('gm', async only => { const T = gmTable(); for (const [id, d] of Object.entries(T)) if (!only.length || only.includes(id)) writeInst('gm-' + id, await renderGM(id, d), 128, '(FluidR3 SF2)'); });
+  await up('tonejs', tonejs);
+  await up('vcsl', vcsl);
+  await up('vcslkits', vcslKits);
+  if (want.some(w => /^(gm|tonejs|vcsl|vcslkits)(:|$)/.test(w))) { fs.rmSync(tmp, { recursive: true, force: true }); return; }
   for (const [id, fn] of Object.entries(P)) if (!want.length || want.includes(id)) {
     const res = await fn(); if (Array.isArray(res)) writeInst(id, res, 128);
   }

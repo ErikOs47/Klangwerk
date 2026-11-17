@@ -1944,7 +1944,7 @@ function loadSamples(id) {
   // Format 1: { midi: mp3 } (eine Anschlagstärke, jeder Ton auf vollen Pegel gebracht)
   // Format 2: { v: 2, z: [[midi, obere Velocity, mp3], …] } (Stereo, mehrere Anschlagstärken, Pegel wie aufgenommen)
   s.wait = (smpRaw[id] ? Promise.resolve() : loadScript('samples/' + id + '.js'))
-    .then(() => { const raw = smpRaw[id], v2 = raw.v === 2; s.v2 = v2; return Promise.all((v2 ? raw.z : Object.entries(raw)).map(async ([m, a, b]) => ({ m: +m, vh: v2 ? a : 1, buf: await smpDec.decodeAudioData(unb64(v2 ? b : a).buffer) }))); })
+    .then(() => { const raw = smpRaw[id], v2 = raw.v === 2; s.v2 = v2; s.multi = v2 && new Set(raw.z.map(x => x[1])).size > 1; return Promise.all((v2 ? raw.z : Object.entries(raw)).map(async ([m, a, b]) => ({ m: +m, vh: v2 ? a : 1, buf: await smpDec.decodeAudioData(unb64(v2 ? b : a).buffer) }))); })
     .then(z => { z.sort((a, b) => a.m - b.m || a.vh - b.vh); const hold = SAMPLED[id]?.[1].hold; z.forEach(x => { if (!s.v2) peakNorm(x.buf); x.off = hold ? swellIn(x.buf) : leadIn(x.buf); if (hold) loopZone(x); }); s.zones = z; delete smpRaw[id]; })
     .catch(e => { smpSets.delete(id); toast(`Die Samples für „${SAMPLED[id]?.[0] || id}“ ließen sich nicht laden.`); throw e; });
   return s.wait;
@@ -2008,7 +2008,7 @@ function detectRoot(buf) {
   return best > .8 && lag ? clamp(Math.round(69 + 12 * Math.log2(sr / lag / 440)), 24, 96) : 60;
 }
 function samplerOn(tr, P_, dest, midi, time, vel, tw) {
-  const set = P_.smp === 'user' ? null : smpSets.get(P_.smp), zones = set ? set.zones : userZones(tr), v2 = !!set?.v2;
+  const set = P_.smp === 'user' ? null : smpSets.get(P_.smp), zones = set ? set.zones : userZones(tr), v2 = !!set?.v2, multi = !!set?.multi; // multi: mehrere Anschlagstufen
   if (!zones?.length) { if (P_.smp !== 'user') loadSamples(P_.smp).catch(() => { }); return { release() { } }; }
   // Zonen mit Tastenbereich (MPC-Keygroups) zuerst, sonst das Sample mit dem nächsten Grundton
   const inR = zones.filter(x => x.lo != null && x.lo <= midi && midi <= x.hi), cand = inR.length ? inR : zones;
@@ -2020,10 +2020,10 @@ function samplerOn(tr, P_, dest, midi, time, vel, tw) {
   src.buffer = z.buf; src.playbackRate.value = Math.pow(2, (midi - z.m) / 12);
   if (z.le) { src.loop = true; src.loopStart = z.ls; src.loopEnd = z.le; }
   // Leiser angeschlagen klingt auch dunkler, wie bei echten Instrumenten (Aufnahmen mit mehreren Anschlagstärken haben das schon)
-  filt.type = 'lowpass'; filt.frequency.value = Math.min(20000, (v2 ? 20000 : 2500 * Math.pow(8, vel)) * cm); filt.Q.value = .5;
+  filt.type = 'lowpass'; filt.frequency.value = Math.min(20000, (multi ? 20000 : 2500 * Math.pow(8, vel)) * cm); filt.Q.value = .5;
   src.connect(filt).connect(g); g.connect(dest);
   // Innerhalb einer Anschlagstufe wird es mit der Velocity etwas leiser; zwischen den Stufen sorgt die Aufnahme selbst für den Unterschied
-  const peak = (v2 ? Math.pow(clamp(vel / z.vh, .05, 1), .8) : Math.pow(vel, 1.3)) * P_.level;
+  const peak = (multi ? Math.pow(clamp(vel / z.vh, .05, 1), .8) : Math.pow(vel, 1.3)) * P_.level;
   g.gain.setValueAtTime(0, time); g.gain.linearRampToValueAtTime(peak, time + a);
   src.start(time, z.off || 0);
   return {
@@ -2059,9 +2059,13 @@ function noteOn(tr, dest, midi, time, vel = .8) {
   if (P_.trem) { const tg = ctx.createGain(); tg.gain.value = 1 - P_.trem.depth / 2; post.disconnect(); post.connect(tg).connect(g); lfo(P_.trem.rate, P_.trem.depth / 2).connect(tg.gain); }
   if (P_.wob) lfo((noteBpm || P.bpm) / 60 * P_.wob.sync, cut * P_.wob.depth).connect(filt.frequency);
   const srcs = [];
+  // Stereo-Breite: gegeneinander verstimmte Oszillatoren (Flächen, Streicher, Chöre) leicht nach links und rechts verteilen.
+  // Bässe bleiben mono, damit sie auf jeder Anlage gleich klingen.
+  const wide = P_.cat !== 'Bass' && P_.osc.some(o => o.detune < 0) && P_.osc.some(o => o.detune > 0);
   for (const o of P_.osc) {
     const og = ctx.createGain();
-    og.connect(filt);
+    if (wide && o.detune) { const pn = ctx.createStereoPanner(); pn.pan.value = clamp(o.detune / 20, -.6, .6); og.connect(pn).connect(filt); }
+    else og.connect(filt);
     if (o.decay) { og.gain.setValueAtTime(o.gain, time); og.gain.setTargetAtTime(o.gain * .02, time, o.decay / 3); }
     else og.gain.value = o.gain;
     if (o.type === 'noise') {

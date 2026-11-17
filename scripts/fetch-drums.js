@@ -30,7 +30,7 @@ for (const [id, [dir, map]] of Object.entries(KITS)) {
     const raw = path.join(tmp, 'raw.ogg'), enc = path.join(tmp, 'enc.mp3');
     execFileSync('curl', ['-sfL', '--max-time', '60', '-o', raw, BASE + dir + '/' + name.split('/').map(encodeURIComponent).join('/') + '.ogg']);
     const max = piece === 'crash' || piece === 'ride' ? 3 : 2;
-    execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', raw, '-t', String(max), '-af', `afade=t=out:st=${max - .1}:d=0.1`, '-ac', '1', '-ar', '44100', '-b:a', '96k', enc]);
+    execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', raw, '-t', String(max), '-af', `afade=t=out:st=${max - .1}:d=0.1`, '-ac', '1', '-ar', '44100', '-b:a', '128k', enc]);
     data[piece] = fs.readFileSync(enc).toString('base64');
   }
   fs.writeFileSync(path.join(out, 'drums-' + id + '.js'), `KW_SMP(${JSON.stringify('drums-' + id)},${JSON.stringify(data)});\n`);
