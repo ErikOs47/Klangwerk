@@ -114,7 +114,7 @@ region = { id, start, len (in Beats), name, … }
 
 ## 5. Offene To-dos
 
-- [ ] PR #22 (1.7 + 1.7.1) reviewen/mergen → prüfen, ob `windows.yml` das Release baut (Workflow lief noch nie auf `main`).
+- [ ] PR für 1.8.0 mergen → prüfen, ob `windows.yml` das Release v1.8.0 baut (v1.7.1 wurde erfolgreich gebaut). Die Zip wird durch die Studio-Klänge rund 50 MB größer.
 - [ ] Allmähliche Tempoübergänge (Rampen) in der Tempo-Karte.
 - [ ] Regionen loopen durch Ziehen an der oberen rechten Ecke.
 - [ ] Mehrfachauswahl von Regionen.
